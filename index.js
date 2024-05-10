@@ -26,7 +26,8 @@ const node_session_secret = process.env.NODE_SESSION_SECRET;
 var { database } = include('databaseConnection');
 
 // ----- Collections -----
-const usersCollection = database.db(mongodb_database).collection('users');
+const clientsCollection = database.db(mongodb_database).collection('clientUsers');
+const adminsCollection = database.db(mongodb_database).collection('adminUsers');
 // const accountCollection = database.db(mongodb_database).collection(req.session.username);
 // This don't work ^
 
@@ -81,13 +82,53 @@ function adminAuthorization(req,res,next) {
 	}
 }
 
+
+
 app.get('/', (req,res) => {
 	res.render('about');
 })
 
+// Login routing
+app.get('/login', (req, res) => {
+	res.render('login.ejs')
+});
 
+// Handling login subission information
+app.post('/submitLogin', async (req,res) => {
 
+	//save the given email and password from login
+	email = req.body.email;
+	password = req.body.password
 
+	// validation for entering a string, max 50 chars, and it's required
+	const schema = Joi.string().max(50).required();
+	const validationResult = schema.validate(email);
+	if (validationResult.error != null) {
+	   res.redirect("/login");
+	   return;
+	}
+
+	// find a result for the client accounts first
+	var result = await clientsCollection.find({email: email}).project({email: 1, password: 1, _id: 1}).toArray();
+
+	// if there are no clients, search through the admin accounts
+	if (result.length == 0) {
+		result = await adminsCollection.find({businessEmail: email}).project({email: 1, password: 1, _id: 1}).toArray();
+	}
+	
+	// check the passwords to see if they match. If they do, create a session for the user and send them to the
+	if (await bcrypt.compare(password, result[0].password)) {
+		req.session.authenticated = true;
+		req.session.email = email;
+		req.session.cookie.maxAge = expireTime;
+
+		res.render('about'); // I am unsure what pages we would like to redirect to in this current time
+	} else {
+
+		// if the password is incorrect, say so
+		res.render('errorMessage', { error: "password is incorrect," });
+	}
+});
 
 
 
