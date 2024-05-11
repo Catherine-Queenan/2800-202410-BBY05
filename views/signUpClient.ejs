@@ -1,5 +1,5 @@
 <%- include("templates/header") %>
-<form method="post">
+<form onsubmit="confirmPassword()" method="post">
 	<div class="form-group">
 		<label class="form-check-label" for="firstnameField">First Name</label>
 		<input name="firstName" placeholder="First Name" id="firstnameField">
@@ -30,6 +30,7 @@
 		<input name="confirmPassword" placeholder="Confirm Password" id="confrimPasswordField">
 	</div>
 
-	<button formaction="/submitSignup/client">Submit</button>
+	<button id="signUpSubmit" formaction="/submitSignup/client">Submit</button>
 </form>
+<script src="/scripts/signUp.js"></script>
 <%- include("templates/footer") %>

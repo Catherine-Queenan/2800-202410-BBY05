@@ -108,7 +108,7 @@ app.post('/submitSignup/:type', async(req, res) => {
 				firstName: Joi.string().pattern(/^[a-zA-Z\s]*$/).max(20).required(),
 				lastName: Joi.string().pattern(/^[a-zA-Z\s]*$/).max(20).required(),
 				email: Joi.string().email().required(),
-				phone: Joi.string().pattern(/^[0-9\s]*$/).required(),
+				phone: Joi.string().pattern(/^[0-9\s]*$/).length(10).required(),
 				password: Joi.string().max(20).min(2).required()
 			}
 		);
@@ -143,7 +143,7 @@ app.post('/submitSignup/:type', async(req, res) => {
 			{
 				companyName: Joi.string().pattern(/^[a-zA-Z\s]*$/).max(20).required(),
 				businessEmail: Joi.string().email().required(),
-				businessPhone: Joi.string().pattern(/^[0-9\s]*$/).max(20).required(),
+				businessPhone: Joi.string().pattern(/^[0-9\s]*$/).length(10).required(),
 				firstName: Joi.string().pattern(/^[a-zA-Z\s]*$/).max(20).required(),
 				lastName: Joi.string().pattern(/^[a-zA-Z\s]*$/).max(20).required(),
 				companyWebsite: Joi.string().pattern(/^[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/),
