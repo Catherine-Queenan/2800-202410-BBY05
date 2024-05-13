@@ -70,3 +70,44 @@
     font-style: normal;
 }
 /* End of Fonts */
+.nav-link {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    /*Ensure that all of the navbar buttons are the same size.*/
+    width: 75px;
+    height: 75px;
+}
+
+/*Bootstrap Icons*/
+.bi {
+    margin-bottom: -8px; /*Make the text nice and snug with the icons.*/
+    font-size: 40px;
+}
+
+/*Dropdown menu*/
+#dropdownMenu {
+    position: fixed;
+    top: 100px; /*The height of the navbar (approx)*/
+    left: 0;
+    width: 100%;
+    height: calc(100% - 60px);
+    background-color: #ffffff;
+    z-index: 1; /*In the future, if we want to have more layers, we can increase this value. 1 works for now.*/
+    display: none; /*By default, we want the menu to be invisible.*/
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+/*The items in the list (so the text and the symbols)*/
+.dropdown-item {
+    color: #000000;
+    font-size: 24px;
+    padding: 15px;
+    width: 100%;
+    text-align: center;
+}
