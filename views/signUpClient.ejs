@@ -1,0 +1,37 @@
+<%- include("templates/header") %>
+<form id="signupForm" method="post">
+	<div class="form-group">
+		<label class="form-check-label" for="firstnameField">First Name</label>
+		<input name="firstName" placeholder="First Name" id="firstnameField">
+	</div>
+
+	<div class="form-group">
+		<label class="form-check-label" for="lastNameField">Last Name</label>
+		<input name="lastName" placeholder="Last Name" id="lastNameField">
+	</div>
+
+	<div class="form-group">
+		<label class="form-check-label" for="emailField">Email</label>
+		<input name="email" placeholder="Email" id="emailField">
+	</div>
+
+	<div class="form-group">
+		<label class="form-check-label" for="phoneField">Phone Number</label>
+		<input name="phone" placeholder="Phone Number" id="phoneField">
+	</div>
+
+	<div class="form-group">
+		<label class="form-check-label" for="password">Password</label>
+		<input name="password" placeholder="Password" id="passwordField" class="passwordField">
+	</div>
+
+	<div class="form-group">
+		<label class="form-check-label" for="confrimPasswordField">Confirm Password</label>
+		<input name="confirmPassword" placeholder="Confirm Password" id="confirmPasswordField" class="passwordField">
+		<small id="passwordWarning"></small>
+	</div>
+
+	<button id="signUpSubmit" formaction="/submitSignup/client" disabled>Submit</button>
+</form>
+<script src="/scripts/signUp.js"></script>
+<%- include("templates/footerLogin") %>
