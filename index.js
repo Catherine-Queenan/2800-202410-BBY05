@@ -17,17 +17,28 @@ const expireTime = 60 * 60 * 1000;
 const mongodb_host = process.env.MONGODB_HOST;
 const mongodb_user = process.env.MONGODB_USER;
 const mongodb_password = process.env.MONGODB_PASSWORD;
-const mongodb_database = process.env.MONGODB_DATABASE;
+const mongodb_appdb = process.env.MONGODB_APPDATABASE;
+const mongodb_businessdb = process.env.MONGODB_BUSINESSDATABASE;
+const mongodb_clientdb = process.env.MONGODB_CLIENTDATABASE;
 const mongodb_session_secret = process.env.MONGODB_SESSION_SECRET;
 
 const node_session_secret = process.env.NODE_SESSION_SECRET;
 /* END secret section */
 
-var { database } = include('databaseConnection');
+// var { database } = include('databaseConnection');
+
+//Creating a MongoClient and using it to connect to a specified database
+const MongoClient = require("mongodb").MongoClient;
+// let atlasURI = `mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/${database}?retryWrites=true`;
+let appdb = new MongoClient(`mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/${mongodb_appdb}?retryWrites=true`);
+
+// This database is set when the user is logged in or signs up for the first time using setUserDatabase().
+let userdb = '';
 
 // ----- Collections -----
-const clientsCollection = database.db(mongodb_database).collection('clientUsers');
-const adminsCollection = database.db(mongodb_database).collection('adminUsers');
+const appUserCollection = appdb.db(mongodb_appdb).collection('users');
+// const clientsCollection = database.db(mongodb_database).collection('clientUsers');
+// const adminsCollection = database.db(mongodb_database).collection('adminUsers');
 // const accountCollection = database.db(mongodb_database).collection(req.session.username);
 // This don't work ^
 
@@ -35,6 +46,7 @@ app.set('view engine', 'ejs');
 
 app.use(express.urlencoded({ extended: false }));
 
+// This is for storing active sessions
 var mongoStore = MongoStore.create({
 	mongoUrl: `mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/sessions`,
 	crypto: {
@@ -48,6 +60,22 @@ app.use(session({
 	saveUninitialized: false,
 	resave: true
 }));
+
+function isClient(req) {
+	if (req.session.userType == 'client') {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+function isBusiness(req) {
+	if (req.session.userType == 'business') {
+		return true;
+	} else {
+		return false;
+	}
+}
 
 function isValidSession(req) {
 	if (req.session.authenticated) {
@@ -66,7 +94,7 @@ function sessionValidation(req, res, next) {
 }
 
 function isAdmin(req) {
-	if (req.session.user_type == 'admin') {
+	if (req.session.userType == 'admin') {
 		return true;
 	} else {
 		return false;
@@ -82,10 +110,26 @@ function adminAuthorization(req, res, next) {
 	}
 }
 
-
+// Sets the 
+function setUserDatabase(req) {
+	if (!req.session) {
+		userdb = null;
+	} else {
+		let db = '';
+		if (isClient(req)) {
+			let clientEmail = req.session.email.split('.').join("");
+			db = mongodb_clientdb + '-' + clientEmail;
+		} else if (isBusiness(req)) {
+			db = mongodb_businessdb + '-' + req.session.name;
+		}
+		let userdbAccess = new MongoClient(`mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/${db}?retryWrites=true`);
+		userdb = userdbAccess.db(db);
+	}
+	// console.log(userdb);
+}
 
 app.get('/', (req, res) => {
-	res.render('index');
+	res.render('index', {loggedIn: isValidSession(req), name: req.session.name});
 });
 
 app.get('/about', (req, res) => {
@@ -101,7 +145,7 @@ app.get('/signup', (req, res) => {
 app.get('/signup/:form', (req, res) => {
 	let form = req.params.form;
 	if (form == "business") {
-		res.render('signUpAdmin.ejs');
+		res.render('signUpBusiness.ejs');
 	} else if (form == "client") {
 		res.render('signUpClient.ejs');
 	}
@@ -146,13 +190,32 @@ app.post('/submitSignup/:type', async (req, res) => {
 		//Hash entered password for storing
 		var hashPass = await bcrypt.hash(user.password, saltRounds);
 
-		//Store client information in client collection
-		await clientsCollection.insertOne({
+		//Store new user info in the appdb
+		await appUserCollection.insertOne({
+			email: user.email,
+			companyName: null,
 			firstName: user.firstName,
 			lastName: user.lastName,
-			email: user.email,
 			phone: user.phone,
-			password: hashPass
+			password: hashPass,
+			userType: 'client'
+		});
+
+		//Update the session for the now logged in user
+		req.session.authenticated = true;
+		req.session.email = user.email;
+		req.session.name = user.firstName +' '+ user.lastName;
+		req.session.userType = 'client';
+		req.session.cookie.maxAge = expireTime;
+
+		setUserDatabase(req);
+
+		//Store client information in client collection
+		await userdb.collection('info').insertOne({
+			email: user.email,
+			firstName: user.firstName,
+			lastName: user.lastName,
+			phone: user.phone
 		});
 
 		//Submits info for business side forms
@@ -202,23 +265,41 @@ app.post('/submitSignup/:type', async (req, res) => {
 			user.services.push(req.body.services);
 		}
 
-		//Store business information in client collection
-		await adminsCollection.insertOne({
+		await appUserCollection.insertOne({
+			email: user.businessEmail,
 			companyName: user.companyName,
-			businessEmail: user.businessEmail,
-			businessPhone: user.businessPhone,
+			firstName: user.firstName,
+			lastName: user.lastName,
+			phone: user.businessPhone,
+			password: hashPass,
+			userType: 'business'
+		});
+
+		//Update the session for the now logged in user
+		req.session.authenticated = true;
+		req.session.email = user.companyEmail;
+		req.session.name = user.companyName;
+		req.session.userType = 'business';
+		req.session.cookie.maxAge = expireTime;
+
+		setUserDatabase(req);
+		console.log(userdb);
+		//Store business information in client collection
+		await userdb.collection('info').insertOne({
+			companyName: user.companyName,
+			email: user.businessEmail,
+			phone: user.businessPhone,
 			services: user.services,
 			firstName: user.firstName,
 			lastName: user.lastName,
-			companyWebsite: user.companyWebsite,
-			password: hashPass,
+			companyWebsite: user.companyWebsite
 		});
 
 	}
 
-	//Update the session for the now logged in user
-	req.session.authenticated = true;
-	req.session.cookie.maxAge = expireTime;
+	// //Update the session for the now logged in user
+	// req.session.authenticated = true;
+	// req.session.cookie.maxAge = expireTime;
 
 	//Redirect to home
 	res.redirect('/');
@@ -245,14 +326,14 @@ app.post('/submitLogin', async (req, res) => {
 	}
 
 	// find a result for the client accounts first
-	var result = await clientsCollection.find({ email: email }).project({ email: 1, password: 1, _id: 1 }).toArray();
+	var result = await appUserCollection.find({ email: email }).project({ email: 1, companyName: 1, firstName: 1, lastName: 1, password: 1, userType: 1, _id: 1 }).toArray();
 
-	// if there are no clients, search through the admin accounts
+	// // if there are no clients, search through the admin accounts
+	// if (result.length == 0) {
+	// 	result = await adminsCollection.find({ businessEmail: email }).project({ email: 1, password: 1, _id: 1 }).toArray();
+	// }
 	if (result.length == 0) {
-		result = await adminsCollection.find({ businessEmail: email }).project({ email: 1, password: 1, _id: 1 }).toArray();
-	}
-	if (result.length == 0) {
-		var doc = '<p>Invalid Signup</p><br><a href="/signup">Try again</a>';
+		var doc = '<p>No user found</p><br><a href="/login">Try again</a>';
 		res.send(doc);
 		return;
 	}
@@ -261,8 +342,18 @@ app.post('/submitLogin', async (req, res) => {
 	if (await bcrypt.compare(password, result[0].password)) {
 		req.session.authenticated = true;
 		req.session.email = email;
+		req.session.userType = result[0].userType;
+
+		// Set session name to first+last if client, companyname if business
+		if (req.session.userType == 'client') {
+			req.session.name = result[0].firstName +' '+ result[0].lastName;
+		} else if (req.session.userType == 'business') {
+			req.session.name = result[0].companyName;
+		}
 		req.session.cookie.maxAge = expireTime;
 
+		setUserDatabase(req);
+		
 		res.redirect('/'); // redirect to home page
 		return;
 	} else {
@@ -274,6 +365,8 @@ app.post('/submitLogin', async (req, res) => {
 
 app.get('/logout', (req,res) => {
 	req.session.destroy();
+	setUserDatabase(req);
+	// console.log(userdb);
 	res.render('logout');
 });
 

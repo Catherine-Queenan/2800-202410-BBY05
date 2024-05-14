@@ -1,0 +1,47 @@
+appDB {
+	users {
+		_id
+		email
+		companyName // Can be null
+		firstName
+		lastName
+		phone
+		password //hashed
+		userType
+	}
+}
+
+client-email {
+	info {
+		_id
+		email
+		firstName
+		lastName
+		phone
+	}
+	activeAlerts {}
+	inactiveAlerts{}
+}
+
+business-email {
+	info {
+		_id
+		companyName
+		email
+		phone
+		services
+		firstName
+		lastName
+		companyWebsite
+	}
+	activeAlerts{}
+	inactiveAlerts{}
+}
+
+sessions {
+	sessions {
+		_id
+		expires
+		session
+	}
+}
