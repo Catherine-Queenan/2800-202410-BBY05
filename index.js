@@ -86,10 +86,12 @@ app.get('/', (req,res) => {
 	res.render('about');
 });
 
+//Page to choose what account to sign up for (business or client)
 app.get('/signup', (req, res) => {
 	res.render('signupChoice')
 });
 
+//Renders form for business or client sign up
 app.get('/signup/:form', (req, res) => {
 	let form = req.params.form;
 	if(form == "business"){
@@ -99,10 +101,13 @@ app.get('/signup/:form', (req, res) => {
 	} 
 });
 
+//Submitting info collected from sign up forms
 app.post('/submitSignup/:type', async(req, res) => {
 	let type = req.params.type;
 	
+	//Submits info for client side forms
 	if(type == "client"){
+		//Validation schema for inputted values
 		var schema = Joi.object (
 			{
 				firstName: Joi.string().pattern(/^[a-zA-Z\s]*$/).max(20).required(),
@@ -113,6 +118,7 @@ app.post('/submitSignup/:type', async(req, res) => {
 			}
 		);
 
+		//store user inputs from req.body
 		var user = {
 			firstName: req.body.firstName,
 			lastName: req.body.lastName,
@@ -120,16 +126,21 @@ app.post('/submitSignup/:type', async(req, res) => {
 			phone: req.body.phone,
 			password: req.body.password
 		};
+
+		//validate inputs against schema
 		var validationRes = schema.validate(user);
 
+		//Deal with errors from validation
 		if(validationRes.error != null){
 			let doc = '<p>Invalid Signup</p><br><a href="/signup">Try again</a></body>';
 			res.send(doc);
 			return;
 		}
 
+		//Hash entered password for storing
 		var hashPass = await bcrypt.hash(user.password, saltRounds);
 
+		//Store client information in client collection
 		await clientsCollection.insertOne({
 			firstName: user.firstName,
 			lastName: user.lastName,
@@ -138,7 +149,10 @@ app.post('/submitSignup/:type', async(req, res) => {
 			password: hashPass
 		});
 
+	//Submits info for business side forms
 	} else if (type == "business"){
+
+		//Validation schema for user inputs
 		var schema = Joi.object (
 			{
 				companyName: Joi.string().pattern(/^[a-zA-Z\s]*$/).max(20).required(),
@@ -151,6 +165,7 @@ app.post('/submitSignup/:type', async(req, res) => {
 			}
 		);
 
+		//Stores all user inputs that a user types in from req.body
 		var user = {
 			companyName: req.body.companyName,
 			businessEmail: req.body.businessEmail,
@@ -161,21 +176,27 @@ app.post('/submitSignup/:type', async(req, res) => {
 			password: req.body.password
 		};
 
+		//Validates user inputs against schema
 		var validationRes = schema.validate(user);
 
+		//Deals with errors from validation
 		if(validationRes.error != null){
 			let doc = '<body><p>Invalid Signup</p><br><a href="/signup">Try again</a></body>';
 			res.send(doc);
 			return;
 		}
 
+		//hashes password for storing
 		var hashPass = await bcrypt.hash(user.password, saltRounds);
 
+		//If the user select the services they provide it is stored in an array
+		//This currently only functions for the single checkbox and would need to be adjusted for multiple service options
 		user.services = [];
 		if(Boolean(req.body.services)){
 			user.services.push(req.body.services);
 		}
 
+		//Store business information in client collection
 		await adminsCollection.insertOne({
 			companyName: user.companyName,
 			businessEmail: user.businessEmail,
@@ -186,17 +207,15 @@ app.post('/submitSignup/:type', async(req, res) => {
 			companyWebsite: user.companyWebsite,
 			password: hashPass,
 		});
-		
 	} 
 
-	console.log("inserted A user");
+	//Update the session for the now logged in user
 	req.session.authenticated = true;
 	req.session.cookie.maxAge = expireTime;
 	
+	//Redirect to home
 	res.redirect('/');
 });
-
-
 
 
 
