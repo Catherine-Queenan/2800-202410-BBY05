@@ -82,6 +82,9 @@ function adminAuthorization(req, res, next) {
 	}
 }
 
+// TODO: Add access to pages and create a check for the user type and authorization
+// status to determine what footer and navbar to display
+
 app.get('/', (req, res) => {
 	res.render('index');
 });
