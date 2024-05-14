@@ -160,6 +160,7 @@ app.post('/submitSignup/:type', async(req, res) => {
 			companyWebsite: req.body.companyWebsite,
 			password: req.body.password
 		};
+
 		var validationRes = schema.validate(user);
 
 		if(validationRes.error != null){
@@ -170,10 +171,16 @@ app.post('/submitSignup/:type', async(req, res) => {
 
 		var hashPass = await bcrypt.hash(user.password, saltRounds);
 
+		user.services = [];
+		if(Boolean(req.body.services)){
+			user.services.push(req.body.services);
+		}
+
 		await adminsCollection.insertOne({
 			companyName: user.companyName,
 			businessEmail: user.businessEmail,
 			businessPhone: user.businessPhone,
+			services: user.services,
 			firstName: user.firstName,
 			lastName: user.lastName,
 			companyWebsite: user.companyWebsite,
