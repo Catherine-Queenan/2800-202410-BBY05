@@ -54,14 +54,7 @@ const transporter = nodemailer.createTransport({
 	}
 });
 
-//Sets up the configurations for the email (This can be modified)
-const mailOptions = {
-	from: `${autoreply_email}`,
-	to: 'evin4369@gmail.com',
-	subject: 'test email',
-	text: 'This is a test email',
-	html: '<h1>Where does this go in the email?</h1>'
-};
+
 
 app.use(session({
 	secret: node_session_secret,
@@ -291,6 +284,80 @@ app.post('/submitLogin', async (req, res) => {
 		// if the password is incorrect, say so
 		res.render('errorMessage', { error: 'Password is incorrect' });
 	}
+});
+
+// forget password (link it after) -> enter email -> get email (in progress) -> make a password -> 
+// This is the reset password landing page where the user can enter their email for a reset
+
+// This function is solely for sending emails. It will need an ejs file for the email templating later
+function sendMail(emailAddress) {
+	emailHTMLinsert ='<h1>This is HTML text. I need a UI designer to make it look nice</h1>';
+
+	// Custom settings for the mail
+	const mailOptions = {
+		from: `${autoreply_email}`,
+		to: emailAddress,
+		subject: 'Reset Pawfolio password',
+		html: emailHTMLinsert
+	};
+
+	// This uses the transporter object near the top of the file to send emails
+	transporter.sendMail(mailOptions, (error, info) => {
+
+		// Error handling
+		if (error) {
+			res.render('errorMessge', { error: 'Email couldn\'t be sent' })
+		}
+		console.log('successfuly sent email')
+	});
+}
+
+// This routing is the main page for forgetting your password.
+app.get('/forgotPassword', (req, res) => {
+
+	// If the email is invalid, the query will have an error message. Otherwise, we want it blank so it doesn't always show
+	const errorMessage = req.query.errorMessage || '';
+	res.render('forgotPassword', {errorMessage: errorMessage});
+});
+
+// This handles the submitted email for the /forgotpassword routing
+app.post('/emailConfirmation', async (req, res) => {
+
+	// Storing the email that was entered
+	email = req.body.email;
+	
+	// if the email is found in the client side, we are allowed to send an email
+	emailValidation = await clientsCollection.find({email: email}).project({ email: 1, password: 1, _id: 1 }).toArray();
+	if(emailValidation.length == 1) {
+		console.log('found in client');
+
+		// sends an email
+		sendMail(email);
+		res.redirect('/emailSent');
+		return;
+	}
+	// if the email is found in the business side, we are allowed to send an email
+	emailValidation = await adminsCollection.find({email: email}).project({ email: 1, password: 1, _id: 1 }).toArray();
+	if(emailValidation.length == 1) {
+		console.log('found in business');
+
+		// sends an email
+		sendMail(email);
+		res.redirect('/emailSent');
+		return;
+	}
+
+	// This is a custom error message for if the email is invalid
+	// This does not have anything to do with the errorMessage.ejs file, this is simply for query
+	const error = 'woof woof woof woof (not a valid email)';
+
+	// the encodeURIComponent ensures that any special characters make it into the query if necessary
+    res.redirect(`/forgotPassword?errorMessage=${encodeURIComponent(error)}`);
+});
+
+app.get('/emailSent', (req, res) => {
+	console.log(req.session.email);
+	res.send('email sent');
 });
 
 app.get('/logout', (req,res) => {
