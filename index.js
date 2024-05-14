@@ -364,6 +364,7 @@ app.post('/submitLogin', async (req, res) => {
 			req.session.name = result[0].companyName;
 		}
 		req.session.cookie.maxAge = expireTime;
+		
 
 		setUserDatabase(req);
 		
@@ -392,8 +393,10 @@ app.get('/profile', sessionValidation, async(req, res) => {
 });
 
 app.get('/profile/edit', sessionValidation,  async(req, res) => {
-	let user = await clientsCollection.findOne({email: req.session.email});
-	res.render('clientProfile', {user: user, editting: true});
+	if(req.session.userType = 'user'){
+		let user = await clientsCollection.findOne({email: req.session.email});
+		res.render('clientProfile', {user: user, editting: true});
+	}
 })
 
 
