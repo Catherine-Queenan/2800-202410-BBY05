@@ -82,7 +82,10 @@ function adminAuthorization(req,res,next) {
 	}
 }
 
-
+ 
+function iconRedirect(action) {
+	res.redirect(action);
+}
 
 app.get('/', (req,res) => {
 	res.render('about');
