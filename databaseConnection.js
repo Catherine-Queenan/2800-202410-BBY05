@@ -11,5 +11,5 @@ const MongoClient = require("mongodb").MongoClient;
 const atlasURI = `mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/${mongodb_database}?retryWrites=true`;
 var database = new MongoClient(atlasURI);
 
-//Exports the database when this file is required in other files
+//Exports the database when this file is included in other files
 module.exports = {database};
