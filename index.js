@@ -82,17 +82,16 @@ function adminAuthorization(req, res, next) {
 	}
 }
 
- 
-function iconRedirect(action) {
-	res.redirect(action);
-}
-
 app.get('/', (req, res) => {
 	res.render('index');
 });
 
 app.get('/about', (req, res) => {
 	res.render('about');
+});
+
+app.get('/FAQ', (req, res) => {
+	res.render('FAQ');
 });
 
 //Page to choose what account to sign up for (business or client)

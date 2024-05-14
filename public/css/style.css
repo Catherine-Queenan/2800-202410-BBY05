@@ -1,5 +1,29 @@
 /* Path: public/css/style.css */
 
+/* General */
+body {
+    font-family: 'Karla', sans-serif;
+    font-size: 16px;
+    color:#201335;
+    background-color: #F0F1FA;
+}
+
+h1 {
+    font-family: 'Yeseva One', serif;
+    font-size: 48px;
+    font-weight: 400;
+    color: #201335;
+}
+
+.icon-hover:hover {
+    transform: scale(1.1); /* Increase size on hover */
+    transition: transform 0.3s ease; /* Add smooth transition */
+    cursor: pointer; /* Change cursor to pointer on hover */
+}
+
+
+/* General */
+
 /* Colors */
 .whiteBackground {
     background-color: #F0F1FA;
