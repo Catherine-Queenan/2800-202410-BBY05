@@ -144,18 +144,16 @@ app.post('/submitSignup/:type', async (req, res) => {
 		}
 
 		//Hash entered password for storing
-		var hashPass = await bcrypt.hash(user.password, saltRounds);
+		user.password = await bcrypt.hash(user.password, saltRounds);
 
 		//Store client information in client collection
-		await clientsCollection.insertOne({
-			firstName: user.firstName,
-			lastName: user.lastName,
-			email: user.email,
-			phone: user.phone,
-			password: hashPass
-		});
+		await clientsCollection.insertOne(user);
 
-		//Submits info for business side forms
+		//set type of session to use and who the session user is
+		req.session.userType = 'client';
+		req.session.email = user.email;
+
+	//Submits info for business side forms
 	} else if (type == "business") {
 
 		//Validation schema for user inputs
@@ -193,7 +191,7 @@ app.post('/submitSignup/:type', async (req, res) => {
 		}
 
 		//hashes password for storing
-		var hashPass = await bcrypt.hash(user.password, saltRounds);
+		user.password  = await bcrypt.hash(user.password, saltRounds);
 
 		//If the user select the services they provide it is stored in an array
 		//This currently only functions for the single checkbox and would need to be adjusted for multiple service options
@@ -203,17 +201,11 @@ app.post('/submitSignup/:type', async (req, res) => {
 		}
 
 		//Store business information in client collection
-		await adminsCollection.insertOne({
-			companyName: user.companyName,
-			businessEmail: user.businessEmail,
-			businessPhone: user.businessPhone,
-			services: user.services,
-			firstName: user.firstName,
-			lastName: user.lastName,
-			companyWebsite: user.companyWebsite,
-			password: hashPass,
-		});
+		await adminsCollection.insertOne(user);
 
+		//set type of session to use and who the session user is
+		req.session.userType = 'business';
+		req.session.email = user.email;
 	}
 
 	//Update the session for the now logged in user
@@ -262,6 +254,7 @@ app.post('/submitLogin', async (req, res) => {
 		req.session.authenticated = true;
 		req.session.email = email;
 		req.session.cookie.maxAge = expireTime;
+		
 
 		res.redirect('/'); // redirect to home page
 		return;
@@ -276,6 +269,20 @@ app.get('/logout', (req,res) => {
 	req.session.destroy();
 	res.render('logout');
 });
+
+//Client user profile page
+app.get('/profile', sessionValidation, async(req, res) => {
+	if(req.session.userType = 'user'){
+		let user = await clientsCollection.findOne({email: req.session.email});
+		res.render('clientProfile', {user: user, editting: false});
+	}
+});
+
+app.get('/profile/edit', sessionValidation,  async(req, res) => {
+	let user = await clientsCollection.findOne({email: req.session.email});
+	res.render('clientProfile', {user: user, editting: true});
+})
+
 
 app.use(express.static(__dirname + "/public"));
 
