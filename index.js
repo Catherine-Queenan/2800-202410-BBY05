@@ -5,7 +5,7 @@ const session = require('express-session');
 const MongoStore = require('connect-mongo');
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
-
+const nodemailer = require('nodemailer');
 const app = express();
 const port = process.env.PORT || 3000;
 const Joi = require('joi');
@@ -21,6 +21,9 @@ const mongodb_database = process.env.MONGODB_DATABASE;
 const mongodb_session_secret = process.env.MONGODB_SESSION_SECRET;
 
 const node_session_secret = process.env.NODE_SESSION_SECRET;
+
+const autoreply_email = process.env.EMAIL_ADDRESS;
+const autoreply_email_password = process.env.EMAIL_ADDRESS_PASSWORD;
 /* END secret section */
 
 var { database } = include('databaseConnection');
@@ -41,6 +44,24 @@ var mongoStore = MongoStore.create({
 		secret: mongodb_session_secret
 	}
 });
+
+// Creating the transporter object in order to login to the noreply email and send emails 
+const transporter = nodemailer.createTransport({
+	service: 'Gmail',
+	auth: {
+		user: autoreply_email,
+		pass: autoreply_email_password
+	}
+});
+
+//Sets up the configurations for the email (This can be modified)
+const mailOptions = {
+	from: `${autoreply_email}`,
+	to: 'evin4369@gmail.com',
+	subject: 'test email',
+	text: 'This is a test email',
+	html: '<h1>Where does this go in the email?</h1>'
+};
 
 app.use(session({
 	secret: node_session_secret,
