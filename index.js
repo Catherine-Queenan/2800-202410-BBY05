@@ -82,7 +82,8 @@ function adminAuthorization(req, res, next) {
 	}
 }
 
-
+// TODO: Add access to pages and create a check for the user type and authorization
+// status to determine what footer and navbar to display
 
 app.get('/', (req, res) => {
 	res.render('index');
@@ -90,6 +91,10 @@ app.get('/', (req, res) => {
 
 app.get('/about', (req, res) => {
 	res.render('about');
+});
+
+app.get('/FAQ', (req, res) => {
+	res.render('FAQ');
 });
 
 //Page to choose what account to sign up for (business or client)
