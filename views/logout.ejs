@@ -2,7 +2,8 @@
 	<div class="container">
 		<form method='get'>
 		Successfully logged out<br>
-		<button formaction='/'>Return to Home</button>
+		<%- include('templates/button', {action:'/',xClasses:'',xAttributes:'',content:'Return to Home'}) %>
+		<!-- <button formaction='/'>Return to Home</button> -->
 		</form>
 	</div>
 <%- include("templates/footerCopyright") %>
