@@ -1,11 +1,6 @@
-<% include('templates/header'); %>
+<%- include("templates/header") %>
 
 <h1>Calendar</h1>
-
-<!-- Navigation for different dates -->
-<div>
-    <a href="/calendar?date=2023-05-01">May 2023</a>
-</div>
 
 <!-- Display events -->
 <h2>Events</h2>
@@ -20,6 +15,8 @@
         </li>
     <% }); %>
 </ul>
+
+<a href="/addEvent"><button>Add Event</button></a>
 
 <script>
 function deleteEvent(eventId) {
@@ -37,5 +34,4 @@ function deleteEvent(eventId) {
 }
 </script>
 
-
-<% include('templates/footerCopyright'); %>
+<%- include("templates/footerCopyright") %>
