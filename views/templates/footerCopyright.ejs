@@ -1,27 +1,35 @@
 		<div class="container">
 			<footer class="d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top">
+			
+			<!--Logo TODO: Make clickable to home page and implement final logo choice-->
 			<div class="col-md-4 d-flex align-items-center">
 				<a href="/" class="mb-3 me-2 mb-md-0 text-body-secondary text-decoration-none lh-1">
 				<svg class="bi" width="30" height="24"><use xlink:href="#bootstrap"/></svg>
 				</a>
-				<span class="mb-3 mb-md-0 text-body-secondary">&copy; 2024 Pawfolio, Proper Subset</span>
+				
+				<!--Copyright-->
+				<span class="mb-3 mb-md-0 user-select-none text-body-secondary">&copy; 2024 Pawfolio, Proper Subset</span>
 			</div>
 
+			<!--FAQ clickable icon-->
 			<ul class="nav col-md-4 justify-content-end list-unstyled d-flex">
 
 				<form method="get">
 					<%- include('icon', {iconPath: '/icons/FAQ.png', altText: 'FAQ', action: '/FAQ', theClass: ''}) %>
-					<p class="text-center karla-heavy">FAQ</p>
+					<p class="text-center user-select-none karla-heavy">FAQ</p>
 				</form>
 
 			</ul>
 			</footer>
 		</div>
 		
+		<!--Bootstrap script integration-->
 		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
 			integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
 			crossorigin="anonymous">
 		</script>
+
+		<!--Template integration-->
 		<script src="/scripts/template.js"></script>
 	</body>
 

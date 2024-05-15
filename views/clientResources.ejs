@@ -1,0 +1,40 @@
+<!--Main client Resources page-->
+<%- include("templates/header") %>
+
+    <!--Navigation tabs for different resource types-->
+    <ul class="nav nav-tabs">
+        <li class="nav-item">
+            <a class="nav-link active" aria-current="page" href="#">View All</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#">Link</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#">Link</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link disabled" aria-disabled="true">Disabled</a>
+        </li>
+    </ul>
+
+    <!--Resource cards-->
+    <%- include('templates/resource', { 
+        imageUrl: '/path/to/image.jpg', 
+        altText: 'Image Alt Text', 
+        title: 'Card Title', 
+        bodyContent: 'This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.', 
+        collapseIdA: 'collapseExample', 
+        idA: 'Toggle 1',
+        collapseContentA: 'Some placeholder content for the collapse component. This panel is hidden by default but revealed when the user activates the relevant trigger.', 
+        collapseIdB: 'collapseExample2',
+        idB: 'Toggle 2',
+        collapseContentB: 'Some more placeholder content for the collapse component. This panel is hidden by default but revealed when the user activates the relevant trigger.',
+        disclaimer: 'Not affiliated with Pawfolio'
+    }) %>
+
+    <!--If statement to optionally load the login footer based on authentication-->
+    <% if (!loggedIn) { %>
+        <%- include("templates/footerLogin") %>
+    <% } %>
+    
+<%- include("templates/footerCopyright") %>
