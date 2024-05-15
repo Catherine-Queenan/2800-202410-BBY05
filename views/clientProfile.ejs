@@ -1,7 +1,10 @@
 <%- include("templates/header") %>
+<% if(user.profilePic != ''){ %> 
+    <img id="profilePic" src="<%= profilePic %>" alt="..." class="rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
+<% } else { %>
     <img id="profilePic" src="/images/tempDefaultUser.png" alt="..." class="rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
-    
-    <form method="post">
+   <% } %>
+    <form method="post" enctype="multipart/form-data">
         <% if (editting == true){ %>
             <input type="file" id="profilePicInput" name="profilePic">
         <% } %>
