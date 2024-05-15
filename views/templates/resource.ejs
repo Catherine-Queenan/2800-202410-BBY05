@@ -1,0 +1,34 @@
+<!--Template for each resource-->
+<div class="card mb-3" id="resourceCollapse">
+    <!--Preview Image-->
+    <img src="<%= imageUrl %>" class="card-img-top" alt="<%= altText %>">
+    <div class="card-body">
+
+        <!--Name and description-->
+        <h5 class="card-title"><%= title %></h5>
+        <p class="card-text"><%= bodyContent %></p>
+
+        <!--Toggled options for subcategories in the sites-->
+        <p class="d-inline-flex gap-1">
+            <a class="btn btn-primary" data-bs-toggle="collapse" href="#<%= collapseIdA %>" role="button" aria-expanded="false" aria-controls="<%= collapseIdA %>" data-bs-parent="#resourceCollapse">
+                <%= idA %>
+            </a>
+            <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#<%= collapseIdB %>" aria-expanded="false" aria-controls="<%= collapseIdB %>" data-bs-parent="#resourceCollapse">
+                <%= idB %>
+            </button>
+        </p>
+        <div class="collapse" id="<%= collapseIdA %>" data-bs-parent="#resourceCollapse">
+            <div class="card card-body">
+                <%= collapseContentA %>
+            </div>
+        </div>
+        <div class="collapse" id="<%= collapseIdB %>" data-bs-parent="#resourceCollapse">
+            <div class="card card-body">
+                <%= collapseContentB %>
+            </div>
+        </div>
+
+        <!--Disclaimer-->
+        <p class="card-text"><small class="text-body-secondary"><%= disclaimer %></small></p>
+    </div>
+</div>

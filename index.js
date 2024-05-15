@@ -131,7 +131,7 @@ function setUserDatabase(req) {
 // status to determine what footer and navbar to display
 
 app.get('/', (req, res) => {
-	res.render('index', {loggedIn: isValidSession(req), name: req.session.name});
+	res.render('index', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType});
 });
 
 app.get('/about', (req, res) => {
@@ -139,21 +139,25 @@ app.get('/about', (req, res) => {
 });
 
 app.get('/FAQ', (req, res) => {
-	res.render('FAQ');
+	res.render('FAQ', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType});
+});
+
+app.get('/clientResources', (req, res) => {
+	res.render('clientResources', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType});
 });
 
 //Page to choose what account to sign up for (business or client)
 app.get('/signup', (req, res) => {
-	res.render('signupChoice')
+	res.render('signupChoice', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType});
 });
 
 //Renders form for business or client sign up
 app.get('/signup/:form', (req, res) => {
 	let form = req.params.form;
 	if (form == "business") {
-		res.render('signUpBusiness.ejs');
+		res.render('signUpBusiness.ejs', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType});
 	} else if (form == "client") {
-		res.render('signUpClient.ejs');
+		res.render('signUpClient.ejs', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType});
 	}
 });
 
@@ -313,7 +317,7 @@ app.post('/submitSignup/:type', async (req, res) => {
 
 // Login routing
 app.get('/login', (req, res) => {
-	res.render('login.ejs')
+	res.render('login.ejs', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType});
 });
 
 // Handling login subission information

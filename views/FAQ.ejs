@@ -1,4 +1,9 @@
+<!--Frequently Asked Questions Page-->
 <%- include("templates/header") %>
 
-<%- include("templates/footerLogin") %>
+     <!--If statement to optionally load the login footer based on authentication-->
+    <% if (!loggedIn) { %>
+        <%- include("templates/footerLogin") %>
+    <% } %>
+
 <%- include("templates/footerCopyright") %>
