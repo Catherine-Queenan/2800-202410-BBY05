@@ -6,6 +6,7 @@ const MongoStore = require('connect-mongo');
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
 const nodemailer = require('nodemailer');
+const crypto = require('crypto')
 const app = express();
 const port = process.env.PORT || 3000;
 const Joi = require('joi');
@@ -290,9 +291,8 @@ app.post('/submitLogin', async (req, res) => {
 // This is the reset password landing page where the user can enter their email for a reset
 
 // This function is solely for sending emails. It will need an ejs file for the email templating later
-function sendMail(emailAddress) {
-	emailHTMLinsert ='<h1>This is HTML text. I need a UI designer to make it look nice</h1>';
-
+function sendMail(emailAddress, resetToken) {
+	emailHTMLinsert =`<h1>localhost:3000/resetPassword/${resetToken}</h1>`;
 	// Custom settings for the mail
 	const mailOptions = {
 		from: `${autoreply_email}`,
@@ -323,28 +323,63 @@ app.get('/forgotPassword', (req, res) => {
 // This handles the submitted email for the /forgotpassword routing
 app.post('/emailConfirmation', async (req, res) => {
 
+	// deciding what collection the user is in (WILL BE REMOVED)
+	emailVerification = '';
+
 	// Storing the email that was entered
 	email = req.body.email;
 	
-	// if the email is found in the client side, we are allowed to send an email
+	// if the email is found in the client side, we are allowed to send an email (WILL BE REMOVED)
 	emailValidation = await clientsCollection.find({email: email}).project({ email: 1, password: 1, _id: 1 }).toArray();
 	if(emailValidation.length == 1) {
-		console.log('found in client');
-
-		// sends an email
-		sendMail(email);
-		res.redirect('/emailSent');
-		return;
+		emailVerification = 'client';
 	}
-	// if the email is found in the business side, we are allowed to send an email
+	// if the email is found in the business side, we are allowed to send an email (WILL BE REMOVED)
 	emailValidation = await adminsCollection.find({email: email}).project({ email: 1, password: 1, _id: 1 }).toArray();
 	if(emailValidation.length == 1) {
-		console.log('found in business');
+		emailVerification = 'admin';
+	}
 
-		// sends an email
-		sendMail(email);
-		res.redirect('/emailSent');
-		return;
+	// (WILL ONLY HAVE 1 CONDITION)
+	if(emailVerification == 'client' || emailVerification == 'admin') {
+
+		// Create a unique token and 1 hour expiration limit using crypto
+		const token = crypto.randomBytes(20).toString('hex');
+		const PasswordResetToken = token;
+		const tokenExpiriationDate = Date.now() + 3600000;
+
+		// Gives the user's information collection the token and expiration
+		if (emailVerification == 'client') {
+
+			clientsCollection.updateOne({ email: email }, { 
+				$set: { 
+					resetToken: `${PasswordResetToken}`, 
+					tokenExpiration: `${tokenExpiriationDate}` 
+				} 
+			});
+
+			// send the email with the unique token link
+			sendMail(email, token);
+
+			// Redirect to an email sent page
+			res.redirect('/emailSent');
+			return;
+		}
+
+		// Same as above (WILL BE REMOVED)
+		if (emailVerification == 'admin') {
+
+			adminCollection.updateOne({ email: email }, { 
+				$set: { 
+					resetToken: `${PasswordResetToken}`, 
+					tokenExpiration: `${tokenExpiriationDate}` 
+				} 
+			});
+
+			sendMail(email, token);
+			res.redirect('/emailSent');
+			return;
+		}
 	}
 
 	// This is a custom error message for if the email is invalid
@@ -355,8 +390,68 @@ app.post('/emailConfirmation', async (req, res) => {
     res.redirect(`/forgotPassword?errorMessage=${encodeURIComponent(error)}`);
 });
 
+app.get('/resetPassword/:token', async (req, res) => {
+
+	// refer to the token using token.token
+	const token = req.params;
+
+	// find and store the user and store their document for later verification
+	const clientUser = await clientsCollection.findOne({resetToken: token.token});
+
+	// This detects if we couldn't find the token in any user
+	if (clientUser == null) {
+		res.render('errorMessage', {error: 'Token expired or invalid.'})
+		return;
+	}
+
+	// checks if the url token is valid and not expired. 
+	if (clientUser.resetToken == token.token && clientUser.tokenExpiration > Date.now()) {
+		res.redirect(`/resetPasswordForm/${token.token}`);
+		return;
+	}
+});
+
+// This routes to the form where the new user password would be submitted
+app.get('/resetPasswordForm/:token', (req, res) => {
+
+	// store the token
+	token = req.params;
+	res.render('resetPasswordForm', {token: token.token});
+});
+
+// Handles the new password submission
+app.post('/resettingPassword/:token', async (req, res) => {
+	
+	// store the new password
+	let password = req.body.password;
+
+	// validate using the same schema config from the signup
+	const schema = Joi.string().max(20).min(2).required();
+	if (schema.validate(password).error != null) {
+		res.redirect('/resetPasswordForm/:token');
+	}
+
+	// hash the password just like in the signup
+	passwordHashed = await bcrypt.hash(password, saltRounds);
+
+	// sets the new password based on the account with the token
+	clientsCollection.updateOne({resetToken: token.token}, { $set: {password: passwordHashed}});
+
+	// deletes the token information so that it can no longer be accessed on accident or injection
+	clientsCollection.updateOne(
+		{ resetToken: token.token },
+		{ $unset: { resetToken: "", tokenExpiration: "" } }
+	);
+
+	res.redirect('/passwordChangedSuccessfully');
+});
+
+// This is a page for when your password is successfully changed
+app.get('/passwordChangedSuccessfully', (req, res) => {
+	res.render('passwordChangedSuccessfully');
+});
+
 app.get('/emailSent', (req, res) => {
-	console.log(req.session.email);
 	res.send('email sent');
 });
 
