@@ -376,6 +376,31 @@ app.get('/logout', (req,res) => {
 	res.render('logout');
 });
 
+app.get('/calendar', (req, res) => {
+
+	
+
+	res.render('calendarBusiness');
+});
+
+app.get('/addEvent', (req, res) => {
+	res.render('addEvent');
+});
+
+app.post('/addEventSubmit', async (req, res) => {
+	var event = {
+		title: req.body.title,
+		start: req.body.start,
+		end: req.body.end
+	}
+
+	await userdb.collection('eventSource').insertOne({
+		title: event.title,
+		start: event.start,
+		end: event.end
+	});
+})
+
 app.use(express.static(__dirname + "/public"));
 
 app.get('*', (req, res) => {
