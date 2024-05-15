@@ -1,14 +1,35 @@
 <div class="container-fluid">
 	<header class="d-flex justify-content-center py-3">
+		<h1 id="firstHeading" style="font-kerning: auto; padding-left:10px">Paw</h1>
 		<ul class="nav nav-pills">
 			<li class="nav-item">
+
 				<!--Home -->
-				<a href="/" class="nav-link" aria-current="page">
-					<!--YOU CAN REPLACE THIS WITH THE LOGO-->
-					<i class="bi bi-house-fill"></i>
-					Home
-				</a>
+				<form method="get" class="col-md-4 d-flex">
+					<%- include('icon', {iconPath: '/icons/Placeholder.png', altText: 'Logo', action: '/', theClass: '', theAttributes: 'style= width:100px; height:100px;'}) %>
+				</form>
 			</li>
 		</ul>
+		<h1 id="secondHeading" style="font-kerning: auto; padding-left:15px">folio</h1>
 	</header>
 </div>
+
+<script>
+    function adjustLetterSpacing() {
+        var windowWidth = window.innerWidth;
+        var firstHeading = document.getElementById('firstHeading');
+        var secondHeading = document.getElementById('secondHeading');
+        var maxLetterSpacing = windowWidth * 0.5; // 50% of the window's width
+
+        // Calculate letter spacing based on window width
+        var letterSpacing = Math.min(0.025 * windowWidth, maxLetterSpacing);
+
+        // Apply letter-spacing to headings
+        firstHeading.style.letterSpacing = letterSpacing + 'px';
+        secondHeading.style.letterSpacing = letterSpacing + 'px';
+    }
+
+    // Call the function initially and on window resize
+    adjustLetterSpacing();
+    window.addEventListener('resize', adjustLetterSpacing);
+</script>

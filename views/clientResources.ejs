@@ -1,6 +1,9 @@
 <!--Main client Resources page-->
 <%- include("templates/header") %>
-
+    
+<div class="container"> <!--Added container div to center content on page-->
+    <h1 class="text-center">Client Resources</h1> <!--Page title-->
+        
     <!--Navigation tabs for different resource types-->
     <ul class="nav nav-tabs">
         <li class="nav-item">
@@ -32,6 +35,7 @@
         disclaimer: 'Not affiliated with Pawfolio'
     }) %>
 
+</div> <!--End container div-->
     <!--If statement to optionally load the login footer based on authentication-->
     <% if (!loggedIn) { %>
         <%- include("templates/footerLogin") %>

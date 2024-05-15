@@ -1,9 +1,14 @@
 <!--Frequently Asked Questions Page-->
 <%- include("templates/header") %>
 
-     <!--If statement to optionally load the login footer based on authentication-->
+<div class="container"> <!--Added container div to center content on page-->
+    <h1 class="text-center">Frequently Asked Questions</h1> <!--Page title-->
+
+    <!--If statement to optionally load the login footer based on authentication-->
     <% if (!loggedIn) { %>
         <%- include("templates/footerLogin") %>
     <% } %>
+
+</div> <!--End wrapper div-->
 
 <%- include("templates/footerCopyright") %>
