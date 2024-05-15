@@ -1,0 +1,25 @@
+<% include('templates/header'); %>
+
+<h1>Book an Appointment</h1>
+
+<form action="/addEvent" method="post">
+    <div>
+        <label for="summary">Dog/Client Name:</label>
+        <input type="text" id="summary" name="summary" required>
+    </div>
+    <div>
+        <label for="description">Description:</label>
+        <textarea id="description" name="description" required></textarea>
+    </div>
+    <div>
+        <label for="start">Start Date and Time:</label>
+        <input type="datetime-local" id="start" name="start" required>
+    </div>
+    <div>
+        <label for="end">End Date and Time:</label>
+        <input type="datetime-local" id="end" name="end" required>
+    </div>
+    <button type="submit">Add Event</button>
+</form>
+
+<% include('templates/footerCopyright'); %>

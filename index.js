@@ -6,7 +6,12 @@ const MongoStore = require('connect-mongo');
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
 
+//Calendar Setup Stuff
+const bodyParser = require('body-parser');
+const { insertEvent, getEvents, deleteEvent } = require('./calendarService');
+
 const app = express();
+app.use(bodyParser.json());
 const port = process.env.PORT || 3000;
 const Joi = require('joi');
 
@@ -130,8 +135,53 @@ app.post('/submitLogin', async (req,res) => {
 	}
 });
 
+//CALENDAR CONTROLS
+//Render the "Add Event" page
+app.get('/addEvent', (req, res) => {
+    res.render('addEvent');
+});
 
+//Handle the submission of an event/appointment
+app.post('/addEvent', async (req, res) => {
+    const { summary, description, start, end } = req.body;
+    const event = {
+        summary: summary,
+        description: description,
+        start: {
+            dateTime: start,
+            timeZone: 'America/Vancouver' },
+        end: { dateTime: end,
+              timeZone: 'America/Vancouver' }
+    };
 
+    try {
+        const result = await insertEvent(event);
+        if (result) {
+            res.send("Event added successfully!");
+        } else {
+            res.send("Failed to add the event.");
+        }
+    } catch (error) {
+        console.error('Error adding event:', error);
+        res.status(500).send("Server error when trying to add event.");
+    }
+});
+
+//Calendar page
+app.get('/calendar', async (req, res) => {
+    try {
+        const start = new Date();
+        start.setDate(1);
+        const end = new Date(start);
+        end.setMonth(start.getMonth() + 1);
+
+        const events = await getEvents(start.toISOString(), end.toISOString());
+        res.render('calendar', { events });
+    } catch (error) {
+        console.error('Failed to retrieve events:', error);
+        res.render('calendar', { events: [] });
+    }
+});
 
 app.use(express.static(__dirname + "/public"));
 

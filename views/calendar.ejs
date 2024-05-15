@@ -1,0 +1,41 @@
+<% include('templates/header'); %>
+
+<h1>Calendar</h1>
+
+<!-- Navigation for different dates -->
+<div>
+    <a href="/calendar?date=2023-05-01">May 2023</a>
+</div>
+
+<!-- Display events -->
+<h2>Events</h2>
+<ul>
+    <% events.forEach(function(event) { %>
+        <li>
+            <strong><%= event.summary %></strong>:
+            <%= new Date(event.start.dateTime).toLocaleDateString() %> at
+            <%= new Date(event.start.dateTime).toLocaleTimeString() %> -
+            <%= new Date(event.end.dateTime).toLocaleTimeString() %>
+            <button onclick="deleteEvent('<%= event.id %>')">Delete</button>
+        </li>
+    <% }); %>
+</ul>
+
+<script>
+function deleteEvent(eventId) {
+    fetch('/deleteEvent/' + eventId, { method: 'DELETE' })
+    .then(response => response.json())
+    .then(data => {
+        if(data.success) {
+            alert('Event deleted successfully!');
+            window.location.reload();
+        } else {
+            alert('Failed to delete event: ' + data.message);
+        }
+    })
+    .catch(error => alert('Error deleting event: ' + error));
+}
+</script>
+
+
+<% include('templates/footerCopyright'); %>
