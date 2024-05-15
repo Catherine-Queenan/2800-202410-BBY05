@@ -48,7 +48,8 @@
 		<small id="passwordWarning"></small>
 	</div>
 
-	<button id="signUpSubmit" formaction="/submitSignup/business" disabled>Submit</button>
+	<%- include('templates/button', {action:'/submitSignup/business',xClasses:'',xAttributes:'id=signUpSubmit disabled',content:'Submit'}) %>
+	<!-- <button id="signUpSubmit" formaction="/submitSignup/business" disabled>Submit</button> -->
 </form>
 <script src="/scripts/signUp.js"></script>
 <%- include("templates/footerLogin") %>
