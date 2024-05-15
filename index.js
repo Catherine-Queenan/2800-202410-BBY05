@@ -224,10 +224,6 @@ app.post('/submitSignup/:type', async (req, res) => {
 			phone: user.phone
 		});
 
-		//set type of session to use and who the session user is
-		req.session.userType = 'client';
-		req.session.email = user.email;
-
 	//Submits info for business side forms
 	} else if (type == "business") {
 
@@ -304,10 +300,6 @@ app.post('/submitSignup/:type', async (req, res) => {
 			lastName: user.lastName,
 			companyWebsite: user.companyWebsite
 		});
-
-		//set type of session to use and who the session user is
-		req.session.userType = 'business';
-		req.session.email = user.email;
 	}
 
 	// //Update the session for the now logged in user
@@ -386,19 +378,34 @@ app.get('/logout', (req,res) => {
 
 //Client user profile page
 app.get('/profile', sessionValidation, async(req, res) => {
-	if(req.session.userType = 'user'){
-		let user = await clientsCollection.findOne({email: req.session.email});
+	setUserDatabase(req);
+	let user = await userdb.collection('info').findOne();
+	if(req.session.userType == 'client'){
 		res.render('clientProfile', {user: user, editting: false});
+		return;
+	} else {
+		res.redirect('/');
 	}
+
 });
 
 app.get('/profile/edit', sessionValidation,  async(req, res) => {
-	if(req.session.userType = 'user'){
-		let user = await clientsCollection.findOne({email: req.session.email});
+	setUserDatabase(req);
+	let user = await userdb.collection('info').findOne({email: req.session.email});
+	if(req.session.userType == 'client'){
 		res.render('clientProfile', {user: user, editting: true});
+		return;
+	} else {
+		res.redirect('/');
 	}
+
 })
 
+app.post('/profile/editting', async(req, res) => {
+	console.log(req.body);
+	await userdb.collection('info').updateOne({email: req.session.email}, {$set: req.body});
+	res.redirect('/profile');
+});
 
 app.use(express.static(__dirname + "/public"));
 

@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@google-cloud/local-auth": "^2.1.0",
     "bcrypt": "^5.1.1",
     "bootstrap": "^5.3.3",
     "bootstrap-icons": "^1.11.3",
@@ -8,6 +9,7 @@
     "ejs": "^3.1.10",
     "express": "^4.19.2",
     "express-session": "^1.18.0",
+    "googleapis": "^105.0.0",
     "joi": "^17.13.1"
   }
 }

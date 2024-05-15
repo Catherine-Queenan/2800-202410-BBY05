@@ -1,20 +1,22 @@
 <%- include("templates/header") %>
-    <img src="/images/tempDefaultUser.png" alt="..." class="rounded-circle" style="max-width: 150px;">
-    <% if (editting == true){ %>
-        <input type="file" id="profilePicInput" name="profilePic">
-    <% } %>
-
-    <input type="text" class="profileInfo" value="<%= user.firstName %>" disabled>
-    <input type="text" class="profileInfo" value="<%= user.lastName %>" disabled>
-    <input type="text" class="profileInfo" value="<%= user.email %>" disabled>
-    <input type="text" class="profileInfo" value="<%= user.phone %>" disabled>
-
-    <% if (editting == true){ %>
-        <button type="submit" formaction="/profile/editting">Save</button>
-        <script src="/scripts/editProfile.js"></script>
-    <% } else { %>
-        <a class="btn btn-primary" href="/profile/edit" role="button">Edit</a>
-    <% } %>
+    <img id="profilePic" src="/images/tempDefaultUser.png" alt="..." class="rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
     
+    <form method="post">
+        <% if (editting == true){ %>
+            <input type="file" id="profilePicInput" name="profilePic">
+        <% } %>
+            
+        <input name="firstName" type="text" class="profileInfo" value="<%= user.firstName %>" disabled>
+        <input name="lastName" type="text" class="profileInfo" value="<%= user.lastName %>" disabled>
+        <input name="email" type="text" class="profileInfo" value="<%= user.email %>" disabled>
+        <input name="phone" type="text" class="profileInfo" value="<%= user.phone %>" disabled>
+
+        <% if (editting == true){ %>
+            <button type="submit" formaction="/profile/editting">Save</button>
+            <script src="/scripts/editProfile.js"></script>
+        <% } else { %>
+            <a class="btn btn-primary" href="/profile/edit" role="button">Edit</a>
+        <% } %>
+    </form> 
    
 <%- include("templates/footerCopyright") %>
