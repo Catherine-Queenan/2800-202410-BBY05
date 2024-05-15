@@ -1,6 +1,8 @@
 {
   "dependencies": {
+    "@azure/msal-node": "^2.8.1",
     "@googleapis/calendar": "^9.7.3",
+    "axios": "^1.6.8",
     "bcrypt": "^5.1.1",
     "bootstrap": "^5.3.3",
     "bootstrap-icons": "^1.11.3",
