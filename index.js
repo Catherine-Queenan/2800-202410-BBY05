@@ -525,7 +525,7 @@ app.get('/passwordChangedSuccessfully', (req, res) => {
 });
 
 app.get('/emailSent', (req, res) => {
-	res.send('email sent. Check your inbox.');
+	res.render('checkInbox');
 });
 
 app.get('/logout', (req,res) => {
