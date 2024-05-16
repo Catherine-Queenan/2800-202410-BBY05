@@ -1,8 +1,18 @@
 <%- include("templates/header") %>
 	<div>
+		<% if (!loggedIn) { %>
 		<form method="get">
-			<button formaction="/login">Log in</button>
-			<button formaction="/signup">Sign up</button>
+			<%- include('templates/button', {action:'/login',xClasses:'',xAttributes:'',content:'Log in'}) %>
+			<!-- <button formaction="/login">Log in</button> -->
+			<%- include('templates/button', {action:'/signup',xClasses:'',xAttributes:'',content:'Sign up'}) %>
+			<!-- <button formaction="/signup">Sign up</button> -->
 		</form>
+		<% } else { %>
+			hi <%= name %>
+			<form method="get">
+				<%- include('templates/button', {action:'/logout',xClasses:'',xAttributes:'',content:'Get me out of here'}) %>
+				<!-- <button formaction="/logout">Get me out of here</button> -->
+			</form>
+		<% } %>
 	</div>
-<%- include("templates/footerLogin") %>
+<%- include("templates/footerCopyright") %>

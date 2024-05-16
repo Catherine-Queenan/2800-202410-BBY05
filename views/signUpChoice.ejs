@@ -1,6 +1,8 @@
 <%- include("templates/header") %>
 	<form>
-		<button formaction="/signup/business" class="btn btn-primary" type="submit">Business Account</button>
-		<button formaction="/signup/client" class="btn btn-primary" type="submit">Client Account</button>
+		<%- include('templates/button', {action:'/signup/business',xClasses:'',xAttributes:'type="submit"',content:'Business Account'}) %>
+		<!-- <button formaction="/signup/business" class="btn btn-primary" type="submit">Business Account</button> -->
+		<%- include('templates/button', {action:'/signup/client',xClasses:'',xAttributes:'type=""submit',content:'Client Account'}) %>
+		<!-- <button formaction="/signup/client" class="btn btn-primary" type="submit">Client Account</button> -->
 	</form>
 <%- include("templates/footerLogin") %>
