@@ -465,7 +465,7 @@ app.get('/profile/edit', sessionValidation,  async(req, res) => {
 
 	//upload the info of the user
 	let user = await userdb.collection('info').findOne({email: req.session.email});
-	let dogs = await userdb.collection('dogs').find({}).project({_id: 1, dogName: 1, sex: 1, dogPic: 1}).toArray();
+	let dogs = await userdb.collection('dogs').find({}).toArray();
 	//currently no profile page available for the business side
 	if(req.session.userType == 'client'){
 		let profilePic = user.profilePic;

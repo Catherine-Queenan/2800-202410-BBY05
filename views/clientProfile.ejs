@@ -14,7 +14,9 @@
            <%- include('templates/button', {action:'/profile/editting',xClasses:'',xAttributes:'',content:'Save'}) %>
             <script src="/scripts/editProfile.js"></script>
         <% } else { %>
-            <a class="btn btn-primary" href="/profile/edit" role="button">Edit</a>
+            <a href="/profile/edit">
+            <%-include('templates/button', {action:'',xClasses:'',xAttributes:'',content:'Edit'})%>
+        </a>
         <% } %>
     </form> 
 
@@ -22,7 +24,7 @@
     <%if (editting != true){ %> 
         <h3><%=userName%>'s Dogs:</h3>
         <% for(let i = 0; i < dogs.length; i++){ %>
-            <%- include('templates/dog', {dogImage: dogs[i].dogPic, dogName: dogs[i].dogName}) %>
+            <%- include('templates/dog', {dog: dogs[i]}) %>
         <%} %>
         <br>
         <form>
@@ -30,5 +32,6 @@
         </form>
     <%} %>
    
-   
-<%- include("templates/footerCopyright") %>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script src="/scripts/dogProfile.js"></script>
+    <%- include("templates/footerCopyright") %>
