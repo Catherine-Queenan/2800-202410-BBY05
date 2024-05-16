@@ -178,7 +178,7 @@ async function deleteUploadedImage(id){
 // status to determine what footer and navbar to display
 
 app.get('/', (req, res) => {
-	res.render('index', { loggedIn: isValidSession(req), name: req.session.name });
+	res.render('index', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType});
 });
 
 app.get('/about', (req, res) => {
@@ -186,21 +186,25 @@ app.get('/about', (req, res) => {
 });
 
 app.get('/FAQ', (req, res) => {
-	res.render('FAQ');
+	res.render('FAQ', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType});
+});
+
+app.get('/clientResources', (req, res) => {
+	res.render('clientResources', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType});
 });
 
 //Page to choose what account to sign up for (business or client)
 app.get('/signup', (req, res) => {
-	res.render('signupChoice')
+	res.render('signupChoice', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType});
 });
 
 //Renders form for business or client sign up
 app.get('/signup/:form', (req, res) => {
 	let form = req.params.form;
 	if (form == "business") {
-		res.render('signUpBusiness.ejs');
+		res.render('signUpBusiness.ejs', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType});
 	} else if (form == "client") {
-		res.render('signUpClient.ejs');
+		res.render('signUpClient.ejs', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType});
 	}
 });
 
@@ -359,7 +363,7 @@ app.post('/submitSignup/:type', async (req, res) => {
 
 // Login routing
 app.get('/login', (req, res) => {
-	res.render('login.ejs')
+	res.render('login.ejs', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType});
 });
 
 // Handling login subission information
@@ -412,7 +416,7 @@ app.post('/submitLogin', async (req, res) => {
 	} else {
 
 		// if the password is incorrect, say so
-		res.render('errorMessage', { error: 'Password is incorrect' });
+		res.render('errorMessage', {loggedIn: isValidSession(req), userType: req.session.userType, error: 'Password is incorrect' });
 	}
 });
 
@@ -420,7 +424,7 @@ app.get('/logout', (req, res) => {
 	req.session.destroy();
 	setUserDatabase(req);
 	// console.log(userdb);
-	res.render('logout');
+	res.render('logout', {loggedIn: isValidSession(req),userType: req.session.userType});
 });
 
 //Client user profile page
@@ -448,7 +452,7 @@ app.get('/profile', sessionValidation, async(req, res) => {
 			}
 		}
 
-		res.render('clientProfile', {user: user, editting: false, profilePic: profilePic, dogs: dogs});
+		res.render('clientProfile', {loggedIn: isValidSession(req), user: user, editting: false, profilePic: profilePic, dogs: dogs, userType: req.session.userType});
 		return;
 	} else {
 		res.redirect('/');
@@ -481,7 +485,7 @@ app.get('/profile/edit', sessionValidation,  async(req, res) => {
 		}
 
 		//render client profile page but with editting set up
-		res.render('clientProfile', {user: user, editting: true, profilePic: profilePic,dogs: dogs});
+		res.render('clientProfile', {loggedIn: isValidSession(req), user: user, editting: true, profilePic: profilePic,dogs: dogs, userType: req.session.userType});
 		return;
 	} else {
 		res.redirect('/');
@@ -508,7 +512,7 @@ app.post('/profile/editting', upload.single('profilePic'), async(req, res) => {
 });
 
 app.get('/addDog', (req, res) => {
-	res.render('addDog');
+	res.render('addDog', {loggedIn: isValidSession(req), userType: req.session.userType});
 });
 
 app.post('/addingDog',  upload.array('dogUpload', 6), async(req, res) => {
