@@ -439,20 +439,18 @@ app.get('/profile', sessionValidation, async(req, res) => {
 	if(req.session.userType == 'client'){
 		let profilePic = user.profilePic;
 		if(user.profilePic != ''){
-			profilePic = cloudinary.url(user.profilePic);
+			user.profilePic = cloudinary.url(user.profilePic);
 		}
 
 		let dogs = await userdb.collection('dogs').find({}).project({_id: 1, dogName: 1, sex: 1, dogPic: 1}).toArray();
 		for(let i = 0; i < dogs.length; i++){
 			let pic = dogs[i].dogPic;
-			if(pic == ''){
-				dogs[i].dogPic = '/images/tempDefaultUser.png';
-			} else {
+			if(pic != ''){
 				dogs[i].dogPic = cloudinary.url(pic);
 			}
 		}
 
-		res.render('clientProfile', {loggedIn: isValidSession(req), user: user, editting: false, profilePic: profilePic, dogs: dogs, userType: req.session.userType});
+		res.render('clientProfile', {loggedIn: isValidSession(req), user: user, editting: false, dogs: dogs, userName: req.session.name, userType: req.session.userType});
 		return;
 	} else {
 		res.redirect('/');
@@ -472,20 +470,18 @@ app.get('/profile/edit', sessionValidation,  async(req, res) => {
 	if(req.session.userType == 'client'){
 		let profilePic = user.profilePic;
 		if(user.profilePic != ''){
-			profilePic = cloudinary.url(user.profilePic);
+			user.profilePic = cloudinary.url(user.profilePic);
 		}
 
 		for(let i = 0; i < dogs.length; i++){
 			let pic = dogs[i].dogPic;
-			if(pic == ''){
-				dogs[i].dogPic = '/images/tempDefaultUser.png';
-			} else {
+			if(pic != ''){
 				dogs[i].dogPic = cloudinary.url(pic);
 			}
 		}
 
 		//render client profile page but with editting set up
-		res.render('clientProfile', {loggedIn: isValidSession(req), user: user, editting: true, profilePic: profilePic,dogs: dogs, userType: req.session.userType});
+		res.render('clientProfile', {loggedIn: isValidSession(req), user: user, editting: true, dogs: dogs, userName: req.session.name, userType: req.session.userType});
 		return;
 	} else {
 		res.redirect('/');

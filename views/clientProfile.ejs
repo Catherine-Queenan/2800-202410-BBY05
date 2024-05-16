@@ -1,9 +1,5 @@
 <%- include("templates/header") %>
-<% if(user.profilePic != ''){ %> 
-    <img id="profilePic" src="<%= profilePic %>" alt="..." class="rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
-<% } else { %>
-    <img id="profilePic" src="/images/tempDefaultUser.png" alt="..." class="rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
-   <% } %>
+<%- include('templates/defaultingPic', {pic: user.profilePic})%>
     <form method="post" enctype="multipart/form-data">
         <% if (editting == true){ %>
             <%- include('templates/uploadFile', {divId:'newProfilePic', xDivAttributes:'', fileId:'profilePicInput',fileName:'profilePic', label:'Upload a New Photo:', xfileAttributes:''}) %>
@@ -21,7 +17,10 @@
             <a class="btn btn-primary" href="/profile/edit" role="button">Edit</a>
         <% } %>
     </form> 
+
+   
     <%if (editting != true){ %> 
+        <h3><%=userName%>'s Dogs:</h3>
         <% for(let i = 0; i < dogs.length; i++){ %>
             <%- include('templates/dog', {dogImage: dogs[i].dogPic, dogName: dogs[i].dogName}) %>
         <%} %>
