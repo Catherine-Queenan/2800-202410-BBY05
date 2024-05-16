@@ -392,17 +392,18 @@ app.get('/events', async (req, res) => {
 	res.json(events);
 });
 
-app.get('/addEvent', (req, res) => {
-	setUserDatabase(req);
-	res.render('addEvent');
-});
-
-app.post('/addEventSubmit', async (req, res) => {
+app.post('/addEvent', async (req, res) => {
+	var date = req.body.calModDate;
+	var startDate = date + "T" + req.body.calModStartHH + ":" + req.body.calModStartMM + ":00";
+	var endDate = date + "T" + req.body.calModEndHH + ":" + req.body.calModEndMM + ":00";
 	var event = {
-		title: req.body.title,
-		start: req.body.start,
-		end: req.body.end
-	}
+		title: req.body.calModTitle,
+		start: startDate,
+		end: endDate
+	};
+	console.log(event.title);
+	console.log(event.start);
+	console.log(event.end);
 
 	await userdb.collection('eventSource').insertOne({
 		title: event.title,
@@ -411,17 +412,6 @@ app.post('/addEventSubmit', async (req, res) => {
 	});
 	res.redirect('/calendar');
 });
-
-// app.post('/event-click', (req, res) => {
-// 	const eventData = req.body;
-// 	console.log('Event clicked:', eventData);
-
-// 	res.json({ message: 'Event data received', eventData});
-// })
-
-// app.get('/removeEvent', (req, res) => {
-// 	res.render('removeEvent');
-// })
 
 app.post('/removeEvent', async (req, res) => {
 	var calTitle = req.body.calModTitle;

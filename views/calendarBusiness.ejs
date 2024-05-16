@@ -1,7 +1,5 @@
 <%- include("templates/header") %>
-	<div class="container">
-		<button><a href="/addEvent">Add event</a></button>
-	</div>
+
 	<div class="container" id='calendar'></div>
 
 
@@ -10,22 +8,14 @@
 		<div class="modal-dialog">
 			<div class="modal-content">
 				<div class="modal-header">
-					<h5 class="modal-title" id="calModDate">Modal title</h5>
+					<h5 class="modal-title" id="calModViewTitle">Modal title</h5>
 					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 				</div>
 
 				<form method="post">
 					<div class="modal-body" id="calModBod">
-						<!-- <input type="text" readonly class="form-control-plaintext" id="calModTitle" name="calModTitle">
-						<input type="text" readonly class="form-control-plaintext" id="calModStart" name="calModStart">
-						<input type="text" readonly class="form-control-plaintext" id="calModEnd" name="calModEnd"> -->
-					<!-- </div>
-
-					<div class="modal-footer">
-						<button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-						<button formaction="/removeEvent" class="btn btn-danger">Delete</button>
-						<button formaction="/updateEvent" class="btn btn-success">Save changes</button>
-					</div> -->
+						<!-- Modal body goes here -->
+					</div>
 				</form>
 			</div>
 		</div>
