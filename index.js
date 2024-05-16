@@ -131,7 +131,7 @@ function setUserDatabase(req) {
 // status to determine what footer and navbar to display
 
 app.get('/', (req, res) => {
-	res.render('index', {loggedIn: isValidSession(req), name: req.session.name});
+	res.render('index', { loggedIn: isValidSession(req), name: req.session.name });
 });
 
 app.get('/about', (req, res) => {
@@ -210,7 +210,7 @@ app.post('/submitSignup/:type', async (req, res) => {
 		//Update the session for the now logged in user
 		req.session.authenticated = true;
 		req.session.email = user.email;
-		req.session.name = user.firstName +' '+ user.lastName;
+		req.session.name = user.firstName + ' ' + user.lastName;
 		req.session.userType = 'client';
 		req.session.cookie.maxAge = expireTime;
 
@@ -352,14 +352,14 @@ app.post('/submitLogin', async (req, res) => {
 
 		// Set session name to first+last if client, companyname if business
 		if (req.session.userType == 'client') {
-			req.session.name = result[0].firstName +' '+ result[0].lastName;
+			req.session.name = result[0].firstName + ' ' + result[0].lastName;
 		} else if (req.session.userType == 'business') {
 			req.session.name = result[0].companyName;
 		}
 		req.session.cookie.maxAge = expireTime;
 
 		setUserDatabase(req);
-		
+
 		res.redirect('/'); // redirect to home page
 		return;
 	} else {
@@ -369,11 +369,71 @@ app.post('/submitLogin', async (req, res) => {
 	}
 });
 
-app.get('/logout', (req,res) => {
+app.get('/logout', (req, res) => {
 	req.session.destroy();
 	setUserDatabase(req);
 	// console.log(userdb);
 	res.render('logout');
+});
+
+app.get('/addDog', (req, res) => {
+	res.render('addDog');
+});
+
+app.post('/addingDog', async(req, res) => {
+	setUserDatabase(req);
+	var schema = Joi.object(
+		{
+			dogName: Joi.string().pattern(/^[a-zA-Z\s]*$/).max(20),
+			specialAlerts: Joi.string().pattern(/^[A-Za-z0-9 _.,!"'/$]*$/),
+		}
+	);
+
+	var validationRes = schema.validate({ dogName: req.body.dogName, specialAlerts: req.body.specialAlerts });
+
+	//Deals with errors from validation
+	if (validationRes.error != null) {
+		let doc = '<body><p>Invalid Dog</p><br><a href="/addDog">Try again</a></body>';
+		res.send(doc);
+		return;
+	}
+
+	let dog = {
+		dogName: req.body.dogName
+	};
+
+	if(req.body.neuteredStatus == 'neutered'){
+		dog.neuteredStatus = req.body.neuteredStatus;
+	} else {
+		dog.neuteredStatus = 'not neutered';
+	}
+	
+	dog.sex = req.body.sex;
+	dog.birthday = req.body.birthday;
+	dog.weight = req.body.weight + 'lb';
+	dog.specialAlerts = req.body.specialAlerts;
+
+	let allVaccines = ['rabies', 'leptospia', 'bordatella', 'bronchiseptica', 'DA2PP'];
+	console.log(req.body);
+	allVaccines.forEach((vaccine)=>{
+		eval('dog.' + vaccine + '= {}');
+	});
+
+	if(Array.isArray(req.body.vaccineCheck)){
+		req.body.vaccineCheck.forEach((vaccine)=>{
+
+			eval('dog.' + vaccine + '.expirationDate = ' + 'req.body.' + vaccine + 'Date');
+			eval('dog.' + vaccine + '.vaccineRecord = ' + 'req.body.' + vaccine + 'Proof');
+		});
+	} else if (req.body.vaccineCheck != ''){
+		eval('dog.' + req.body.vaccineCheck + '.expirationDate = ' + 'req.body.' + req.body.vaccineCheck + 'Date');
+		eval('dog.' + req.body.vaccineCheck + '.vaccineRecord = ' + 'req.body.' + req.body.vaccineCheck + 'Proof');
+	}
+	
+
+	let result = await userdb.collection('dogs').insertOne(dog);
+	console.log(await userdb.collection('dogs').find({_id: result.insertedId}).project({dogName: 1}).toArray());
+	res.redirect('/addDog');
 });
 
 app.use(express.static(__dirname + "/public"));
