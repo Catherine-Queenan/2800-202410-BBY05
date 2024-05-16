@@ -413,10 +413,52 @@ app.post('/addEvent', async (req, res) => {
 	res.redirect('/calendar');
 });
 
+app.post('/updateEvent', async (req, res) => {
+	var date = req.body.calModDate;
+	var startNew = date + "T" + req.body.calModStartHH + ":" + req.body.calModStartMM + ":00";
+	var endNew = date + "T" + req.body.calModEndHH + ":" + req.body.calModEndMM + ":00";
+	var eventOrig = {
+		title: req.body.calModTitleOrig,
+		start: req.body.calModStartOrig,
+		end: req.body.calModEndOrig
+	}
+	console.log("eventOrig: ");
+	console.log(eventOrig)
+
+	var eventNew = {
+		title: req.body.calModTitle,
+		start: startNew,
+		end: endNew
+	}
+	console.log("eventNew: ");
+	console.log(eventNew);
+
+	await userdb.collection('eventSource').updateOne({
+		title: eventOrig.title,
+		start: eventOrig.start,
+		end: eventOrig.end
+	}, {
+		$set: {
+			title: eventNew.title,
+			start: eventNew.start,
+			end: eventNew.end
+		}
+	});
+	res.redirect('/calendar');
+})
+
 app.post('/removeEvent', async (req, res) => {
-	var calTitle = req.body.calModTitle;
+	var calTitle = req.body.calModTitleOrig;
+	var calStart = req.body.calModStartOrig;
+	var calEnd = req.body.calModEndOrig;
 	console.log(calTitle);
-	await userdb.collection('eventSource').deleteOne({title: calTitle});
+	console.log(calStart);
+	console.log(calEnd);
+	await userdb.collection('eventSource').deleteOne({
+		title: calTitle,
+		start: calStart,
+		end: calEnd
+	});
 	res.redirect('/calendar');
 })
 
