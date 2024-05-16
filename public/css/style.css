@@ -125,7 +125,7 @@ body{
     height:100%;
     position:absolute;
     padding:90px 70px 50px 70px;
-    background:rgba(240, 241, 250, 0.5);
+    background:rgba(240, 241, 250, 0.7);
   }
 
   .login-html .sign-in-htm,
@@ -195,7 +195,7 @@ body{
     font-size: 18px;
     letter-spacing: 1px;
     cursor: pointer;
-    background: rgba(32, 19, 53, 0.1);
+    background: rgba(32, 19, 53, 0.15);
   }
   .login-form .group .button{
     border:none;
@@ -207,7 +207,6 @@ body{
     font-weight: 500;
     letter-spacing: 1px;
     cursor: pointer;
-    background: rgba(32, 19, 53, 0.1);
   }
 
   .login-form .group .label{
@@ -256,6 +255,11 @@ body{
 
   .login-form .group .check:checked + label .icon{
     background:#5E53A2;
+  }
+
+  
+  .login-form .group .check:not(:checked) + label .icon{
+    background:#F0F1FA;
   }
 
   .login-form .group .check:checked + label .icon:before{

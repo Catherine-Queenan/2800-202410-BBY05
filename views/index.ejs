@@ -2,9 +2,7 @@
 <div>
 	<% if (!loggedIn) { %>
 		<%- include('templates/hero', {content: 'Where pet professionals and pet owners come together'}) %>
-		<!-- Navigational Previews using BootStrap cards
-			TODO: Catherine makes the second button on the bottom two cards
-			into a popup instead of redirect-->
+		<!-- Navigational Previews using BootStrap cards-->
 		<section class="py-3 py-md-5">
 			<div class="container overflow-visible">
 				<div class="row gy-5">
@@ -16,11 +14,11 @@
 						actionOne: '/clientLogin',
 						classesOne: 'lg-button',
 						attributesOne: '',
-						contentOne: 'LOGIN',
+						contentOne: 'CLIENT',
 						actionTwo: '/businessLogin',
 						classesTwo: 'lg-button',
 						attributesTwo: '',
-						contentTwo: 'REGISTER',
+						contentTwo: 'BUSINESS',
 						imageUrl: 'images/PawPrintsFade.png'
 					}) %>
 
