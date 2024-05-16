@@ -1,0 +1,20 @@
+
+<!--Preview for clients of things to view on homepage-->
+<div class="col-12">
+    <div class="row align-items-center gy-3 gy-md-0 gx-xl-5">
+        <div class="col-9 col-sm-8 col-md-6 <%= prevClass %>">
+            <div>
+                <h2 class="h1 mb-3"><a class="link-dark text-decoration-none" href="#!"><%= title %></a></h2>
+                <p class="mb-4"><%= content %></p>
+                <form method="get">
+                <button formaction="<%= actionOne %>" class="btn btn-primary <%= classesOne %>" <%= attributesOne %>>
+                    <%= contentOne %>
+                </button>
+                <button formaction="<%= actionTwo %>" class="btn btn-primary <%= classesTwo %>" <%= attributesTwo %>>
+                    <%= contentTwo %>
+                </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

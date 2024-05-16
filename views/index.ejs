@@ -1,18 +1,65 @@
 <%- include("templates/header") %>
-	<div>
-		<% if (!loggedIn) { %>
+<div>
+	<% if (!loggedIn) { %>
+		<%- include('templates/hero', {content: 'Where pet professionals and pet owners come together'}) %>
+		<!-- Navigational Previews using BootStrap cards
+			TODO: Catherine makes the second button on the bottom two cards
+			into a popup instead of redirect-->
+		<section class="py-3 py-md-5">
+			<div class="container overflow-hidden">
+				<div class="row gy-5">
+					
+					<%- include('templates/clientPreview', { 
+						title: 'Canine-Centered Connections', 
+						content: 'Join our community of passionate animal professionals and pet owners. Connecting and scheduling made easy, by pet people, for pet people.',
+						prevClass: 'offset-3 offset-sm-4 offset-md-6',
+						actionOne: '/login',
+						classesOne: '',
+						attributesOne: '',
+						contentOne: 'Log in',
+						actionTwo: '/signup',
+						classesTwo: '',
+						attributesTwo: '',
+						contentTwo: 'Sign up'
+					}) %>
+
+					<%- include('templates/clientPreview', { 
+						title: 'Canine-Centered Connections', 
+						content: 'Join our community of passionate animal professionals and pet owners. Connecting and scheduling made easy, by pet people, for pet people.',
+						prevClass: '',
+						actionOne: '/login',
+						classesOne: '',
+						attributesOne: '',
+						contentOne: 'Log in',
+						actionTwo: '/signup',
+						classesTwo: '',
+						attributesTwo: '',
+						contentTwo: 'Sign up'
+					}) %>
+
+					<%- include('templates/clientPreview', { 
+						title: 'Canine-Centered Connections', 
+						content: 'Join our community of passionate animal professionals and pet owners. Connecting and scheduling made easy, by pet people, for pet people.',
+						prevClass: 'offset-3 offset-sm-4 offset-md-6',
+						actionOne: '/login',
+						classesOne: '',
+						attributesOne: '',
+						contentOne: 'Log in',
+						actionTwo: '/signup',
+						classesTwo: '',
+						attributesTwo: '',
+						contentTwo: 'Sign up'
+					}) %>
+
+				</div>
+			</div>
+		</section> 
+	<% } else { %>
+		hi <%= name %>
 		<form method="get">
-			<%- include('templates/button', {action:'/login',xClasses:'',xAttributes:'',content:'Log in'}) %>
-			<!-- <button formaction="/login">Log in</button> -->
-			<%- include('templates/button', {action:'/signup',xClasses:'',xAttributes:'',content:'Sign up'}) %>
-			<!-- <button formaction="/signup">Sign up</button> -->
-		</form>
-		<% } else { %>
-			hi <%= name %>
-			<form method="get">
 				<%- include('templates/button', {action:'/logout',xClasses:'',xAttributes:'',content:'Get me out of here'}) %>
 				<!-- <button formaction="/logout">Get me out of here</button> -->
-			</form>
-		<% } %>
-	</div>
+		</form>
+	<% } %>
+</div>
 <%- include("templates/footerCopyright") %>

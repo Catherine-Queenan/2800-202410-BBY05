@@ -1,0 +1,31 @@
+<!-- Hero 1 - Bootstrap Brain Component -->
+<section class="px-3 py-5" style="background-image: url('images/Hero.png'); background-position: center; background-repeat: repeat-x;">
+    <div class="container">
+        <div class="row justify-content-md-center">
+            <div class="col-12 col-md-11 col-lg-9 col-xl-7 col-xxl-6 text-center text-white">
+                    <h1 class="display-6 mb-3"><%= content %></h1>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    /* Apply different background sizes based on viewport */
+    @media (max-width: 576px) {
+        .px-3.py-5 {
+            background-size: cover;
+        }
+    }
+    
+    @media (min-width: 577px) and (max-width: 780px) {
+        .px-3.py-5 {
+            background-size: cover;
+        }
+    }
+    
+    @media (min-width: 781px) {
+        .px-3.py-5 {
+            background-size: contain;
+        }
+    }
+    </style>

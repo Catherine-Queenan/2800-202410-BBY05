@@ -3,6 +3,7 @@
 /* General */
 body {
     height: 100%;
+    max-width: 100%;
     font-family: 'Karla', sans-serif;
     font-size: 16px;
     color:#201335;
