@@ -194,6 +194,24 @@ app.get('/clientResources', (req, res) => {
 	res.render('clientResources', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType});
 });
 
+//CATHERINE
+//loginType decides which sign up form to show
+//suggest renaming the clientLogin file to just login because the login form is identical for both client and business
+//and the login type is what decides what sign up form to show in the ejs
+//currently if you run this, and do a business login you will see that the login form shows up but there is no sign up form
+//To make it a bit cleaner if you switch to a single log in file is change to app.get('/login/:type) and have type be either business or client
+//Pass the req.params.type as loginType and change the ejs varaibles and if statements to match the new naming convention
+//Also change the links on the index.ejs to '/login/client/' and '/login/business'
+app.get('/:loginType', (req, res) => {
+	res.render('clientLogin', {loggedIn: isValidSession(req), loginType: req.params.loginType});
+})
+
+app.get('/business/:action', (req, res) => {
+	if(res.params.action == 'login'){
+		res.render('businessLogin');
+	}
+})
+
 //Page to choose what account to sign up for (business or client)
 app.get('/signup', (req, res) => {
 	res.render('signupChoice', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType});
