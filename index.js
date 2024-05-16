@@ -4,6 +4,12 @@ const express = require('express');
 const session = require('express-session');
 const MongoStore = require('connect-mongo');
 const bcrypt = require('bcrypt');
+
+const multer = require("multer");
+const stream = require("stream");
+const cloudinary = require('cloudinary').v2;
+
+
 const saltRounds = 10;
 
 const app = express();
@@ -23,6 +29,8 @@ const mongodb_clientdb = process.env.MONGODB_CLIENTDATABASE;
 const mongodb_session_secret = process.env.MONGODB_SESSION_SECRET;
 
 const node_session_secret = process.env.NODE_SESSION_SECRET;
+
+const google_keys = process.env['GOOGLE_CREDS'];
 /* END secret section */
 
 // var { database } = include('databaseConnection');
@@ -53,6 +61,23 @@ var mongoStore = MongoStore.create({
 		secret: mongodb_session_secret
 	}
 });
+
+// Cloudinary Config (image storage)
+const cloud_name = process.env.CLOUDINARY_CLOUD_NAME;
+const cloud_api_key = process.env.CLOUDINARY_CLOUD_KEY;
+const cloud_api_secret = process.env.CLOUDINARY_CLOUD_SECRET;
+
+cloudinary.config({
+	secure: true,
+	cloud_name: cloud_name,
+	api_key: cloud_api_key,
+	api_secret: cloud_api_secret
+});
+
+
+//File uploader
+const storage = multer.memoryStorage();
+const upload = multer({storage: storage});
 
 app.use(session({
 	secret: node_session_secret,
@@ -127,6 +152,29 @@ function setUserDatabase(req) {
 	}
 	// console.log(userdb);
 }
+
+//Upload files to drive function
+async function uploadImage (fileObject){
+	//Pre: fileObject must be from req.file (user upload. (method from multer))
+	//Post: returns the cloud url the image is now stored at
+	let imageUrl;
+	let buf64 = fileObject.buffer.toString('base64');
+	await cloudinary.uploader.upload("data:image/png;base64," + buf64, {folder: "clientAccountAvatars"}, function(error, result) { //_stream
+		imageId = result.public_id;
+  	});
+  return imageId;
+};
+
+//delete images from the cloudinary storage
+async function deleteUploadedImage(id){
+	//Pre: id must be empty or a valid public_id from cloudinary
+	//Post: image is deleted from cloudinary
+	console.log(id);
+	if(id != ''){
+		cloudinary.uploader.destroy(id, function(result) { console.log(result) });
+	}
+}
+
 // TODO: Add access to pages and create a check for the user type and authorization
 // status to determine what footer and navbar to display
 
@@ -224,7 +272,7 @@ app.post('/submitSignup/:type', async (req, res) => {
 			phone: user.phone
 		});
 
-		//Submits info for business side forms
+	//Submits info for business side forms
 	} else if (type == "business") {
 
 		//Validation schema for user inputs
@@ -262,7 +310,7 @@ app.post('/submitSignup/:type', async (req, res) => {
 		}
 
 		//hashes password for storing
-		var hashPass = await bcrypt.hash(user.password, saltRounds);
+		user.password  = await bcrypt.hash(user.password, saltRounds);
 
 		//If the user select the services they provide it is stored in an array
 		//This currently only functions for the single checkbox and would need to be adjusted for multiple service options
@@ -300,7 +348,6 @@ app.post('/submitSignup/:type', async (req, res) => {
 			lastName: user.lastName,
 			companyWebsite: user.companyWebsite
 		});
-
 	}
 
 	// //Update the session for the now logged in user
@@ -357,6 +404,7 @@ app.post('/submitLogin', async (req, res) => {
 			req.session.name = result[0].companyName;
 		}
 		req.session.cookie.maxAge = expireTime;
+		
 
 		setUserDatabase(req);
 
@@ -374,6 +422,66 @@ app.get('/logout', (req, res) => {
 	setUserDatabase(req);
 	// console.log(userdb);
 	res.render('logout');
+});
+
+//Client user profile page
+app.get('/profile', sessionValidation, async(req, res) => {
+	//bandaid fix so its easier to test (delete later)
+	setUserDatabase(req);
+
+	//upload the info of the user
+	let user = await userdb.collection('info').findOne();
+
+	//currently no profile page available for the business side
+	if(req.session.userType == 'client'){
+		let profilePic = user.profilePic;
+		if(user.profilePic != ''){
+			profilePic = cloudinary.url(user.profilePic);
+		}
+		res.render('clientProfile', {user: user, editting: false, profilePic: profilePic});
+		return;
+	} else {
+		res.redirect('/');
+	}
+
+});
+
+//Client user profile edit
+app.get('/profile/edit', sessionValidation,  async(req, res) => {
+	//bandaid fix so its easier to test (delete later)
+	setUserDatabase(req);
+
+	//upload the info of the user
+	let user = await userdb.collection('info').findOne({email: req.session.email});
+
+	//currently no profile page available for the business side
+	if(req.session.userType == 'client'){
+		let profilePic = user.profilePic;
+		if(user.profilePic != ''){
+			profilePic = cloudinary.url(user.profilePic);
+		}
+
+		//render client profile page but with editting set up
+		res.render('clientProfile', {user: user, editting: true, profilePic: profilePic});
+		return;
+	} else {
+		res.redirect('/');
+	}
+
+})
+
+//Post for editting the profile
+app.post('/profile/editting', upload.single('profilePic'), async(req, res) => {
+
+	//delete old image
+	let user = await userdb.collection('info').find({email: req.session.email}).project({profilePic: 1}).toArray();
+	deleteUploadedImage(user[0].profilePic);
+	
+	//update database
+	req.body.profilePic = await uploadImage(req.file);
+	await userdb.collection('info').updateOne({email: req.session.email}, {$set: req.body});
+	res.redirect('/profile');
+
 });
 
 app.get('/addDog', (req, res) => {
