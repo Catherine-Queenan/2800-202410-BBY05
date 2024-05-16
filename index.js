@@ -10,6 +10,7 @@ const crypto = require('crypto')
 const app = express();
 const port = process.env.PORT || 3000;
 const Joi = require('joi');
+const ejs = require('ejs');
 
 // 1 hour
 const expireTime = 60 * 60 * 1000;
@@ -146,7 +147,7 @@ function setUserDatabase(req) {
 // status to determine what footer and navbar to display
 
 app.get('/', (req, res) => {
-	res.render('index', {loggedIn: isValidSession(req), name: req.session.name});
+	res.render('index', { loggedIn: isValidSession(req), name: req.session.name });
 });
 
 app.get('/about', (req, res) => {
@@ -225,7 +226,7 @@ app.post('/submitSignup/:type', async (req, res) => {
 		//Update the session for the now logged in user
 		req.session.authenticated = true;
 		req.session.email = user.email;
-		req.session.name = user.firstName +' '+ user.lastName;
+		req.session.name = user.firstName + ' ' + user.lastName;
 		req.session.userType = 'client';
 		req.session.cookie.maxAge = expireTime;
 
@@ -367,14 +368,14 @@ app.post('/submitLogin', async (req, res) => {
 
 		// Set session name to first+last if client, companyname if business
 		if (req.session.userType == 'client') {
-			req.session.name = result[0].firstName +' '+ result[0].lastName;
+			req.session.name = result[0].firstName + ' ' + result[0].lastName;
 		} else if (req.session.userType == 'business') {
 			req.session.name = result[0].companyName;
 		}
 		req.session.cookie.maxAge = expireTime;
 
 		setUserDatabase(req);
-		
+
 		res.redirect('/'); // redirect to home page
 		return;
 	} else {
@@ -389,23 +390,29 @@ app.post('/submitLogin', async (req, res) => {
 
 // This function is solely for sending emails. It will need an ejs file for the email templating later
 function sendMail(emailAddress, resetToken) {
-	emailHTMLinsert =`<h1>localhost:3000/resetPassword/${resetToken}</h1>`;
-	// Custom settings for the mail
-	const mailOptions = {
-		from: `${autoreply_email}`,
-		to: emailAddress,
-		subject: 'Reset Pawfolio password',
-		html: emailHTMLinsert
-	};
-
-	// This uses the transporter object near the top of the file to send emails
-	transporter.sendMail(mailOptions, (error, info) => {
-
-		// Error handling
-		if (error) {
-			res.render('errorMessge', { error: 'Email couldn\'t be sent' })
+	ejs.renderFile('./views/email.ejs', { resetToken: resetToken }, (err, str) => {
+		if (err) {
+			console.error('Error rendering email template', err);
+			return;
 		}
-		// console.log('successfuly sent email')
+
+		// Custom settings for the mail
+		const mailOptions = {
+			from: `${autoreply_email}`,
+			to: emailAddress,
+			subject: 'Reset Pawfolio password',
+			html: str
+		};
+
+		// This uses the transporter object near the top of the file to send emails
+		transporter.sendMail(mailOptions, (error, info) => {
+
+			// Error handling
+			if (error) {
+				res.render('errorMessge', { error: 'Email couldn\'t be sent' })
+			}
+			// console.log('successfuly sent email')
+		});
 	});
 }
 
@@ -414,7 +421,7 @@ app.get('/forgotPassword', (req, res) => {
 
 	// If the email is invalid, the query will have an error message. Otherwise, we want it blank so it doesn't always show
 	const errorMessage = req.query.errorMessage || '';
-	res.render('forgotPassword', {errorMessage: errorMessage});
+	res.render('forgotPassword', { errorMessage: errorMessage });
 });
 
 // This handles the submitted email for the /forgotpassword routing
@@ -425,26 +432,26 @@ app.post('/emailConfirmation', async (req, res) => {
 
 	// Storing the email that was entered
 	email = req.body.email;
-	
+
 	// if the email is found in the client side, we are allowed to send an email 
-	emailValidation = await appUserCollection.find({email: email}).project({ email: 1, password: 1, _id: 1 }).toArray();
-	if(emailValidation.length == 1) {
+	emailValidation = await appUserCollection.find({ email: email }).project({ email: 1, password: 1, _id: 1 }).toArray();
+	if (emailValidation.length == 1) {
 		emailVerification = true;
 	}
 
 	// if the email exists in the database
-	if(emailVerification) {
+	if (emailVerification) {
 		// Create a unique token and 1 hour expiration limit using crypto
 		const token = crypto.randomBytes(20).toString('hex');
 		const PasswordResetToken = token;
 		const tokenExpiriationDate = Date.now() + 3600000;
 
 		// Gives the user information collection the token and expiration time
-		appUserCollection.updateOne({ email: email }, { 
-			$set: { 
-				resetToken: `${PasswordResetToken}`, 
-				tokenExpiration: `${tokenExpiriationDate}` 
-			} 
+		appUserCollection.updateOne({ email: email }, {
+			$set: {
+				resetToken: `${PasswordResetToken}`,
+				tokenExpiration: `${tokenExpiriationDate}`
+			}
 		});
 
 		// send the email with the unique token link
@@ -453,14 +460,14 @@ app.post('/emailConfirmation', async (req, res) => {
 		// Redirect to an email sent page
 		res.redirect('/emailSent');
 		return;
-	} 
+	}
 
 	// This is a custom error message for if the email is invalid
 	// This does not have anything to do with the errorMessage.ejs file, this is simply for query
 	const error = 'woof woof woof woof (not a valid email)';
 
 	// the encodeURIComponent ensures that any special characters make it into the query if necessary
-    res.redirect(`/forgotPassword?errorMessage=${encodeURIComponent(error)}`);
+	res.redirect(`/forgotPassword?errorMessage=${encodeURIComponent(error)}`);
 });
 
 app.get('/resetPassword/:token', async (req, res) => {
@@ -469,11 +476,11 @@ app.get('/resetPassword/:token', async (req, res) => {
 	const token = req.params;
 
 	// find and store the user and store their document for later verification
-	const clientUser = await appUserCollection.findOne({resetToken: token.token});
+	const clientUser = await appUserCollection.findOne({ resetToken: token.token });
 
 	// This detects if we couldn't find the token in any user
 	if (clientUser == null) {
-		res.render('errorMessage', {error: 'Token expired or invalid.'})
+		res.render('errorMessage', { error: 'Token expired or invalid.' })
 		return;
 	}
 
@@ -489,12 +496,12 @@ app.get('/resetPasswordForm/:token', (req, res) => {
 
 	// store the token
 	token = req.params;
-	res.render('resetPasswordForm', {token: token.token});
+	res.render('resetPasswordForm', { token: token.token });
 });
 
 // Handles the new password submission
 app.post('/resettingPassword/:token', async (req, res) => {
-	
+
 	// store the new password
 	let password = req.body.password;
 
@@ -508,12 +515,13 @@ app.post('/resettingPassword/:token', async (req, res) => {
 	passwordHashed = await bcrypt.hash(password, saltRounds);
 
 	// sets the new password based on the account with the token
-	appUserCollection.updateOne({resetToken: token.token}, { $set: {password: passwordHashed}});
+	appUserCollection.updateOne({ resetToken: token.token }, { $set: { password: passwordHashed } });
 
 	// deletes the token information so that it can no longer be accessed on accident or injection
 	appUserCollection.updateOne(
 		{ resetToken: token.token },
 		{ $unset: { resetToken: "", tokenExpiration: "" } }
+
 	);
 
 	res.redirect('/passwordChangedSuccessfully');
@@ -528,7 +536,7 @@ app.get('/emailSent', (req, res) => {
 	res.render('checkInbox');
 });
 
-app.get('/logout', (req,res) => {
+app.get('/logout', (req, res) => {
 	req.session.destroy();
 	setUserDatabase(req);
 	// console.log(userdb);
