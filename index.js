@@ -507,12 +507,16 @@ app.post('/profile/editting', upload.single('profilePic'), async(req, res) => {
 
 });
 
+//Form for adding a new dog
 app.get('/addDog', (req, res) => {
 	res.render('addDog', {loggedIn: isValidSession(req), userType: req.session.userType});
 });
 
+//Adds the dog to the database
 app.post('/addingDog',  upload.array('dogUpload', 6), async(req, res) => {
-	setUserDatabase(req);
+	setUserDatabase(req); //bandaid for testing
+
+	//validation schema
 	var schema = Joi.object(
 		{
 			dogName: Joi.string().pattern(/^[a-zA-Z\s]*$/).max(20),
@@ -520,6 +524,7 @@ app.post('/addingDog',  upload.array('dogUpload', 6), async(req, res) => {
 		}
 	);
 
+	//validate the two user typed inputs
 	var validationRes = schema.validate({ dogName: req.body.dogName, specialAlerts: req.body.specialAlerts });
 
 	//Deals with errors from validation
@@ -529,14 +534,23 @@ app.post('/addingDog',  upload.array('dogUpload', 6), async(req, res) => {
 		return;
 	}
 	
+	//create a dog document
 	let dog = {
 		dogName: req.body.dogName
 	};
 
+	//FILIP this is the file management stuff
+	//If req.files.length == 0 there are no uploaded files
+	//A max of 6 files can be uploaded
+	//There is a change that the first file in the list will be an image file and not a pdf
 	if(req.files.length != 0){
+
+		//Checks if the first image is an image file and uploads the image if it is
 		let filename = req.files[0].mimetype;
 		filename = filename.split('/');
 		let fileType = filename[0];
+
+		//FILIP you could probably if else this because if the first image isn't an image file, it must be a pdf and everything after it will also be a pdf
 		if(fileType == 'image'){
 			dog.dogPic = await uploadImage(req.files[0], 'dogPics');
 		}
@@ -545,30 +559,40 @@ app.post('/addingDog',  upload.array('dogUpload', 6), async(req, res) => {
 		dog.dogPic = ''
 	}
 
+	//stores the neutered status
 	if(req.body.neuteredStatus == 'neutered'){
 		dog.neuteredStatus = req.body.neuteredStatus;
 	} else {
 		dog.neuteredStatus = 'not neutered';
 	}
 	
+	//Stores sex, birthday, weight, specialAlerts of the dog
 	dog.sex = req.body.sex;
 	dog.birthday = req.body.birthday;
 	dog.weight = req.body.weight + 'lb';
 	dog.specialAlerts = req.body.specialAlerts;
 
+	//Creates documents in the dog document for each vaccine
 	let allVaccines = ['rabies', 'leptospia', 'bordatella', 'bronchiseptica', 'DA2PP'];
 	allVaccines.forEach((vaccine)=>{
 		eval('dog.' + vaccine + '= {}');
 	});
 
+	//If dog has more than one vaccines, add the expiration date and pdf of the proof of vaccination to the specific vaccine document
 	if(Array.isArray(req.body.vaccineCheck)){
 		req.body.vaccineCheck.forEach((vaccine)=>{
 
 			eval('dog.' + vaccine + '.expirationDate = ' + 'req.body.' + vaccine + 'Date');
+
+			//FILIP this is where you would add the pdf reference, after the equals sign
 			eval('dog.' + vaccine + '.vaccineRecord = ' + 'req.body.' + vaccine + 'Proof');
 		});
+
+	//If the dog only has one vaccine
 	} else if (req.body.vaccineCheck){
 		eval('dog.' + req.body.vaccineCheck + '.expirationDate = ' + 'req.body.' + req.body.vaccineCheck + 'Date');
+
+		//FILIP this is also where you would add the pdf reference, after the equals sign
 		eval('dog.' + req.body.vaccineCheck + '.vaccineRecord = ' + 'req.body.' + req.body.vaccineCheck + 'Proof');
 	}
 	
