@@ -1,0 +1,14 @@
+<%- include("templates/header") %>
+	<%- include("templates/loginForms", {
+        login: 'Sign in', 
+        signup: 'Sign up',
+        loginEmail: 'email',
+        loginPassword: 'password',
+        firstName: 'First Name',
+        lastName: 'Last Name',
+        signupEmail: 'Email',
+        phone: 'Phone Number',
+        signupPass: 'Password',
+        confirmPass: 'Confirm Password'
+    }) %>
+<%- include("templates/footerCopyright") %>
