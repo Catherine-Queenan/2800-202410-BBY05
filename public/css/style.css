@@ -2,6 +2,8 @@
 
 /* General */
 body {
+    height: 100%;
+    max-width: 100%;
     font-family: 'Karla', sans-serif;
     font-size: 16px;
     color:#201335;
@@ -10,19 +12,94 @@ body {
 
 h1 {
     font-family: 'Yeseva One', serif;
-    font-size: 48px;
     font-weight: 400;
     color: #201335;
 }
 
+.background-image {
+    background-repeat: no-repeat;
+    background-position: top;
+    background-attachment: fixed;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-image: linear-gradient(180deg, rgba(240,241,250,1) 0%, rgba(134,134,134,0) 73%);
+}
+/* End of General */
+
+/* Bootstrap Modifications */
 .icon-hover:hover {
     transform: scale(1.1); /* Increase size on hover */
     transition: transform 0.3s ease; /* Add smooth transition */
     cursor: pointer; /* Change cursor to pointer on hover */
 }
 
+@media (min-width: 100px) and (max-width: 360px) {
+    .font-size-sm {
+        font-size: 28px; /* Define font size for small screens */
+        margin-top:25px;
+    }
+}
+  
+@media (min-width: 361px) and (max-width: 430px) {
+    .font-size-md {
+        font-size: 37.5px; /* Define font size for medium screens */
+        margin-top:20px;
+    }
+}
+  
+@media (min-width: 431px) and (max-width: 8000px) {
+    .font-size-lg {
+        font-size: 52px; /* Define font size for large screens */
+    }
+}
 
-/* General */
+.background-container-preview {
+    background-size: cover;
+    background-position: relative;
+    background-repeat: no-repeat;
+    padding: 20px; /* Optional: Add padding to adjust spacing */
+    overflow: visible !important;
+}
+
+.upperShadow {
+    box-shadow:-15px -15px 1.5px 1.5px #201335;
+}
+
+.lowerShadow {
+    box-shadow: 15px 15px 1.5px 1.5px #201335;
+}
+
+/* Buttons */
+.btn-main {
+    background-color: rgba(32, 19, 53, 0.8);
+    color: #FEF6C3;
+    border: none;
+    border-radius: 5px;
+    padding: 8px 25px;
+    font-size: 18px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    cursor: pointer;
+}
+
+.btn-secondary {
+    background-color: rgba(94, 83, 162, 0.8);
+    color: #201335;
+    border: none;
+    border-radius: 5px;
+    padding: 8px 25px;
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    cursor: pointer;
+}
+
+.lg-button {
+    width: 180px;
+    height: 50px;
+}
+/* End of Buttons */
+/* End of Bootstrap Modifications */
 
 /* Colors */
 .whiteBackground {

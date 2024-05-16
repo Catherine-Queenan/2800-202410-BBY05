@@ -19,5 +19,11 @@
 </head>
 
 <body>
-	<!-- TODO: Filip just need to do a check for userType here. -->
-	<%- include("navbarClient") %>
+	<!--If statements to determine which navbar to load based on authentication and authorization-->
+	<% if (!loggedIn) { %>
+        <%- include("navbarEmpty") %>
+    <% } else if (userType == "client") { %>
+		<%- include("navbarClient") %>
+	<% } else if (userType == "business") { %>
+		<%- include("navbarBusinessHome") %>
+	<% } %>
