@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Password Reset</title>
+        <link href="https://fonts.googleapis.com/css2?family=Karla:ital,wght@0,200..800;1,200..800&family=Yeseva+One&display=swap" rel="stylesheet">
+        <style>
+            /* Colors */
+            .whiteBackground {
+                background-color: #F0F1FA;
+            }
+
+            .white {
+                color: #F0F1FA
+            }
+
+            .lemonBackground {
+                background-color: #FEF6C3;
+            }
+
+            .lemon {
+                color: #FEF6C3;
+            }
+
+            .orangeBackground {
+                background-color: #FFA05C;
+            }
+
+            .orange {
+                color: #FFA05C;
+            }
+
+            .violetBackground {
+                background-color: #5E53A2;
+            }
+
+            .violet {
+                color: #5E53A2;
+            }
+
+            .purpleBackground {
+                background-color: #201335;
+            }
+
+            .purple {
+                color: #201335;
+            }
+            /* End of Colors */
+
+            /* Fonts */
+            .yeseva-one {
+                font-family: "Yeseva One", serif;
+                font-weight: 400;
+                font-style: normal;
+              }
+
+            .karla-light {
+                font-family: "Karla", sans-serif;
+                font-optical-sizing: auto;
+                font-weight: 300;
+                font-style: normal;
+            }
+
+            .karla-regular {
+                font-family: "Karla", sans-serif;
+                font-optical-sizing: auto;
+                font-weight: 400;
+                font-style: normal;
+            }
+
+            .karla-heavy {
+                font-family: "Karla", sans-serif;
+                font-optical-sizing: auto;
+                font-weight: 500;
+                font-style: normal;
+            }
+            /*End of fonts*/
+            
+            /*HTML stuff*/
+            body {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+                margin: 0;
+                text-align: center;
+                padding: 20px;
+            }
+            
+            .container {
+                text-align: center;
+                padding: 20px;
+                border-radius: 10px;
+                background: linear-gradient(180deg, #ffc78b 0%, #fef5c2 100%);
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                max-height: 100vh;
+            }
+            
+            h1 {
+                color: #201335;
+            }
+            
+            p {
+                color: #5E53A2;
+                font-weight: 300;
+            }
+            
+            button {
+                background-color: #5E53A2;
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 5px;
+                cursor: pointer;
+                font-weight: bold;
+                transition: background-color 0.3s;
+                transition: transform 0.3s ease-in-out, background-color 0.3s;
+            }
+            
+            button:hover {
+                background-color: #3e3184;
+                transform: scale(1.02); 
+            }
+            
+            .logo {
+                max-height: 120px;
+                padding-left: 10px;
+                padding-right: 10px;
+            }
+            /*End of HTML stuff*/
+
+        </style>
+    </head> 
+    <body>
+        <div class="container">
+            <img class="logo" src="https://i.imgur.com/nBorDC4.png" alt="Pawfolio Logo">
+            <h1>PAW-ssword Reset!</h1>
+            <p class="karla-regular">You're receiving this email because you have requested to reset your Pawfolio account password. Click the button below to reset it!</p>
+            <br>
+            <a href="my.bcit.ca"><button class="karla-heavy">Reset Password!</button></a> <!--SITEDOMAIN/resetPassword/<%= resetToken %>-->
+            <p>localhost:3000/resetPassword/<%= resetToken %></p>
+            <br>
+            <br>
+            <p class="karla-light">If you didn't mean to reset your password, you can ignore this email :)</p>
+        </div>
+        
+        <script>
+            function adjustLetterSpacing() {
+                var windowWidth = window.innerWidth;
+                var firstHeading = document.getElementById('firstHeading');
+                var secondHeading = document.getElementById('secondHeading');
+                var maxLetterSpacing = windowWidth * 0.5; // 50% of the window's width
+
+                // Calculate letter spacing based on window width
+                var letterSpacing = Math.min(0.025 * windowWidth, maxLetterSpacing);
+
+                // Apply letter-spacing to headings
+                firstHeading.style.letterSpacing = letterSpacing + 'px';
+                secondHeading.style.letterSpacing = letterSpacing + 'px';
+            }
+
+            // Call the function initially and on window resize
+            adjustLetterSpacing();
+            window.addEventListener('resize', adjustLetterSpacing);
+        </script>
+    </body>
+</html>
