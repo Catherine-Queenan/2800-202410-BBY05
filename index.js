@@ -405,7 +405,7 @@ function sendMail(emailAddress, resetToken) {
 		if (error) {
 			res.render('errorMessge', { error: 'Email couldn\'t be sent' })
 		}
-		console.log('successfuly sent email')
+		// console.log('successfuly sent email')
 	});
 }
 
@@ -431,9 +431,7 @@ app.post('/emailConfirmation', async (req, res) => {
 	if(emailValidation.length == 1) {
 		emailVerification = true;
 	}
-	console.log('good?: '+emailVerification);
-	console.log(emailValidation.length);
-	
+
 	// if the email exists in the database
 	if(emailVerification) {
 		// Create a unique token and 1 hour expiration limit using crypto
@@ -453,7 +451,6 @@ app.post('/emailConfirmation', async (req, res) => {
 		sendMail(email, token);
 
 		// Redirect to an email sent page
-		console.log('redirecting...');
 		res.redirect('/emailSent');
 		return;
 	} 
