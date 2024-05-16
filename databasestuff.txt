@@ -42,6 +42,13 @@ business-email {
 		start
 		end
 	}
+	clients {
+		_id
+		email
+		firstName
+		lastName
+		phone
+	}
 }
 
 sessions {

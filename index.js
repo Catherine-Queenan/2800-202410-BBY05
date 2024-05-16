@@ -376,14 +376,24 @@ app.get('/logout', (req,res) => {
 	res.render('logout');
 });
 
-app.get('/calendar', (req, res) => {
+async function getUserEvents() {
+	var userEvents = await userdb.collection('eventSource').find().project({ title: 1, start: 1, end: 1, _id: 0 }).toArray();
+	// console.log(userEvents);
+	return userEvents;
+}
 
-	
-
+app.get('/calendar', async (req, res) => {
+	setUserDatabase(req);
 	res.render('calendarBusiness');
 });
 
+app.get('/events', async (req, res) => {
+	const events = await getUserEvents();
+	res.json(events);
+});
+
 app.get('/addEvent', (req, res) => {
+	setUserDatabase(req);
 	res.render('addEvent');
 });
 
@@ -399,6 +409,25 @@ app.post('/addEventSubmit', async (req, res) => {
 		start: event.start,
 		end: event.end
 	});
+	res.redirect('/calendar');
+});
+
+// app.post('/event-click', (req, res) => {
+// 	const eventData = req.body;
+// 	console.log('Event clicked:', eventData);
+
+// 	res.json({ message: 'Event data received', eventData});
+// })
+
+// app.get('/removeEvent', (req, res) => {
+// 	res.render('removeEvent');
+// })
+
+app.post('/removeEvent', async (req, res) => {
+	var calTitle = req.body.calModTitle;
+	console.log(calTitle);
+	await userdb.collection('eventSource').deleteOne({title: calTitle});
+	res.redirect('/calendar');
 })
 
 app.use(express.static(__dirname + "/public"));

@@ -1,7 +1,40 @@
 <%- include("templates/header") %>
-<div class="container">
-	<button><a href="/addEvent">Add event</a></button>
-</div>
-<div class="container" id='calendar'></div>
-<script src="/scripts/calendar.js"></script>
-<%- include("templates/footerCopyright") %>
+	<div class="container">
+		<button><a href="/addEvent">Add event</a></button>
+	</div>
+	<div class="container" id='calendar'></div>
+
+
+	<!-- Modal -->
+	<div id="calendarModal" class="modal" tabindex="-1">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="calModDate">Modal title</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+
+				<form method="post">
+					<div class="modal-body" id="calModBod">
+						<!-- <input type="text" readonly class="form-control-plaintext" id="calModTitle" name="calModTitle">
+						<input type="text" readonly class="form-control-plaintext" id="calModStart" name="calModStart">
+						<input type="text" readonly class="form-control-plaintext" id="calModEnd" name="calModEnd"> -->
+					<!-- </div>
+
+					<div class="modal-footer">
+						<button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+						<button formaction="/removeEvent" class="btn btn-danger">Delete</button>
+						<button formaction="/updateEvent" class="btn btn-success">Save changes</button>
+					</div> -->
+				</form>
+			</div>
+		</div>
+	</div>
+
+	<!-- FullCalendar -->
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+		integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+		crossorigin="anonymous"></script>
+	<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
+	<script src="/scripts/calendar.js"></script>
+	<%- include("templates/footerCopyright") %>
