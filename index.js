@@ -421,63 +421,42 @@ app.get('/forgotPassword', (req, res) => {
 app.post('/emailConfirmation', async (req, res) => {
 
 	// deciding what collection the user is in (WILL BE REMOVED)
-	emailVerification = '';
+	let emailVerification = false;
 
 	// Storing the email that was entered
 	email = req.body.email;
 	
-	// if the email is found in the client side, we are allowed to send an email (WILL BE REMOVED)
-	emailValidation = await clientsCollection.find({email: email}).project({ email: 1, password: 1, _id: 1 }).toArray();
+	// if the email is found in the client side, we are allowed to send an email 
+	emailValidation = await appUserCollection.find({email: email}).project({ email: 1, password: 1, _id: 1 }).toArray();
 	if(emailValidation.length == 1) {
-		emailVerification = 'client';
+		emailVerification = true;
 	}
-	// if the email is found in the business side, we are allowed to send an email (WILL BE REMOVED)
-	emailValidation = await adminsCollection.find({email: email}).project({ email: 1, password: 1, _id: 1 }).toArray();
-	if(emailValidation.length == 1) {
-		emailVerification = 'admin';
-	}
-
-	// (WILL ONLY HAVE 1 CONDITION)
-	if(emailVerification == 'client' || emailVerification == 'admin') {
-
+	console.log('good?: '+emailVerification);
+	console.log(emailValidation.length);
+	
+	// if the email exists in the database
+	if(emailVerification) {
 		// Create a unique token and 1 hour expiration limit using crypto
 		const token = crypto.randomBytes(20).toString('hex');
 		const PasswordResetToken = token;
 		const tokenExpiriationDate = Date.now() + 3600000;
 
-		// Gives the user's information collection the token and expiration
-		if (emailVerification == 'client') {
+		// Gives the user information collection the token and expiration time
+		appUserCollection.updateOne({ email: email }, { 
+			$set: { 
+				resetToken: `${PasswordResetToken}`, 
+				tokenExpiration: `${tokenExpiriationDate}` 
+			} 
+		});
 
-			clientsCollection.updateOne({ email: email }, { 
-				$set: { 
-					resetToken: `${PasswordResetToken}`, 
-					tokenExpiration: `${tokenExpiriationDate}` 
-				} 
-			});
+		// send the email with the unique token link
+		sendMail(email, token);
 
-			// send the email with the unique token link
-			sendMail(email, token);
-
-			// Redirect to an email sent page
-			res.redirect('/emailSent');
-			return;
-		}
-
-		// Same as above (WILL BE REMOVED)
-		if (emailVerification == 'admin') {
-
-			adminCollection.updateOne({ email: email }, { 
-				$set: { 
-					resetToken: `${PasswordResetToken}`, 
-					tokenExpiration: `${tokenExpiriationDate}` 
-				} 
-			});
-
-			sendMail(email, token);
-			res.redirect('/emailSent');
-			return;
-		}
-	}
+		// Redirect to an email sent page
+		console.log('redirecting...');
+		res.redirect('/emailSent');
+		return;
+	} 
 
 	// This is a custom error message for if the email is invalid
 	// This does not have anything to do with the errorMessage.ejs file, this is simply for query
@@ -493,7 +472,7 @@ app.get('/resetPassword/:token', async (req, res) => {
 	const token = req.params;
 
 	// find and store the user and store their document for later verification
-	const clientUser = await clientsCollection.findOne({resetToken: token.token});
+	const clientUser = await appUserCollection.findOne({resetToken: token.token});
 
 	// This detects if we couldn't find the token in any user
 	if (clientUser == null) {
@@ -532,10 +511,10 @@ app.post('/resettingPassword/:token', async (req, res) => {
 	passwordHashed = await bcrypt.hash(password, saltRounds);
 
 	// sets the new password based on the account with the token
-	clientsCollection.updateOne({resetToken: token.token}, { $set: {password: passwordHashed}});
+	appUserCollection.updateOne({resetToken: token.token}, { $set: {password: passwordHashed}});
 
 	// deletes the token information so that it can no longer be accessed on accident or injection
-	clientsCollection.updateOne(
+	appUserCollection.updateOne(
 		{ resetToken: token.token },
 		{ $unset: { resetToken: "", tokenExpiration: "" } }
 	);
@@ -549,7 +528,7 @@ app.get('/passwordChangedSuccessfully', (req, res) => {
 });
 
 app.get('/emailSent', (req, res) => {
-	res.send('email sent');
+	res.send('email sent. Check your inbox.');
 });
 
 app.get('/logout', (req,res) => {
