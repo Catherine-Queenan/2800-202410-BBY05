@@ -9,7 +9,7 @@ picUpload.addEventListener('input', (event) => {
     let imageFile = event.target.files[0]
     let path = URL.createObjectURL(imageFile);
     console.log(path);
-    //let profilePic = document.getElementById('profilePic');
+    let profilePic = document.getElementById('profilePic');
 
     profilePic.src = path;
 });

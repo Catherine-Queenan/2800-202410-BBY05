@@ -154,12 +154,12 @@ function setUserDatabase(req) {
 }
 
 //Upload files to drive function
-async function uploadImage (fileObject){
+async function uploadImage (fileObject, folder){
 	//Pre: fileObject must be from req.file (user upload. (method from multer))
 	//Post: returns the cloud url the image is now stored at
 	let imageUrl;
 	let buf64 = fileObject.buffer.toString('base64');
-	await cloudinary.uploader.upload("data:image/png;base64," + buf64, {folder: "clientAccountAvatars"}, function(error, result) { //_stream
+	await cloudinary.uploader.upload("data:image/png;base64," + buf64, {folder: folder}, function(error, result) { //_stream
 		imageId = result.public_id;
   	});
   return imageId;
@@ -169,9 +169,8 @@ async function uploadImage (fileObject){
 async function deleteUploadedImage(id){
 	//Pre: id must be empty or a valid public_id from cloudinary
 	//Post: image is deleted from cloudinary
-	console.log(id);
 	if(id != ''){
-		cloudinary.uploader.destroy(id, function(result) { console.log(result) });
+		cloudinary.uploader.destroy(id);
 	}
 }
 
@@ -438,7 +437,18 @@ app.get('/profile', sessionValidation, async(req, res) => {
 		if(user.profilePic != ''){
 			profilePic = cloudinary.url(user.profilePic);
 		}
-		res.render('clientProfile', {user: user, editting: false, profilePic: profilePic});
+
+		let dogs = await userdb.collection('dogs').find({}).project({_id: 1, dogName: 1, sex: 1, dogPic: 1}).toArray();
+		for(let i = 0; i < dogs.length; i++){
+			let pic = dogs[i].dogPic;
+			if(pic == ''){
+				dogs[i].dogPic = '/images/tempDefaultUser.png';
+			} else {
+				dogs[i].dogPic = cloudinary.url(pic);
+			}
+		}
+
+		res.render('clientProfile', {user: user, editting: false, profilePic: profilePic, dogs: dogs});
 		return;
 	} else {
 		res.redirect('/');
@@ -453,7 +463,7 @@ app.get('/profile/edit', sessionValidation,  async(req, res) => {
 
 	//upload the info of the user
 	let user = await userdb.collection('info').findOne({email: req.session.email});
-
+	let dogs = await userdb.collection('dogs').find({}).project({_id: 1, dogName: 1, sex: 1, dogPic: 1}).toArray();
 	//currently no profile page available for the business side
 	if(req.session.userType == 'client'){
 		let profilePic = user.profilePic;
@@ -461,8 +471,17 @@ app.get('/profile/edit', sessionValidation,  async(req, res) => {
 			profilePic = cloudinary.url(user.profilePic);
 		}
 
+		for(let i = 0; i < dogs.length; i++){
+			let pic = dogs[i].dogPic;
+			if(pic == ''){
+				dogs[i].dogPic = '/images/tempDefaultUser.png';
+			} else {
+				dogs[i].dogPic = cloudinary.url(pic);
+			}
+		}
+
 		//render client profile page but with editting set up
-		res.render('clientProfile', {user: user, editting: true, profilePic: profilePic});
+		res.render('clientProfile', {user: user, editting: true, profilePic: profilePic,dogs: dogs});
 		return;
 	} else {
 		res.redirect('/');
@@ -473,12 +492,16 @@ app.get('/profile/edit', sessionValidation,  async(req, res) => {
 //Post for editting the profile
 app.post('/profile/editting', upload.single('profilePic'), async(req, res) => {
 
-	//delete old image
-	let user = await userdb.collection('info').find({email: req.session.email}).project({profilePic: 1}).toArray();
-	deleteUploadedImage(user[0].profilePic);
-	
+	//grab current image id
+	let user = await userdb.collection('info').find({email: req.session.email}).project({profilePic: 1}).toArray();	
 	//update database
-	req.body.profilePic = await uploadImage(req.file);
+	if(req.file){
+		await deleteUploadedImage(user[0].profilePic);
+		req.body.profilePic = await uploadImage(req.file, "clientAccountAvatars");
+	} else {
+		req.body.profilePic = user[0].profilePic;
+	}
+
 	await userdb.collection('info').updateOne({email: req.session.email}, {$set: req.body});
 	res.redirect('/profile');
 
@@ -488,7 +511,7 @@ app.get('/addDog', (req, res) => {
 	res.render('addDog');
 });
 
-app.post('/addingDog', async(req, res) => {
+app.post('/addingDog',  upload.array('dogUpload', 6), async(req, res) => {
 	setUserDatabase(req);
 	var schema = Joi.object(
 		{
@@ -505,10 +528,22 @@ app.post('/addingDog', async(req, res) => {
 		res.send(doc);
 		return;
 	}
-
+	
 	let dog = {
 		dogName: req.body.dogName
 	};
+
+	if(req.files.length != 0){
+		let filename = req.files[0].mimetype;
+		filename = filename.split('/');
+		let fileType = filename[0];
+		if(fileType == 'image'){
+			dog.dogPic = await uploadImage(req.files[0], 'dogPics');
+		}
+	
+	} else {
+		dog.dogPic = ''
+	}
 
 	if(req.body.neuteredStatus == 'neutered'){
 		dog.neuteredStatus = req.body.neuteredStatus;
@@ -522,7 +557,6 @@ app.post('/addingDog', async(req, res) => {
 	dog.specialAlerts = req.body.specialAlerts;
 
 	let allVaccines = ['rabies', 'leptospia', 'bordatella', 'bronchiseptica', 'DA2PP'];
-	console.log(req.body);
 	allVaccines.forEach((vaccine)=>{
 		eval('dog.' + vaccine + '= {}');
 	});
@@ -533,15 +567,14 @@ app.post('/addingDog', async(req, res) => {
 			eval('dog.' + vaccine + '.expirationDate = ' + 'req.body.' + vaccine + 'Date');
 			eval('dog.' + vaccine + '.vaccineRecord = ' + 'req.body.' + vaccine + 'Proof');
 		});
-	} else if (req.body.vaccineCheck != ''){
+	} else if (req.body.vaccineCheck){
 		eval('dog.' + req.body.vaccineCheck + '.expirationDate = ' + 'req.body.' + req.body.vaccineCheck + 'Date');
 		eval('dog.' + req.body.vaccineCheck + '.vaccineRecord = ' + 'req.body.' + req.body.vaccineCheck + 'Proof');
 	}
 	
 
-	let result = await userdb.collection('dogs').insertOne(dog);
-	console.log(await userdb.collection('dogs').find({_id: result.insertedId}).project({dogName: 1}).toArray());
-	res.redirect('/addDog');
+	await userdb.collection('dogs').insertOne(dog);
+	res.redirect('/profile');
 });
 
 app.use(express.static(__dirname + "/public"));

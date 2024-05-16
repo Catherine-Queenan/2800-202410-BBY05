@@ -23,3 +23,14 @@ vaccineInputs.forEach((vaccineCheck) => {
         }
     })
 });
+
+let picUpload = document.getElementById('dogPicInput');
+
+picUpload.addEventListener('input', (event) => {
+    let imageFile = event.target.files[0]
+    let path = URL.createObjectURL(imageFile);
+    console.log(path);
+    let dogPic = document.getElementById('demoPic');
+
+    dogPic.src = path;
+});
