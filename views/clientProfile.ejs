@@ -1,0 +1,34 @@
+<%- include("templates/header") %>
+<%- include('templates/defaultingPic', {pic: user.profilePic})%>
+    <form method="post" enctype="multipart/form-data">
+        <% if (editting == true){ %>
+            <%- include('templates/uploadFile', {divId:'newProfilePic', xDivAttributes:'', fileId:'profilePicInput',fileName:'profilePic', label:'Upload a New Photo:', xfileAttributes:''}) %>
+        <% } %>
+            
+        <input name="firstName" type="text" class="profileInfo" value="<%= user.firstName %>" disabled>
+        <input name="lastName" type="text" class="profileInfo" value="<%= user.lastName %>" disabled>
+        <input name="email" type="text" class="profileInfo" value="<%= user.email %>" disabled>
+        <input name="phone" type="text" class="profileInfo" value="<%= user.phone %>" disabled>
+
+        <% if (editting == true){ %>
+           <%- include('templates/button', {action:'/profile/editting',xClasses:'',xAttributes:'',content:'Save'}) %>
+            <script src="/scripts/editProfile.js"></script>
+        <% } else { %>
+            <a class="btn btn-primary" href="/profile/edit" role="button">Edit</a>
+        <% } %>
+    </form> 
+
+   
+    <%if (editting != true){ %> 
+        <h3><%=userName%>'s Dogs:</h3>
+        <% for(let i = 0; i < dogs.length; i++){ %>
+            <%- include('templates/dog', {dogImage: dogs[i].dogPic, dogName: dogs[i].dogName}) %>
+        <%} %>
+        <br>
+        <form>
+        <%- include('templates/button', {action:'/addDog',xClasses:'',xAttributes:'',content:'Add New Dog'}) %>
+        </form>
+    <%} %>
+   
+   
+<%- include("templates/footerCopyright") %>
