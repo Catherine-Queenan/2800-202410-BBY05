@@ -758,9 +758,6 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
     };
 
     // this is the file management stuff
-    // If req.files.length == 0 there are no uploaded files
-    // A max of 6 files can be uploaded
-    // There is a chance that the first file in the list will be an image file and not a pdf
     if (req.files.length != 0) {
         // Check if the first image is an image file and upload the image if it is
         let filename = req.files[0].mimetype;
@@ -775,16 +772,29 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
         }
 
         // Loop through all files and upload PDFs to Google Cloud Storage
-        for (let file of req.files) {
-            let filename = file.mimetype;
+        let v = 0;
+        for (let i = 0; i < req.files.length; i++) {
+            let vaccineType = req.body.vaccineCheck[v]; // We put v here because the first iteration (i) might be the profile photo image
+            let filename = req.files[i].mimetype;
             filename = filename.split('/');
             let fileType = filename[0];
+            let dogName = req.body.dogName;
+            
+            // Iterate v so that we can get the number of vaccines
+            // This accounts for the potential profile photo upload
+            if(fileType != 'image') {
+                v++;
+            }
+            
+            // Get the last name of the client
+            let lastName = req.session.name.split(' ')[1];
 
             if (fileType === 'application') {
-                let fileName = `pdfs/${file.originalname}`;
-                let fileUrl = await uploadFileToGoogleCloud(file.buffer, fileName);
+                let fullFileName = `${lastName}_${dogName}_${vaccineType}.pdf`;
+                let filePath = `pdfs/${fullFileName}`;
+                let fileUrl = await uploadFileToGoogleCloud(req.files[i].buffer, filePath);
                 dog.vaccineRecords = dog.vaccineRecords || [];
-                dog.vaccineRecords.push({ fileName: file.originalname, fileUrl });
+                dog.vaccineRecords.push({ fileName: req.files[i].originalname, fileUrl });
             }
         }
     } else {
@@ -804,21 +814,19 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
     dog.weight = req.body.weight + 'lb';
     dog.specialAlerts = req.body.specialAlerts;
 
-    // Creates documents in the dog document for each vaccine
-    let allVaccines = ['rabies', 'leptospira', 'bordetella', 'bronchiseptica', 'DA2PP'];
-    allVaccines.forEach((vaccine) => {
-        dog[vaccine] = {};
-    });
-
     // If dog has more than one vaccine, add the expiration date and pdf of the proof of vaccination to the specific vaccine document
     if (Array.isArray(req.body.vaccineCheck)) {
         req.body.vaccineCheck.forEach((vaccine) => {
-            dog[vaccine].expirationDate = req.body[vaccine + 'Date'];
-            dog[vaccine].vaccineRecord = req.body[vaccine + 'Proof'];
+            dog[vaccine] = {
+                expirationDate: req.body[vaccine + 'Date'],
+                vaccineRecord: req.body[vaccine + 'Proof']
+            };
         });
     } else if (req.body.vaccineCheck) {
-        dog[req.body.vaccineCheck].expirationDate = req.body[req.body.vaccineCheck + 'Date'];
-        dog[req.body.vaccineCheck].vaccineRecord = req.body[req.body.vaccineCheck + 'Proof'];
+        dog[req.body.vaccineCheck] = {
+            expirationDate: req.body[req.body.vaccineCheck + 'Date'],
+            vaccineRecord: req.body[req.body.vaccineCheck + 'Proof']
+        };
     }
 
     await userdb.collection('dogs').insertOne(dog);
