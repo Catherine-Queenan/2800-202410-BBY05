@@ -36,6 +36,19 @@ business-email {
 	}
 	activeAlerts{}
 	inactiveAlerts{}
+	events {
+		_id
+		title
+		start
+		end
+	}
+	clients {
+		_id
+		email
+		firstName
+		lastName
+		phone
+	}
 }
 
 sessions {

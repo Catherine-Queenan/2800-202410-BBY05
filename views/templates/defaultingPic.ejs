@@ -1,5 +1,5 @@
-<% if(pic != ''){ %> 
-    <img id="profilePic" src="<%= pic %>" alt="..." class="rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
+<% if(pic != null){ %> 
+    <img id="profilePic" src="/<%= pic %>" alt="..." class="rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
 <% } else { %>
-    <img id="profilePic" src="/images/DefaultAvatar.png" alt="..." class="rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
+    <img id="profilePic" src="/images/DefaultAvatar.png" alt="DefaultAvatar" class="rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
    <% } %>
