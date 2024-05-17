@@ -829,14 +829,9 @@ app.get('/accountConfirmation', (req, res) => {
 app.post('/deleteAccount', async (req, res) => {
 	// console.log(req.session.email);
 	email = req.session.email;
-	emailParse = email.replace(/\./g, '');
 
-
-	
-
-
-	await appUserCollection.deleteOne({email: req.params.email});
-	await userdb.dropDatabase('client-' + emailParse);
+	await appUserCollection.deleteOne({email: email});
+	await userdb.dropDatabase();
 	res.redirect('/logout');
 	// console.log(user);
 	
