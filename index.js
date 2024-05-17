@@ -637,6 +637,21 @@ app.post('/dog/:dogId/edit',upload.single('dogUpload'), async(req, res) => {
 	res.redirect(redirect);
 });
 
+app.post('/dog/:dogId/delete',upload.single('dogUpload'), async(req, res) => {
+	let dogId =  ObjectId.createFromHexString(req.params.dogId);
+
+	//grab current image id
+	let dog = await userdb.collection('dogs').find({_id: dogId}).project({dogPic: 1}).toArray();	
+	//update database
+	if(dog[0].dogPic != ''){
+		deleteUploadedImage(dog[0].dogPic);
+	}
+
+	await userdb.collection('dogs').deleteOne({_id: dogId});
+
+	res.redirect('/profile');
+});
+
 app.use(express.static(__dirname + "/public"));
 
 app.get('*', (req, res) => {

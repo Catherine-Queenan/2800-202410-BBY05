@@ -1,4 +1,5 @@
 <%- include("templates/header") %>
+<%- include('templates/backLinkbutton', {page: '/profile'}) %>
 <div>
 <span class="h5"><%=dog.dogName%></span> 
 <%- include('templates/button', {action: '',xClasses:'',xAttributes:'id=viewVaccines type=button',content:'View Vaccination Records'}) %>
@@ -97,11 +98,18 @@
 			<%- include('templates/button', {action:'',xClasses:'',xAttributes:'id=editVaccinesButton type=button',content:'Edit'}) %>
 			<%- include('templates/button', {action: dog._id + '/editVaccines',xClasses:'',xAttributes:'id=saveVaccinesButton style=display:none',content:'Save'}) %>
 		</form>
-		  
-		  
+
+		<form method="post">
+		<%- include('templates/button', {action: dog._id + '/delete' , xClasses:'',xAttributes:'id=deleteDogButton',content:'Delete Dog'}) %>
+		</form>
+
 		<script>
+			let deleteButton = document.getElementById('deleteDogButton');
+
 			let editBasicButton = document.getElementById('editBasicButton');
 			editBasicButton.addEventListener('click', ()=>{
+				deleteButton.style = 'display:none';
+
 				editBasicButton.style = 'display:none';
 
 				let inputFields = document.querySelectorAll('.dogInfo');
@@ -153,6 +161,8 @@
 
 			let editVaccinesButton = document.getElementById('editVaccinesButton');
 			editVaccinesButton.addEventListener('click', ()=>{
+				deleteButton.style = 'display:none';
+
 				editVaccinesButton.style = 'display:none';
 
 				let dateFields = document.querySelectorAll('.vaccineInput');
@@ -179,6 +189,9 @@
 
         		saveVaccinesButton.style = 'display:block';
 			});
+
+			
+		
 
 		</script>
 		<%- include("templates/footerCopyright") %>
