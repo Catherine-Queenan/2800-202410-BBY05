@@ -12,6 +12,10 @@ vaccineInputs.forEach((vaccineCheck) => {
         let expireDateInput = document.getElementById(dateId);
         let proofFileInput = document.getElementById(fileId);
 
+        //Get the input element
+        dateInput = expireDateInput.children[1];
+        fileInput = proofFileInput.children[2];
+
         //If the checkbox was checked
         if(vaccineCheck.checked){
             //Shows the html elements
@@ -19,8 +23,8 @@ vaccineInputs.forEach((vaccineCheck) => {
             proofFileInput.style = "display: block";
 
             //makes the required
-            expireDateInput.required = true;
-            proofFileInput.required = true;
+            dateInput.required = true;
+            fileInput.required = true;
             
         //If the checkbox was unchecked
         } else {
@@ -29,8 +33,8 @@ vaccineInputs.forEach((vaccineCheck) => {
             proofFileInput.style = "display: none"
 
             //Make them not required
-            expireDateInput.required = false;
-            proofFileInput.required = false;
+            dateInput.required = false;
+            fileInput.required = false;
         }
     })
 });

@@ -5,23 +5,206 @@
     <h1 class="text-center">Client Resources</h1> <!--Page title-->
         
     <!--TODO: Catherine links tabs.ejs here-->
-
-    <!--Resource cards-->
-    <%- include('templates/resource', { 
-        imageUrl: '/path/to/image.jpg', 
-        altText: 'Image Alt Text', 
-        title: 'Card Title', 
-        bodyContent: 'This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.', 
-        collapseIdA: 'collapseExample', 
-        idA: 'Toggle 1',
-        collapseContentA: 'Some placeholder content for the collapse component. This panel is hidden by default but revealed when the user activates the relevant trigger.', 
-        collapseIdB: 'collapseExample2',
-        idB: 'Toggle 2',
-        collapseContentB: 'Some more placeholder content for the collapse component. This panel is hidden by default but revealed when the user activates the relevant trigger.',
-        disclaimer: 'Not affiliated with Pawfolio'
-    }) %>
-
-</div> <!--End container div-->
+        <div class="resource-wrap">
+            <div class="resource-html">
+                <input id="tabR-1" type="radio" name="tab" class="tabR-one btn-check" checked>
+                <label for="tabR-1" class="tabR">All</label>
+                <input id="tabR-2" type="radio" name="tab" class="tabR-two btn-check">
+                <label for="tabR-2" class="tabR">Choosing a Dog</label>
+                <input id="tabR-3" type="radio" name="tab" class="tabR-three btn-check">
+                <label for="tabR-3" class="tabR">Grooming</label>
+                <input id="tabR-4" type="radio" name="tab" class="tabR-four btn-check">
+                <label for="tabR-4" class="tabR">Dog Shows</label>
+                <input id="tabR-5" type="radio" name="tab" class="tabR-five btn-check">
+                <label for="tabR-5" class="tabR">Dog Sports</label>
+                <div class="resource-form">
+                    <div class="tabR-one-htm">
+                        <!--Resource cards-->
+                        <%- include('templates/resource', {
+                            link: 'https://www.akc.org/',
+                            imageUrl: 'images/AKCMain.png',
+                            altText: 'Image Alt Text', 
+                            title: 'American Kennel Club', 
+                            bodyContent: 'The official website of the American Kennel Club.', 
+                            disclaimer: 'Not affiliated with Pawfolio'
+                        }) %>
+                        <%- include('templates/resource', {
+                            link: 'https://www.ckc.ca/',
+                            imageUrl: 'images/CKCMain.png',
+                            altText: 'Image Alt Text', 
+                            title: 'Canadian Kennel Club', 
+                            bodyContent: 'The official website of the Canadian Kennel Club.', 
+                            disclaimer: 'Not affiliated with Pawfolio'
+                        }) %>
+                        <%- include('templates/resource', {
+                            link: 'https://www.ukcdogs.com/',
+                            imageUrl: 'images/UKCMain.png',
+                            altText: 'Image Alt Text', 
+                            title: 'United Kennel Club', 
+                            bodyContent: 'The official website of the United Kennel Club, that spans the globe.', 
+                            disclaimer: 'Not affiliated with Pawfolio'
+                        }) %>
+                        <%- include('templates/resource', {
+                            link: 'https://www.thesprucepets.com/signs-of-a-bad-breeder-1117328',
+                            imageUrl: 'images/SprucePets.png',
+                            altText: 'Image Alt Text', 
+                            title: 'Finding an Ethical Breeder', 
+                            bodyContent: 'Read this article to learn all about what to look for in an ethical breeder. Find out how to spot the red flags of a backyard breeder.', 
+                            disclaimer: 'Not affiliated with Pawfolio'
+                        }) %>
+                        <%- include('templates/resource', {
+                            link: 'https://www.familypaws.com',
+                            imageUrl: 'images/FamilyPaws.png',
+                            altText: 'Image Alt Text', 
+                            title: 'Preparing for Puppy', 
+                            bodyContent: 'Tips for how to prepare for a new puppy. Family Paws has a special focus on helping families with children.', 
+                            disclaimer: 'Not affiliated with Pawfolio'
+                        }) %>
+                        <%- include('templates/resource', {
+                            link: 'https://www.leadingedge-dog-show-academy.com/',
+                            imageUrl: 'images/LeadingEdge.png',
+                            altText: 'Image Alt Text', 
+                            title: 'Grooming Guides', 
+                            bodyContent: 'Explore a rich library of grooming guides and resources to help you keep your dog looking and feeling their best.', 
+                            disclaimer: 'Not affiliated with Pawfolio'
+                        }) %>
+                        <%- include('templates/resource', {
+                            link: 'https://dogshow.ca/en',
+                            imageUrl: 'images/DogShow.png',
+                            altText: 'Image Alt Text', 
+                            title: 'Conformation Shows', 
+                            bodyContent: 'Find out about upcoming dog shows in your area. Learn about the different classes and how to get involved.', 
+                            disclaimer: 'Not affiliated with Pawfolio'
+                        }) %>
+                        <%- include('templates/resource', {
+                            link: 'https://www.canuckdogs.com/',
+                            imageUrl:'images/CanuckDog.png',
+                            altText: 'Image Alt Text', 
+                            title: 'Canine Events', 
+                            bodyContent: 'Explore Canadian dog shows and sporting events, and find out how to get involved.', 
+                            disclaimer: 'Not affiliated with Pawfolio'
+                        }) %>
+                        <%- include('templates/resource', {
+                            link: 'https://capdt.ca/learn-about-dog-sports/scent-detection-nosework/',
+                            imageUrl: 'images/CAPDT.png',
+                            altText: 'Image Alt Text', 
+                            title: 'ScentWork', 
+                            bodyContent: 'Read about the sport of ScentWork and how to get started with your dog.',
+                            disclaimer: 'Not affiliated with Pawfolio'
+                        }) %>
+                    </div>
+                </div>
+                <div class="resource-form">
+                    <div class="tabR-two-htm">
+                        <!--Resource cards-->
+                        <%- include('templates/resource', {
+                            link: 'https://www.akc.org/dog-breeds/',
+                            imageUrl: 'images/AKCMain.png',
+                            altText: 'Image Alt Text', 
+                            title: 'Meet the Breeds', 
+                            bodyContent: 'Browse through the AKC\'s database of dog breeds to find the perfect match for you. Learn about breed groups, recognized breeds, and foundation stock service breeds in development.', 
+                            disclaimer: 'Not affiliated with Pawfolio'
+                        }) %>
+                        <%- include('templates/resource', {
+                            link: 'https://www.thesprucepets.com/signs-of-a-bad-breeder-1117328',
+                            imageUrl: 'images/SprucePets.png',
+                            altText: 'Image Alt Text', 
+                            title: 'Finding an Ethical Breeder', 
+                            bodyContent: 'Read this article to learn all about what to look for in an ethical breeder. Find out how to spot the red flags of a backyard breeder.', 
+                            disclaimer: 'Not affiliated with Pawfolio'
+                        }) %>
+                        <%- include('templates/resource', {
+                            link: 'https://www.akc.org/expert-advice/dog-breeding/signs-of-a-responsible-breeder/',
+                            imageUrl: 'images/AKCMain.png',
+                            altText: 'Image Alt Text', 
+                            title: 'Finding a Reputable Breeder', 
+                            bodyContent: 'Tips and tricks for finding a reputable breeder. Learn about the signs of backyard breeders, puppy mills, and more. ', 
+                            disclaimer: 'Not affiliated with Pawfolio'
+                        }) %>
+                        <%- include('templates/resource', {
+                            link: 'https://www.familypaws.com',
+                            imageUrl: 'images/FamilyPaws.png',
+                            altText: 'Image Alt Text', 
+                            title: 'Preparing for Puppy', 
+                            bodyContent: 'Tips for how to prepare for a new puppy. Family Paws has a special focus on helping families with children.', 
+                            disclaimer: 'Not affiliated with Pawfolio'
+                        }) %>
+                    </div>
+                </div>
+                <div class="resource-form">
+                    <div class="tabR-three-htm">
+                        <!--Resource cards-->
+                        <%- include('templates/resource', {
+                            link: 'https://www.leadingedge-dog-show-academy.com/',
+                            imageUrl: 'images/LeadingEdge.png',
+                            altText: 'Image Alt Text', 
+                            title: 'Grooming Guides', 
+                            bodyContent: 'Explore a rich library of grooming guides and resources to help you keep your dog looking and feeling their best.', 
+                            disclaimer: 'Not affiliated with Pawfolio'
+                        }) %>
+                        <%- include('templates/resource', {
+                            link: 'https://www.youtube.com/watch?v=TRmsuoe6z6s',
+                            imageUrl: 'images/LeadingEdge.png',
+                            altText: 'Image Alt Text', 
+                            title: 'Line Brushing', 
+                            bodyContent: 'Watch this helpful video to learn how to correctly line brush your dog\'s coat with a slicker brush.', 
+                            disclaimer: 'Not affiliated with Pawfolio'
+                        }) %>
+                    </div>
+                </div>
+                <div class="resource-form">
+                    <div class="tabR-four-htm">
+                        <!--Resource cards-->
+                        <%- include('templates/resource', {
+                            link: 'https://dogshow.ca/en',
+                            imageUrl: 'images/DogShow.png',
+                            altText: 'Image Alt Text', 
+                            title: 'Conformation Shows', 
+                            bodyContent: 'Find out about upcoming dog shows in your area. Learn about the different classes and how to get involved.', 
+                            disclaimer: 'Not affiliated with Pawfolio'
+                        }) %>
+                        <%- include('templates/resource', {
+                            link: 'https://www.canuckdogs.com/',
+                            imageUrl:'images/CanuckDog.png',
+                            altText: 'Image Alt Text', 
+                            title: 'Conformation Shows', 
+                            bodyContent: 'Explore Canadian dog shows and find out how to get involved.', 
+                            disclaimer: 'Not affiliated with Pawfolio'
+                        }) %>
+                    </div>
+                </div>
+                <div class="resource-form">
+                    <div class="tabR-five-htm">
+                        <!--Resource cards-->
+                        <%- include('templates/resource', {
+                            link: 'https://www.akc.org/sports/',
+                            imageUrl: 'images/AKCMain.png',
+                            altText: 'Image Alt Text', 
+                            title: 'Sports and Events', 
+                            bodyContent: 'Read about a variety of dog sports and events, and find out how to get involved.', 
+                            disclaimer: 'Not affiliated with Pawfolio'
+                        }) %>
+                        <%- include('templates/resource', {
+                            link: 'https://www.canuckdogs.com/',
+                            imageUrl: 'images/CanuckDog.png',
+                            altText: 'Image Alt Text', 
+                            title: 'Sporting Events', 
+                            bodyContent: 'Explore Canadian sporting events and find out how to get involved.',
+                            disclaimer: 'Not affiliated with Pawfolio'
+                        }) %>
+                        <%- include('templates/resource', {
+                            link: 'https://capdt.ca/learn-about-dog-sports/scent-detection-nosework/',
+                            imageUrl: 'images/CAPDT.png',
+                            altText: 'Image Alt Text', 
+                            title: 'ScentWork', 
+                            bodyContent: 'Read about the sport of ScentWork and how to get started with your dog.',
+                            disclaimer: 'Not affiliated with Pawfolio'
+                        }) %>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div> <!--End container div-->
     <!--If statement to optionally load the login footer based on authentication-->
     <% if (!loggedIn) { %>
         <%- include("templates/footerLogin") %>

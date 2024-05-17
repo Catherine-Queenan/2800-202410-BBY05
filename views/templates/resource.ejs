@@ -1,34 +1,19 @@
-<!--Template for each resource-->
-<div class="card mb-3" id="resourceCollapse">
-    <!--Preview Image-->
-    <img src="<%= imageUrl %>" class="card-img-top" alt="<%= altText %>">
-    <div class="card-body">
+<!--Resource template with tabs to filter-->
 
-        <!--Name and description-->
-        <h5 class="card-title"><%= title %></h5>
-        <p class="card-text"><%= bodyContent %></p>
+                <!--Template for each resource-->
+                <div class="card mb-3" id="resourceCollapse">
+                    <!--Preview Image-->
+                    <a href="<%= link %>" target="_blank">
+                        <img src="<%= imageUrl %>" class="card-img-top p-1" alt="<%= altText %>">
+                        <div class="card-body">
 
-        <!--Toggled options for subcategories in the sites-->
-        <p class="d-inline-flex gap-1">
-            <a class="btn btn-primary" data-bs-toggle="collapse" href="#<%= collapseIdA %>" role="button" aria-expanded="false" aria-controls="<%= collapseIdA %>" data-bs-parent="#resourceCollapse">
-                <%= idA %>
-            </a>
-            <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#<%= collapseIdB %>" aria-expanded="false" aria-controls="<%= collapseIdB %>" data-bs-parent="#resourceCollapse">
-                <%= idB %>
-            </button>
-        </p>
-        <div class="collapse" id="<%= collapseIdA %>" data-bs-parent="#resourceCollapse">
-            <div class="card card-body">
-                <%= collapseContentA %>
-            </div>
-        </div>
-        <div class="collapse" id="<%= collapseIdB %>" data-bs-parent="#resourceCollapse">
-            <div class="card card-body">
-                <%= collapseContentB %>
-            </div>
-        </div>
+                            <!--Name and description-->
+                            <h2 class="card-title yeseva-one"><%= title %></h2>
+                            <p class="card-text"><%= bodyContent %></p>
+                            
+                            <!--Disclaimer-->
+                            <p class="card-text"><small class="text-body-secondary"><%= disclaimer %></small></p>
+                        </div>
+                    </a>
+                </div>
 
-        <!--Disclaimer-->
-        <p class="card-text"><small class="text-body-secondary"><%= disclaimer %></small></p>
-    </div>
-</div>
