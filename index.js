@@ -231,6 +231,7 @@ async function deleteUploadedImage(id){
 // status to determine what footer and navbar to display
 
 app.get('/', (req, res) => {
+	setUserDatabase(req);
 	res.render('index', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType});
 });
 
