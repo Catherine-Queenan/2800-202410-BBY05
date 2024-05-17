@@ -1,6 +1,8 @@
 <%- include("templates/header") %>
-<%- include('templates/backLinkbutton', {page: '/profile'}) %>
-	<h3>
+
+<div class="container mx-3">
+	<%- include('templates/backLinkbutton', {page: '/profile'}) %>
+	<h3 class="my-2">
 		Add Dog
 	</h3>
 	<img src="/images/DefaultAvatar.png" id="demoPic" class="rounded-circle"
@@ -53,32 +55,40 @@
 
 		<br>
 
-		<label for="vaccinations">Vaccinations</label>
-		<div id="vaccinations">
-			<%- include('templates/checkmark', {classes: 'vaccination', value:'rabies', name:'vaccineCheck', id: 'rabies', label:'Rabies', xAttr:''}) %>
-			<%- include('templates/dateInput', {divId: 'rabiesDateDiv', xDivAttributes:'style=display:none', dateId: 'rabiesDate',dateClass:'', dateName:'rabiesDate', label:'Expiration Date', xDateAttributes:''}) %>
-			<%- include('templates/uploadFile', {divId:'rabiesProofDiv', xDivAttributes:'style=display:none', fileId: 'rabiesProof', fileName:'dogUpload', label:'Please Provide a Vaccination Record for Proof', xfileAttributes: 'accept=.pdf'})%>
-			
-			<%- include('templates/checkmark', {classes: 'vaccination', value:'leptospia', name:'vaccineCheck', id: 'leptospia', label:'Leptospia', xAttr:''}) %>
-			<%- include('templates/dateInput', {divId: 'leptospiaDateDiv', xDivAttributes:'style=display:none', dateId: 'leptospiaDate',dateClass:'', dateName:'leptospiaDate', label:'Expiration Date', xDateAttributes:''}) %>
-			<%- include('templates/uploadFile', {divId:'leptospiaProofDiv', xDivAttributes:'style=display:none', fileId: 'leptospiaProof', fileName:'dogUpload', label:'Please Provide a Vaccination Record for Proof', xfileAttributes: 'accept=.pdf'})%>
+		<p class="h5">Vaccinations</p>
+		<div id="vaccinations" class="mb-4">
+			<div class="my-2 p-2 border">
+				<%- include('templates/checkmark', {classes: 'vaccination', value:'rabies', name:'vaccineCheck', id: 'rabies', label:'Rabies', xAttr:''}) %>
+				<%- include('templates/dateInput', {divId: 'rabiesDateDiv', xDivAttributes:'style=display:none', dateId: 'rabiesDate',dateClass:'', dateName:'rabiesDate', label:'Expiration Date', xDateAttributes:''}) %>
+				<%- include('templates/uploadFile', {divId:'rabiesProofDiv', xDivAttributes:'style=display:none', fileId: 'rabiesProof', fileName:'dogUpload', label:'Please Provide a Vaccination Record for Proof', xfileAttributes: 'accept=.pdf'})%>
+			</div>
 
-			<%- include('templates/checkmark', {classes: 'vaccination', value:'bordatella', name:'vaccineCheck', id: 'bordatella', label:'Bordatella', xAttr:''}) %>
-			<%- include('templates/dateInput', {divId: 'bordatellaDateDiv', xDivAttributes:'style=display:none', dateId: 'bordatellaDate',dateClass:'', dateName:'bordatellaDate', label:'Expiration Date', xDateAttributes:''}) %>
-			<%- include('templates/uploadFile', {divId:'bordatellaProofDiv', xDivAttributes:'style=display:none', fileId: 'bordatellaProof', fileName:'dogUpload', label:'Please Provide a Vaccination Record for Proof', xfileAttributes: 'accept=.pdf'})%>
+			<div class="my-2 p-2 border">
+				<%- include('templates/checkmark', {classes: 'vaccination', value:'leptospia', name:'vaccineCheck', id: 'leptospia', label:'Leptospia', xAttr:''}) %>
+				<%- include('templates/dateInput', {divId: 'leptospiaDateDiv', xDivAttributes:'style=display:none', dateId: 'leptospiaDate',dateClass:'', dateName:'leptospiaDate', label:'Expiration Date', xDateAttributes:''}) %>
+				<%- include('templates/uploadFile', {divId:'leptospiaProofDiv', xDivAttributes:'style=display:none', fileId: 'leptospiaProof', fileName:'dogUpload', label:'Please Provide a Vaccination Record for Proof', xfileAttributes: 'accept=.pdf'})%>
+			</div>
 
-			<%- include('templates/checkmark', {classes: 'vaccination', value:'bronchiseptica', name:'vaccineCheck', id: 'bronchiseptica', label:'Bronchiseptica', xAttr:''}) %>
-			<%- include('templates/dateInput', {divId: 'bronchisepticaDateDiv', xDivAttributes:'style=display:none', dateId: 'bronchisepticaDate',dateClass:'', dateName:'bronchisepticaDate', label:'Expiration Date', xDateAttributes:''}) %>
-			<%- include('templates/uploadFile', {divId:'bronchisepticaProofDiv', xDivAttributes:'style=display:none', fileId: 'bronchisepticaProof', fileName:'dogUpload', label:'Please Provide a Vaccination Record for Proof', xfileAttributes: 'accept=.pdf'})%>
-			
-			<%- include('templates/checkmark', {classes: 'vaccination', value:'DA2PP', name:'vaccineCheck', id: 'DA2PP', label:'DA2PP', xAttr:''}) %>
-			<%- include('templates/dateInput', {divId: 'DA2PPDateDiv', xDivAttributes:'style=display:none', dateId: 'DA2PPDate',dateClass:'', dateName:'DA2PPDate', label:'Expiration Date', xDateAttributes:''}) %>
-			<%- include('templates/uploadFile', {divId:'DA2PPProofDiv', xDivAttributes:'style=display:none', fileId: 'DA2PPProof', fileName:'dogUpload', label:'Please Provide a Vaccination Record for Proof', xfileAttributes: 'accept=.pdf'})%>
+			<div class="my-2 p-2 border">
+				<%- include('templates/checkmark', {classes: 'vaccination', value:'bordatella', name:'vaccineCheck', id: 'bordatella', label:'Bordatella', xAttr:''}) %>
+				<%- include('templates/dateInput', {divId: 'bordatellaDateDiv', xDivAttributes:'style=display:none', dateId: 'bordatellaDate',dateClass:'', dateName:'bordatellaDate', label:'Expiration Date', xDateAttributes:''}) %>
+				<%- include('templates/uploadFile', {divId:'bordatellaProofDiv', xDivAttributes:'style=display:none', fileId: 'bordatellaProof', fileName:'dogUpload', label:'Please Provide a Vaccination Record for Proof', xfileAttributes: 'accept=.pdf'})%>
+			</div>
+			<div class="my-2 p-2 border">
+				<%- include('templates/checkmark', {classes: 'vaccination', value:'bronchiseptica', name:'vaccineCheck', id: 'bronchiseptica', label:'Bronchiseptica', xAttr:''}) %>
+				<%- include('templates/dateInput', {divId: 'bronchisepticaDateDiv', xDivAttributes:'style=display:none', dateId: 'bronchisepticaDate',dateClass:'', dateName:'bronchisepticaDate', label:'Expiration Date', xDateAttributes:''}) %>
+				<%- include('templates/uploadFile', {divId:'bronchisepticaProofDiv', xDivAttributes:'style=display:none', fileId: 'bronchisepticaProof', fileName:'dogUpload', label:'Please Provide a Vaccination Record for Proof', xfileAttributes: 'accept=.pdf'})%>
+			</div>
+			<div class="my-2 p-2 border">
+				<%- include('templates/checkmark', {classes: 'vaccination', value:'DA2PP', name:'vaccineCheck', id: 'DA2PP', label:'DA2PP', xAttr:''}) %>
+				<%- include('templates/dateInput', {divId: 'DA2PPDateDiv', xDivAttributes:'style=display:none', dateId: 'DA2PPDate',dateClass:'', dateName:'DA2PPDate', label:'Expiration Date', xDateAttributes:''}) %>
+				<%- include('templates/uploadFile', {divId:'DA2PPProofDiv', xDivAttributes:'style=display:none', fileId: 'DA2PPProof', fileName:'dogUpload', label:'Please Provide a Vaccination Record for Proof', xfileAttributes: 'accept=.pdf'})%>
+			</div>
 		</div>
 
 		<%- include('templates/button', {action:'/addingDog',xClasses:'',xAttributes:'',content:'Submit'})%>
 	</form>
-
+</div>
 
 	<script src="/scripts/addDog.js"></script>
 	<%- include("templates/footerCopyright") %>
