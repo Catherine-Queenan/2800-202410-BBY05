@@ -4,13 +4,37 @@ const express = require('express');
 const session = require('express-session');
 const MongoStore = require('connect-mongo');
 const bcrypt = require('bcrypt');
-
+const {Storage} = require('@google-cloud/storage');
+const {Readable} = require('stream');
 const multer = require("multer");
 const stream = require("stream");
 const cloudinary = require('cloudinary').v2;
 
-
 const saltRounds = 10;
+
+
+//GOOGLE CLOUD STORAGE
+
+//Take the credentials from the .env file and construct them into one const
+const googleCredentials = {
+  type: process.env.GOOGLE_TYPE,
+  project_id: process.env.GOOGLE_PROJECT_ID,
+  private_key_id: process.env.GOOGLE_PRIVATE_KEY_ID,
+  private_key: process.env.GOOGLE_PRIVATE_KEY,
+  client_email: process.env.GOOGLE_CLIENT_EMAIL,
+  client_id: process.env.GOOGLE_CLIENT_ID,
+  auth_uri: process.env.GOOGLE_AUTH_URI,
+  token_uri: process.env.GOOGLE_TOKEN_URI,
+  auth_provider_x509_cert_url: process.env.GOOGLE_AUTH_PROVIDER_X509_CERT_URL,
+  client_x509_cert_url: process.env.GOOGLE_CLIENT_X509_CERT_URL,
+  universe_domain: process.env.UNIVERSE_DOMAIN,
+};
+
+const googleStorage = new Storage({ credentials: googleCredentials });
+const bucketName = process.env.BUCKET_NAME;
+
+//END OF GOOGLE CLOUD STORAGE
+
 const nodemailer = require('nodemailer');
 const crypto = require('crypto')
 const app = express();
@@ -34,7 +58,6 @@ const node_session_secret = process.env.NODE_SESSION_SECRET;
 
 const autoreply_email = process.env.EMAIL_ADDRESS;
 const autoreply_email_password = process.env.EMAIL_ADDRESS_PASSWORD;
-const google_keys = process.env['GOOGLE_CREDS'];
 /* END secret section */
 
 // var { database } = include('databaseConnection');
@@ -66,17 +89,6 @@ var mongoStore = MongoStore.create({
 	}
 });
 
-// Creating the transporter object in order to login to the noreply email and send emails 
-const transporter = nodemailer.createTransport({
-	service: 'Gmail',
-	auth: {
-		user: autoreply_email,
-		pass: autoreply_email_password
-	}
-});
-
-
-
 // Cloudinary Config (image storage)
 const cloud_name = process.env.CLOUDINARY_CLOUD_NAME;
 const cloud_api_key = process.env.CLOUDINARY_CLOUD_KEY;
@@ -93,6 +105,17 @@ cloudinary.config({
 //File uploader
 const storage = multer.memoryStorage();
 const upload = multer({storage: storage});
+
+// Creating the transporter object in order to login to the noreply email and send emails 
+const transporter = nodemailer.createTransport({
+	service: 'Gmail',
+	auth: {
+		user: autoreply_email,
+		pass: autoreply_email_password
+	}
+});
+
+
 
 app.use(session({
 	secret: node_session_secret,
@@ -166,6 +189,21 @@ function setUserDatabase(req) {
 		userdb = userdbAccess.db(db);
 	}
 	// console.log(userdb);
+}
+
+//Upload files to Google Cloud
+async function uploadFileToGoogleCloud(fileBuffer, fileName) {
+    const bucket = googleStorage.bucket(bucketName);
+    const file = bucket.file(fileName);
+    const stream = Readable.from(fileBuffer);
+
+    return new Promise((resolve, reject) => {
+        stream.pipe(file.createWriteStream())
+            .on('error', reject)
+            .on('finish', () => {
+                resolve(`gs://${bucketName}/${fileName}`);
+            });
+    });
 }
 
 //Upload files to drive function
@@ -445,12 +483,165 @@ app.post('/submitLogin', async (req, res) => {
 	}
 });
 
+// forget password (link it after) -> enter email -> get email (in progress) -> make a password -> 
+// This is the reset password landing page where the user can enter their email for a reset
+
+// This function is solely for sending emails. It will need an ejs file for the email templating later
+function sendMail(emailAddress, resetToken) {
+	ejs.renderFile('./views/email.ejs', { resetToken: resetToken }, (err, str) => {
+		if (err) {
+			console.error('Error rendering email template', err);
+			return;
+		}
+
+		// Custom settings for the mail
+		const mailOptions = {
+			from: `${autoreply_email}`,
+			to: emailAddress,
+			subject: 'Reset Pawfolio password',
+			html: str
+		};
+
+		// This uses the transporter object near the top of the file to send emails
+		transporter.sendMail(mailOptions, (error, info) => {
+
+			// Error handling
+			if (error) {
+				res.render('errorMessge', { error: 'Email couldn\'t be sent' })
+			}
+			// console.log('successfuly sent email')
+		});
+	});
+}
+
+// This routing is the main page for forgetting your password.
+app.get('/forgotPassword', (req, res) => {
+
+	// If the email is invalid, the query will have an error message. Otherwise, we want it blank so it doesn't always show
+	const errorMessage = req.query.errorMessage || '';
+	res.render('forgotPassword', { errorMessage: errorMessage });
+});
+
+// This handles the submitted email for the /forgotpassword routing
+app.post('/emailConfirmation', async (req, res) => {
+
+	// deciding what collection the user is in (WILL BE REMOVED)
+	let emailVerification = false;
+
+	// Storing the email that was entered
+	email = req.body.email;
+
+	// if the email is found in the client side, we are allowed to send an email 
+	emailValidation = await appUserCollection.find({ email: email }).project({ email: 1, password: 1, _id: 1 }).toArray();
+	if (emailValidation.length == 1) {
+		emailVerification = true;
+	}
+
+	// if the email exists in the database
+	if (emailVerification) {
+		// Create a unique token and 1 hour expiration limit using crypto
+		const token = crypto.randomBytes(20).toString('hex');
+		const PasswordResetToken = token;
+		const tokenExpiriationDate = Date.now() + 3600000;
+
+		// Gives the user information collection the token and expiration time
+		appUserCollection.updateOne({ email: email }, {
+			$set: {
+				resetToken: `${PasswordResetToken}`,
+				tokenExpiration: `${tokenExpiriationDate}`
+			}
+		});
+
+		// send the email with the unique token link
+		sendMail(email, token);
+
+		// Redirect to an email sent page
+		res.redirect('/emailSent');
+		return;
+	}
+
+	// This is a custom error message for if the email is invalid
+	// This does not have anything to do with the errorMessage.ejs file, this is simply for query
+	const error = 'woof woof woof woof (not a valid email)';
+
+	// the encodeURIComponent ensures that any special characters make it into the query if necessary
+	res.redirect(`/forgotPassword?errorMessage=${encodeURIComponent(error)}`);
+});
+
+app.get('/resetPassword/:token', async (req, res) => {
+
+	// refer to the token using token.token
+	const token = req.params;
+
+	// find and store the user and store their document for later verification
+	const clientUser = await appUserCollection.findOne({ resetToken: token.token });
+
+	// This detects if we couldn't find the token in any user
+	if (clientUser == null) {
+		res.render('errorMessage', { error: 'Token expired or invalid.' })
+		return;
+	}
+
+	// checks if the url token is valid and not expired. 
+	if (clientUser.resetToken == token.token && clientUser.tokenExpiration > Date.now()) {
+		res.redirect(`/resetPasswordForm/${token.token}`);
+		return;
+	}
+});
+
+// This routes to the form where the new user password would be submitted
+app.get('/resetPasswordForm/:token', (req, res) => {
+
+	// store the token
+	token = req.params;
+	res.render('resetPasswordForm', { token: token.token });
+});
+
+// Handles the new password submission
+app.post('/resettingPassword/:token', async (req, res) => {
+
+	// store the new password
+	let password = req.body.password;
+
+	// validate using the same schema config from the signup
+	const schema = Joi.string().max(20).min(2).required();
+	if (schema.validate(password).error != null) {
+		res.redirect('/resetPasswordForm/:token');
+	}
+
+	// hash the password just like in the signup
+	passwordHashed = await bcrypt.hash(password, saltRounds);
+
+	// sets the new password based on the account with the token
+	appUserCollection.updateOne({ resetToken: token.token }, { $set: { password: passwordHashed } });
+
+	// deletes the token information so that it can no longer be accessed on accident or injection
+	appUserCollection.updateOne(
+		{ resetToken: token.token },
+		{ $unset: { resetToken: "", tokenExpiration: "" } }
+
+	);
+
+	res.redirect('/passwordChangedSuccessfully');
+});
+
+// This is a page for when your password is successfully changed
+app.get('/passwordChangedSuccessfully', (req, res) => {
+	res.render('passwordChangedSuccessfully');
+});
+
+app.get('/emailSent', (req, res) => {
+	res.render('checkInbox');
+});
+
 app.get('/logout', (req, res) => {
 	req.session.destroy();
 	setUserDatabase(req);
 	// console.log(userdb);
 	res.render('logout', {loggedIn: false, userType: null});
 });
+
+//Async function for uploading an immage
 
 //Client user profile page
 app.get('/profile', sessionValidation, async(req, res) => {
@@ -538,92 +729,96 @@ app.get('/addDog', (req, res) => {
 });
 
 //Adds the dog to the database
-app.post('/addingDog',  upload.array('dogUpload', 6), async(req, res) => {
-	setUserDatabase(req); //bandaid for testing
+app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
+    setUserDatabase(req); // bandaid for testing
 
-	//validation schema
-	var schema = Joi.object(
-		{
-			dogName: Joi.string().pattern(/^[a-zA-Z\s]*$/).max(20),
-			specialAlerts: Joi.string().pattern(/^[A-Za-z0-9 _.,!"'/$]*$/),
-		}
-	);
+    // validation schema
+    var schema = Joi.object({
+        dogName: Joi.string().pattern(/^[a-zA-Z\s]*$/).max(20),
+        specialAlerts: Joi.string().pattern(/^[A-Za-z0-9 _.,!"'/$]*$/),
+    });
 
-	//validate the two user typed inputs
-	var validationRes = schema.validate({ dogName: req.body.dogName, specialAlerts: req.body.specialAlerts });
+    // validate the two user typed inputs
+    var validationRes = schema.validate({ dogName: req.body.dogName, specialAlerts: req.body.specialAlerts });
 
-	//Deals with errors from validation
-	if (validationRes.error != null) {
-		let doc = '<body><p>Invalid Dog</p><br><a href="/addDog">Try again</a></body>';
-		res.send(doc);
-		return;
-	}
-	
-	//create a dog document
-	let dog = {
-		dogName: req.body.dogName
-	};
+    // Deals with errors from validation
+    if (validationRes.error != null) {
+        let doc = '<body><p>Invalid Dog</p><br><a href="/addDog">Try again</a></body>';
+        res.send(doc);
+        return;
+    }
 
-	//FILIP this is the file management stuff
-	//If req.files.length == 0 there are no uploaded files
-	//A max of 6 files can be uploaded
-	//There is a change that the first file in the list will be an image file and not a pdf
-	if(req.files.length != 0){
+    // create a dog document
+    let dog = {
+        dogName: req.body.dogName
+    };
 
-		//Checks if the first image is an image file and uploads the image if it is
-		let filename = req.files[0].mimetype;
-		filename = filename.split('/');
-		let fileType = filename[0];
+    // this is the file management stuff
+    // If req.files.length == 0 there are no uploaded files
+    // A max of 6 files can be uploaded
+    // There is a chance that the first file in the list will be an image file and not a pdf
+    if (req.files.length != 0) {
+        // Check if the first image is an image file and upload the image if it is
+        let filename = req.files[0].mimetype;
+        filename = filename.split('/');
+        let fileType = filename[0];
 
-		//FILIP you could probably if else this because if the first image isn't an image file, it must be a pdf and everything after it will also be a pdf
-		if(fileType == 'image'){
-			dog.dogPic = await uploadImage(req.files[0], 'dogPics');
-		}
-	
-	} else {
-		dog.dogPic = ''
-	}
+        // If the first file is an image, upload it to Cloudinary
+        if (fileType == 'image') {
+            dog.dogPic = await uploadImage(req.files[0], 'dogPics');
+        } else {
+            dog.dogPic = '';
+        }
 
-	//stores the neutered status
-	if(req.body.neuteredStatus == 'neutered'){
-		dog.neuteredStatus = req.body.neuteredStatus;
-	} else {
-		dog.neuteredStatus = 'not neutered';
-	}
-	
-	//Stores sex, birthday, weight, specialAlerts of the dog
-	dog.sex = req.body.sex;
-	dog.birthday = req.body.birthday;
-	dog.weight = req.body.weight + 'lb';
-	dog.specialAlerts = req.body.specialAlerts;
+        // Loop through all files and upload PDFs to Google Cloud Storage
+        for (let file of req.files) {
+            let filename = file.mimetype;
+            filename = filename.split('/');
+            let fileType = filename[0];
 
-	//Creates documents in the dog document for each vaccine
-	let allVaccines = ['rabies', 'leptospia', 'bordatella', 'bronchiseptica', 'DA2PP'];
-	allVaccines.forEach((vaccine)=>{
-		eval('dog.' + vaccine + '= {}');
-	});
+            if (fileType === 'application') {
+                let fileName = `pdfs/${file.originalname}`;
+                let fileUrl = await uploadFileToGoogleCloud(file.buffer, fileName);
+                dog.vaccineRecords = dog.vaccineRecords || [];
+                dog.vaccineRecords.push({ fileName: file.originalname, fileUrl });
+            }
+        }
+    } else {
+        dog.dogPic = '';
+    }
 
-	//If dog has more than one vaccines, add the expiration date and pdf of the proof of vaccination to the specific vaccine document
-	if(Array.isArray(req.body.vaccineCheck)){
-		req.body.vaccineCheck.forEach((vaccine)=>{
+    // stores the neutered status
+    if (req.body.neuteredStatus == 'neutered') {
+        dog.neuteredStatus = req.body.neuteredStatus;
+    } else {
+        dog.neuteredStatus = 'not neutered';
+    }
 
-			eval('dog.' + vaccine + '.expirationDate = ' + 'req.body.' + vaccine + 'Date');
+    // Stores sex, birthday, weight, specialAlerts of the dog
+    dog.sex = req.body.sex;
+    dog.birthday = req.body.birthday;
+    dog.weight = req.body.weight + 'lb';
+    dog.specialAlerts = req.body.specialAlerts;
 
-			//FILIP this is where you would add the pdf reference, after the equals sign
-			eval('dog.' + vaccine + '.vaccineRecord = ' + 'req.body.' + vaccine + 'Proof');
-		});
+    // Creates documents in the dog document for each vaccine
+    let allVaccines = ['rabies', 'leptospira', 'bordetella', 'bronchiseptica', 'DA2PP'];
+    allVaccines.forEach((vaccine) => {
+        dog[vaccine] = {};
+    });
 
-	//If the dog only has one vaccine
-	} else if (req.body.vaccineCheck){
-		eval('dog.' + req.body.vaccineCheck + '.expirationDate = ' + 'req.body.' + req.body.vaccineCheck + 'Date');
+    // If dog has more than one vaccine, add the expiration date and pdf of the proof of vaccination to the specific vaccine document
+    if (Array.isArray(req.body.vaccineCheck)) {
+        req.body.vaccineCheck.forEach((vaccine) => {
+            dog[vaccine].expirationDate = req.body[vaccine + 'Date'];
+            dog[vaccine].vaccineRecord = req.body[vaccine + 'Proof'];
+        });
+    } else if (req.body.vaccineCheck) {
+        dog[req.body.vaccineCheck].expirationDate = req.body[req.body.vaccineCheck + 'Date'];
+        dog[req.body.vaccineCheck].vaccineRecord = req.body[req.body.vaccineCheck + 'Proof'];
+    }
 
-		//FILIP this is also where you would add the pdf reference, after the equals sign
-		eval('dog.' + req.body.vaccineCheck + '.vaccineRecord = ' + 'req.body.' + req.body.vaccineCheck + 'Proof');
-	}
-	
-
-	await userdb.collection('dogs').insertOne(dog);
-	res.redirect('/profile');
+    await userdb.collection('dogs').insertOne(dog);
+    res.redirect('/profile');
 });
 //-----------------------------------------------
 app.get('/accountConfirmation', (req, res) => {
@@ -641,7 +836,7 @@ app.use(express.static(__dirname + "/public"));
 
 app.get('*', (req, res) => {
 	res.status(404);
-	res.render('errorMessage', { error: 'Page not found - 404' });
+	res.render('errorMessage', { error: 'Page not found - 404', loggedIn: isValidSession(req), userType: req.session.userType});
 })
 
 app.listen(port, () => {
