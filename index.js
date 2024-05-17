@@ -439,7 +439,7 @@ app.get('/logout', (req, res) => {
 	req.session.destroy();
 	setUserDatabase(req);
 	// console.log(userdb);
-	res.render('logout', {loggedIn: isValidSession(req),userType: req.session.userType});
+	res.render('logout', {loggedIn: false, userType: null});
 });
 
 //Client user profile page
@@ -614,6 +614,11 @@ app.post('/addingDog',  upload.array('dogUpload', 6), async(req, res) => {
 
 	await userdb.collection('dogs').insertOne(dog);
 	res.redirect('/profile');
+});
+
+app.get('/deleteConfirmation', (req, res) => {
+	console.log(isValidSession(req));
+	res.render('/profile', {loggedIn: isValidSession(req), name: req.session.name , userType: req.session.userType});
 });
 
 app.use(express.static(__dirname + "/public"));
