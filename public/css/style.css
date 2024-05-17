@@ -522,22 +522,27 @@ body{
     font-size: 40px;
 }
 
-/*Dropdown menu*/
 #dropdownMenu {
     position: fixed;
-    top: 100px; /*The height of the navbar (approx)*/
-    left: 0;
+    top: 100px; /* The height of the navbar (approx) */
+    left: -100%; /* Start off-screen */
     width: 100%;
     height: calc(100% - 60px);
     background-color: #ffffff;
-    z-index: 1; /*In the future, if we want to have more layers, we can increase this value. 1 works for now.*/
-    display: none; /*By default, we want the menu to be invisible.*/
+    z-index: 1; /* In the future, if we want to have more layers, we can increase this value. 1 works for now. */
+    display: flex;
     flex-direction: column;
     justify-content: flex-start;
     align-items: center;
+    transition: transform 0.3s ease; /* Smooth transition for the sleek sliding effect */
+    transform: translateX(-100%); /* Start off-screen */
 }
 
-/*The items in the list (so the text and the symbols)*/
+.menu-visible {
+    transform: translateX(0); /* Slide into view */
+}
+
+/* The items in the list (so the text and the symbols) */
 .dropdown-item {
     color: #000000;
     font-size: 24px;
