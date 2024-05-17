@@ -782,7 +782,15 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
         // Loop through all files and upload PDFs to Google Cloud Storage
         let v = 0;
         for (let i = 0; i < req.files.length; i++) {
-            let vaccineType = req.body.vaccineCheck[v]; // We put v here because the first iteration (i) might be the profile photo image
+            let vaccineType;
+            
+            // Check if you have one or multiple vaccines to upload
+            if (Array.isArray(req.body.vaccineCheck)) {
+                vaccineType = req.body.vaccineCheck[v]; // We put v here because the first iteration (i) might be the profile photo image
+            } else {
+                vaccineType = req.body.vaccineCheck;
+            }
+            
             let filename = req.files[i].mimetype;
             filename = filename.split('/');
             let fileType = filename[0];
