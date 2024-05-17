@@ -4,13 +4,35 @@ const express = require('express');
 const session = require('express-session');
 const MongoStore = require('connect-mongo');
 const bcrypt = require('bcrypt');
-
+const {Storage} = require('@google-cloud/storage');
+const {Readable} = require('stream');
 const multer = require("multer");
 const stream = require("stream");
 const cloudinary = require('cloudinary').v2;
 
-
 const saltRounds = 10;
+
+//GOOGLE CLOUD STORAGE
+
+//Take the credentials from the .env file and construct them into one const
+const googleCredentials = {
+  type: process.env.GOOGLE_TYPE,
+  project_id: process.env.GOOGLE_PROJECT_ID,
+  private_key_id: process.env.GOOGLE_PRIVATE_KEY_ID,
+  private_key: process.env.GOOGLE_PRIVATE_KEY,
+  client_email: process.env.GOOGLE_CLIENT_EMAIL,
+  client_id: process.env.GOOGLE_CLIENT_ID,
+  auth_uri: process.env.GOOGLE_AUTH_URI,
+  token_uri: process.env.GOOGLE_TOKEN_URI,
+  auth_provider_x509_cert_url: process.env.GOOGLE_AUTH_PROVIDER_X509_CERT_URL,
+  client_x509_cert_url: process.env.GOOGLE_CLIENT_X509_CERT_URL,
+  universe_domain: process.env.UNIVERSE_DOMAIN,
+};
+
+const googleStorage = new Storage({ credentials: googleCredentials });
+const bucketName = process.env.BUCKET_NAME;
+
+//END OF GOOGLE CLOUD STORAGE
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -29,8 +51,6 @@ const mongodb_clientdb = process.env.MONGODB_CLIENTDATABASE;
 const mongodb_session_secret = process.env.MONGODB_SESSION_SECRET;
 
 const node_session_secret = process.env.NODE_SESSION_SECRET;
-
-const google_keys = process.env['GOOGLE_CREDS'];
 /* END secret section */
 
 // var { database } = include('databaseConnection');
@@ -153,13 +173,28 @@ function setUserDatabase(req) {
 	// console.log(userdb);
 }
 
+//Upload files to Google Cloud
+async function uploadFileToGoogleCloud(fileBuffer, fileName) {
+    const bucket = googleStorage.bucket(bucketName);
+    const file = bucket.file(fileName);
+    const stream = Readable.from(fileBuffer);
+
+    return new Promise((resolve, reject) => {
+        stream.pipe(file.createWriteStream())
+            .on('error', reject)
+            .on('finish', () => {
+                resolve(`gs://${bucketName}/${fileName}`);
+            });
+    });
+}
+
 //Upload files to drive function
-async function uploadImage (fileObject){
+async function uploadImage (fileObject, folder){
 	//Pre: fileObject must be from req.file (user upload. (method from multer))
 	//Post: returns the cloud url the image is now stored at
 	let imageUrl;
 	let buf64 = fileObject.buffer.toString('base64');
-	await cloudinary.uploader.upload("data:image/png;base64," + buf64, {folder: "clientAccountAvatars"}, function(error, result) { //_stream
+	await cloudinary.uploader.upload("data:image/png;base64," + buf64, {folder: folder}, function(error, result) { //_stream
 		imageId = result.public_id;
   	});
   return imageId;
@@ -169,9 +204,8 @@ async function uploadImage (fileObject){
 async function deleteUploadedImage(id){
 	//Pre: id must be empty or a valid public_id from cloudinary
 	//Post: image is deleted from cloudinary
-	console.log(id);
 	if(id != ''){
-		cloudinary.uploader.destroy(id, function(result) { console.log(result) });
+		cloudinary.uploader.destroy(id);
 	}
 }
 
@@ -198,7 +232,7 @@ app.get('/clientResources', (req, res) => {
 	res.render('clientResources', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType});
 });
 
-app.get('/:loginType', (req, res) => {
+app.get('/login/:loginType', (req, res) => {
 	res.render(req.params.loginType, {loggedIn: isValidSession(req), loginType: req.params.loginType});
 })
 
@@ -276,7 +310,7 @@ app.post('/submitSignup/:type', async (req, res) => {
 		//Update the session for the now logged in user
 		req.session.authenticated = true;
 		req.session.email = user.email;
-		req.session.name = user.firstName +' '+ user.lastName;
+		req.session.name = user.firstName + ' ' + user.lastName;
 		req.session.userType = 'client';
 		req.session.cookie.maxAge = expireTime;
 
@@ -417,7 +451,7 @@ app.post('/submitLogin', async (req, res) => {
 
 		// Set session name to first+last if client, companyname if business
 		if (req.session.userType == 'client') {
-			req.session.name = result[0].firstName +' '+ result[0].lastName;
+			req.session.name = result[0].firstName + ' ' + result[0].lastName;
 		} else if (req.session.userType == 'business') {
 			req.session.name = result[0].companyName;
 		}
@@ -425,22 +459,24 @@ app.post('/submitLogin', async (req, res) => {
 		
 
 		setUserDatabase(req);
-		
+
 		res.redirect('/'); // redirect to home page
 		return;
 	} else {
 
 		// if the password is incorrect, say so
-		res.render('errorMessage', { error: 'Password is incorrect' });
+		res.render('errorMessage', {loggedIn: isValidSession(req), userType: req.session.userType, error: 'Password is incorrect' });
 	}
 });
 
-app.get('/logout', (req,res) => {
+app.get('/logout', (req, res) => {
 	req.session.destroy();
 	setUserDatabase(req);
 	// console.log(userdb);
-	res.render('logout');
+	res.render('logout', {loggedIn: false, userType: null});
 });
+
+//Async function for uploading an immage
 
 //Client user profile page
 app.get('/profile', sessionValidation, async(req, res) => {
@@ -454,9 +490,18 @@ app.get('/profile', sessionValidation, async(req, res) => {
 	if(req.session.userType == 'client'){
 		let profilePic = user.profilePic;
 		if(user.profilePic != ''){
-			profilePic = cloudinary.url(user.profilePic);
+			user.profilePic = cloudinary.url(user.profilePic);
 		}
-		res.render('clientProfile', {user: user, editting: false, profilePic: profilePic});
+
+		let dogs = await userdb.collection('dogs').find({}).project({_id: 1, dogName: 1, sex: 1, dogPic: 1}).toArray();
+		for(let i = 0; i < dogs.length; i++){
+			let pic = dogs[i].dogPic;
+			if(pic != ''){
+				dogs[i].dogPic = cloudinary.url(pic);
+			}
+		}
+
+		res.render('clientProfile', {loggedIn: isValidSession(req), user: user, editting: false, dogs: dogs, userName: req.session.name, userType: req.session.userType});
 		return;
 	} else {
 		res.redirect('/');
@@ -471,16 +516,23 @@ app.get('/profile/edit', sessionValidation,  async(req, res) => {
 
 	//upload the info of the user
 	let user = await userdb.collection('info').findOne({email: req.session.email});
-
+	let dogs = await userdb.collection('dogs').find({}).project({_id: 1, dogName: 1, sex: 1, dogPic: 1}).toArray();
 	//currently no profile page available for the business side
 	if(req.session.userType == 'client'){
 		let profilePic = user.profilePic;
 		if(user.profilePic != ''){
-			profilePic = cloudinary.url(user.profilePic);
+			user.profilePic = cloudinary.url(user.profilePic);
+		}
+
+		for(let i = 0; i < dogs.length; i++){
+			let pic = dogs[i].dogPic;
+			if(pic != ''){
+				dogs[i].dogPic = cloudinary.url(pic);
+			}
 		}
 
 		//render client profile page but with editting set up
-		res.render('clientProfile', {user: user, editting: true, profilePic: profilePic});
+		res.render('clientProfile', {loggedIn: isValidSession(req), user: user, editting: true, dogs: dogs, userName: req.session.name, userType: req.session.userType});
 		return;
 	} else {
 		res.redirect('/');
@@ -491,15 +543,117 @@ app.get('/profile/edit', sessionValidation,  async(req, res) => {
 //Post for editting the profile
 app.post('/profile/editting', upload.single('profilePic'), async(req, res) => {
 
-	//delete old image
-	let user = await userdb.collection('info').find({email: req.session.email}).project({profilePic: 1}).toArray();
-	deleteUploadedImage(user[0].profilePic);
-	
+	//grab current image id
+	let user = await userdb.collection('info').find({email: req.session.email}).project({profilePic: 1}).toArray();	
 	//update database
-	req.body.profilePic = await uploadImage(req.file);
+	if(req.file){
+		await deleteUploadedImage(user[0].profilePic);
+		req.body.profilePic = await uploadImage(req.file, "clientAccountAvatars");
+	} else {
+		req.body.profilePic = user[0].profilePic;
+	}
+
 	await userdb.collection('info').updateOne({email: req.session.email}, {$set: req.body});
 	res.redirect('/profile');
 
+});
+
+//Form for adding a new dog
+app.get('/addDog', (req, res) => {
+	res.render('addDog', {loggedIn: isValidSession(req), userType: req.session.userType});
+});
+
+//Adds the dog to the database
+app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
+    setUserDatabase(req); // bandaid for testing
+
+    // validation schema
+    var schema = Joi.object({
+        dogName: Joi.string().pattern(/^[a-zA-Z\s]*$/).max(20),
+        specialAlerts: Joi.string().pattern(/^[A-Za-z0-9 _.,!"'/$]*$/),
+    });
+
+    // validate the two user typed inputs
+    var validationRes = schema.validate({ dogName: req.body.dogName, specialAlerts: req.body.specialAlerts });
+
+    // Deals with errors from validation
+    if (validationRes.error != null) {
+        let doc = '<body><p>Invalid Dog</p><br><a href="/addDog">Try again</a></body>';
+        res.send(doc);
+        return;
+    }
+
+    // create a dog document
+    let dog = {
+        dogName: req.body.dogName
+    };
+
+    // this is the file management stuff
+    // If req.files.length == 0 there are no uploaded files
+    // A max of 6 files can be uploaded
+    // There is a chance that the first file in the list will be an image file and not a pdf
+    if (req.files.length != 0) {
+        // Check if the first image is an image file and upload the image if it is
+        let filename = req.files[0].mimetype;
+        filename = filename.split('/');
+        let fileType = filename[0];
+
+        // If the first file is an image, upload it to Cloudinary
+        if (fileType == 'image') {
+            dog.dogPic = await uploadImage(req.files[0], 'dogPics');
+        } else {
+            dog.dogPic = '';
+        }
+
+        // Loop through all files and upload PDFs to Google Cloud Storage
+        for (let file of req.files) {
+            let filename = file.mimetype;
+            filename = filename.split('/');
+            let fileType = filename[0];
+
+            if (fileType === 'application') {
+                let fileName = `pdfs/${file.originalname}`;
+                let fileUrl = await uploadFileToGoogleCloud(file.buffer, fileName);
+                dog.vaccineRecords = dog.vaccineRecords || [];
+                dog.vaccineRecords.push({ fileName: file.originalname, fileUrl });
+            }
+        }
+    } else {
+        dog.dogPic = '';
+    }
+
+    // stores the neutered status
+    if (req.body.neuteredStatus == 'neutered') {
+        dog.neuteredStatus = req.body.neuteredStatus;
+    } else {
+        dog.neuteredStatus = 'not neutered';
+    }
+
+    // Stores sex, birthday, weight, specialAlerts of the dog
+    dog.sex = req.body.sex;
+    dog.birthday = req.body.birthday;
+    dog.weight = req.body.weight + 'lb';
+    dog.specialAlerts = req.body.specialAlerts;
+
+    // Creates documents in the dog document for each vaccine
+    let allVaccines = ['rabies', 'leptospira', 'bordetella', 'bronchiseptica', 'DA2PP'];
+    allVaccines.forEach((vaccine) => {
+        dog[vaccine] = {};
+    });
+
+    // If dog has more than one vaccine, add the expiration date and pdf of the proof of vaccination to the specific vaccine document
+    if (Array.isArray(req.body.vaccineCheck)) {
+        req.body.vaccineCheck.forEach((vaccine) => {
+            dog[vaccine].expirationDate = req.body[vaccine + 'Date'];
+            dog[vaccine].vaccineRecord = req.body[vaccine + 'Proof'];
+        });
+    } else if (req.body.vaccineCheck) {
+        dog[req.body.vaccineCheck].expirationDate = req.body[req.body.vaccineCheck + 'Date'];
+        dog[req.body.vaccineCheck].vaccineRecord = req.body[req.body.vaccineCheck + 'Proof'];
+    }
+
+    await userdb.collection('dogs').insertOne(dog);
+    res.redirect('/profile');
 });
 
 app.use(express.static(__dirname + "/public"));
