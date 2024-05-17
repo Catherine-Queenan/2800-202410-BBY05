@@ -194,7 +194,7 @@ app.get('/clientResources', (req, res) => {
 	res.render('clientResources', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType});
 });
 
-app.get('/:loginType', (req, res) => {
+app.get('/login/:loginType', (req, res) => {
 	res.render(req.params.loginType, {loggedIn: isValidSession(req), loginType: req.params.loginType});
 })
 
@@ -435,7 +435,7 @@ app.get('/logout', (req,res) => {
 	req.session.destroy();
 	setUserDatabase(req);
 	// console.log(userdb);
-	res.render('logout');
+	res.render('logout', {loggedIn: false, userType: null});
 });
 
 //Client user profile page
