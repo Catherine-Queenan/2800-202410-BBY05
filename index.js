@@ -600,30 +600,38 @@ app.post('/addingDog',  upload.array('dogUpload', 6), async(req, res) => {
 		eval('dog.' + req.body.vaccineCheck + '.vaccineRecord = ' + 'req.body.' + req.body.vaccineCheck + 'Proof');
 	}
 	
-
+	//Insert the dog into the database and return to profile
 	await userdb.collection('dogs').insertOne(dog);
 	res.redirect('/profile');
 });
 
+//Show specific dog
 app.get('/dog/:dogId', async(req, res) => {
 	setUserDatabase(req); //bandaid for testing
+
+	//Use the dog document id to find the specific dog
 	let dogId =  ObjectId.createFromHexString(req.params.dogId);
 	let dogRecord = await userdb.collection('dogs').find({_id: dogId}).toArray();
 
+	//If there is a dog pic attached to this dog, create a link to it
 	if(dogRecord[0].dogPic != ''){
 		dogRecord[0].dogPic = cloudinary.url(dogRecord[0].dogPic);
 	}
 
+	//Render the dog's profile
 	res.render('dogProfile', {loggedIn: isValidSession(req), userType: req.session.userType, dog: dogRecord[0]});
 });
 
+//Edit specific dog
 app.post('/dog/:dogId/edit',upload.single('dogUpload'), async(req, res) => {
+
+	//Create the Id object from the dog id
 	let dogId =  ObjectId.createFromHexString(req.params.dogId);
 
 	//grab current image id
 	let dog = await userdb.collection('dogs').find({_id: dogId}).project({dogPic: 1}).toArray();	
-	console.log(dog);
-	//update database
+
+	//If a new image was submitted, delete the old one and upload it
 	if(req.file){
 		await deleteUploadedImage(dog[0].dogPic);
 		req.body.dogPic = await uploadImage(req.file, "clientAccountAvatars");
@@ -631,24 +639,31 @@ app.post('/dog/:dogId/edit',upload.single('dogUpload'), async(req, res) => {
 		req.body.dogPic = dog[0].dogPic;
 	}
 
+	//Update the dog's information
 	await userdb.collection('dogs').updateOne({_id: dogId}, {$set: req.body});
 
+	//Redirect back to the dog's profile
 	let redirect = '/dog/' + req.params.dogId;
 	res.redirect(redirect);
 });
 
+//Delete specific dog
 app.post('/dog/:dogId/delete',upload.single('dogUpload'), async(req, res) => {
+	//Create the Id object from the dog id
 	let dogId =  ObjectId.createFromHexString(req.params.dogId);
 
 	//grab current image id
 	let dog = await userdb.collection('dogs').find({_id: dogId}).project({dogPic: 1}).toArray();	
-	//update database
+	
+	//If there is an image attached to this dog, delete it
 	if(dog[0].dogPic != ''){
 		deleteUploadedImage(dog[0].dogPic);
 	}
 
+	//Delete the dog from the mongodb database
 	await userdb.collection('dogs').deleteOne({_id: dogId});
 
+	//Return to user profile
 	res.redirect('/profile');
 });
 

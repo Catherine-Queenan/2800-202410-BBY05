@@ -12,6 +12,7 @@ vaccineInputs.forEach((vaccineCheck) => {
         let expireDateInput = document.getElementById(dateId);
         let proofFileInput = document.getElementById(fileId);
 
+        //Get the input element
         dateInput = expireDateInput.children[1];
         fileInput = proofFileInput.children[2];
 

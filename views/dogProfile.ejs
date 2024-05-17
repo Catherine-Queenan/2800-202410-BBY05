@@ -104,25 +104,54 @@
 		</form>
 
 		<script>
+			//Identify what form to show on page
+			var page = 'basic';
+
+			//Basic Form displays and edits all basic information
+			//Vaccine Form displays and edits all vaccine related information
+			let basicForm = document.getElementById('basicInfo');
+			let vaccineForm = document.getElementById('vaccinationRecords');
+
+			//Collect the buttons used on the page
+			//delete dog button
 			let deleteButton = document.getElementById('deleteDogButton');
 
+			//Edit buttons for forms
 			let editBasicButton = document.getElementById('editBasicButton');
-			editBasicButton.addEventListener('click', ()=>{
-				deleteButton.style = 'display:none';
+			let editVaccinesButton = document.getElementById('editVaccinesButton');
 
+			//Save buttons for forms
+			let saveVaccinesButton = document.getElementById('saveVaccinesButton');
+			let saveBasicButton = document.getElementById('saveBasicButton');
+
+			//Toggles between the two forms
+			let toggleButton = document.getElementById('viewVaccines');
+
+			//Sets up the basic form for editting
+			editBasicButton.addEventListener('click', ()=>{
+				//Hide the delete button and edit buttons
+				deleteButton.style = 'display:none';
 				editBasicButton.style = 'display:none';
 
+				//show the save button
+        		saveBasicButton.style = 'display:block';
+
+				//Allow the input fields to be editted
 				let inputFields = document.querySelectorAll('.dogInfo');
 				inputFields.forEach((input)=>{
 					input.disabled = false;
 				});
 
+				//Show the new dog pic upload area
 				let picDiv = document.getElementById('newDogPic');
 				picDiv.style = 'display:block';
 
+				//Get the file input element for the dog pic
 				picUpload = document.getElementById('dogUpload');
-				//Change the image upload if a file was inputted
+
+				//Change the image displayed if a file was inputted
 				picUpload.addEventListener('input', (event) => {
+				
 				//get the image, its url and the element to display it in
 				let imageFile = event.target.files[0]
 				let path = URL.createObjectURL(imageFile);
@@ -131,63 +160,75 @@
 				//update the image display
 				dogPic.src = path;
 				});
-
-				let saveBasicButton = document.getElementById('saveBasicButton');
-
-        		saveBasicButton.style = 'display:block';
 			});
 
-			var page = 'basic';
-			let basicForm = document.getElementById('basicInfo');
-			let vaccineForm = document.getElementById('vaccinationRecords');
-
-			let toggleButton = document.getElementById('viewVaccines');
+			//Switch which form is displayed
 			toggleButton.addEventListener('click', ()=>{
+				//Change to vaccine form
 				if(page == 'basic'){
+					//Hide basic form and show the vaccine form
 					basicForm.style = "display:none;";
 					vaccineForm.style = "display:block;";
+
+					//Change toggle button to say it takes you to the basic form
 					toggleButton.innerHTML = "View Profile";
 
+					//Change the variable reflect the current form
 					page = 'vaccines';
 				} else {
+					//Hide vaccine form and show the basic form
 					vaccineForm.style = "display:none;"
 					basicForm.style = "display:block;"
+
+					//Change toggle button to say it takes you to the vaccine form
 					toggleButton.innerHTML = "View Vaccination Records";
 
+					//Change the variable reflect the current form
 					page = 'basic';
 				}
 			});
 
-
-			let editVaccinesButton = document.getElementById('editVaccinesButton');
+			//Allow the vaccine records to be editted
 			editVaccinesButton.addEventListener('click', ()=>{
+				//Hide the delete and edit buttons
 				deleteButton.style = 'display:none';
-
 				editVaccinesButton.style = 'display:none';
 
+				//Show the save button
+				saveVaccinesButton.style = 'display:block';
+
+				//Allow user to edit all the date fields
 				let dateFields = document.querySelectorAll('.vaccineInput');
 				dateFields.forEach((date)=>{
+					//Enable editting
 					date.disabled = false;
+
+					//Store the original value
 					let originalDate = date.value;
+
+					//Identify the file upload corresponding with the date input
 					let fileUpload = date.name.substring(0, date.name.length-4);
 					fileUpload = fileUpload + "Proof";
-					console.log(fileUpload);
-
 					let fileUploadElement = document.getElementById(fileUpload);
+
+					//If the expiration date is changed, show the file upload and make it required
 					date.addEventListener('input', ()=>{
+						//If the current inputed date doesn't match the original date
 						if(originalDate != date.value){
+							//show file upload and make it required
 							fileUploadElement.required = true;
 							fileUploadElement.parentNode.style = 'display:block';
+						
+						//If the new date matches the original
 						} else {
+
+							//hide file upload and make it not required
 							fileUploadElement.required = false;
 							fileUploadElement.parentNode.style = 'display:none';
 						}
 					});
 				});
 
-				let saveVaccinesButton = document.getElementById('saveVaccinesButton');
-
-        		saveVaccinesButton.style = 'display:block';
 			});
 
 			
