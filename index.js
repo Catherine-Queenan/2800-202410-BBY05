@@ -4,13 +4,35 @@ const express = require('express');
 const session = require('express-session');
 const MongoStore = require('connect-mongo');
 const bcrypt = require('bcrypt');
-
+const {Storage} = require('@google-cloud/storage');
+const {Readable} = require('stream');
 const multer = require("multer");
 const stream = require("stream");
 const cloudinary = require('cloudinary').v2;
 
-
 const saltRounds = 10;
+
+//GOOGLE CLOUD STORAGE
+
+//Take the credentials from the .env file and construct them into one const
+const googleCredentials = {
+  type: process.env.GOOGLE_TYPE,
+  project_id: process.env.GOOGLE_PROJECT_ID,
+  private_key_id: process.env.GOOGLE_PRIVATE_KEY_ID,
+  private_key: process.env.GOOGLE_PRIVATE_KEY,
+  client_email: process.env.GOOGLE_CLIENT_EMAIL,
+  client_id: process.env.GOOGLE_CLIENT_ID,
+  auth_uri: process.env.GOOGLE_AUTH_URI,
+  token_uri: process.env.GOOGLE_TOKEN_URI,
+  auth_provider_x509_cert_url: process.env.GOOGLE_AUTH_PROVIDER_X509_CERT_URL,
+  client_x509_cert_url: process.env.GOOGLE_CLIENT_X509_CERT_URL,
+  universe_domain: process.env.UNIVERSE_DOMAIN,
+};
+
+const googleStorage = new Storage({ credentials: googleCredentials });
+const bucketName = process.env.BUCKET_NAME;
+
+//END OF GOOGLE CLOUD STORAGE
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -29,8 +51,6 @@ const mongodb_clientdb = process.env.MONGODB_CLIENTDATABASE;
 const mongodb_session_secret = process.env.MONGODB_SESSION_SECRET;
 
 const node_session_secret = process.env.NODE_SESSION_SECRET;
-
-const google_keys = process.env['GOOGLE_CREDS'];
 /* END secret section */
 
 // var { database } = include('databaseConnection');
@@ -151,6 +171,21 @@ function setUserDatabase(req) {
 		userdb = userdbAccess.db(db);
 	}
 	// console.log(userdb);
+}
+
+//Upload files to Google Cloud
+async function uploadFileToGoogleCloud(fileBuffer, fileName) {
+    const bucket = googleStorage.bucket(bucketName);
+    const file = bucket.file(fileName);
+    const stream = Readable.from(fileBuffer);
+
+    return new Promise((resolve, reject) => {
+        stream.pipe(file.createWriteStream())
+            .on('error', reject)
+            .on('finish', () => {
+                resolve(`gs://${bucketName}/${fileName}`);
+            });
+    });
 }
 
 //Upload files to drive function
@@ -437,6 +472,8 @@ app.get('/logout', (req, res) => {
 	res.render('logout', {loggedIn: false, userType: null});
 });
 
+//Async function for uploading an immage
+
 //Client user profile page
 app.get('/profile', sessionValidation, async(req, res) => {
 	//bandaid fix so its easier to test (delete later)
@@ -523,92 +560,96 @@ app.get('/addDog', (req, res) => {
 });
 
 //Adds the dog to the database
-app.post('/addingDog',  upload.array('dogUpload', 6), async(req, res) => {
-	setUserDatabase(req); //bandaid for testing
+app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
+    setUserDatabase(req); // bandaid for testing
 
-	//validation schema
-	var schema = Joi.object(
-		{
-			dogName: Joi.string().pattern(/^[a-zA-Z\s]*$/).max(20),
-			specialAlerts: Joi.string().pattern(/^[A-Za-z0-9 _.,!"'/$]*$/),
-		}
-	);
+    // validation schema
+    var schema = Joi.object({
+        dogName: Joi.string().pattern(/^[a-zA-Z\s]*$/).max(20),
+        specialAlerts: Joi.string().pattern(/^[A-Za-z0-9 _.,!"'/$]*$/),
+    });
 
-	//validate the two user typed inputs
-	var validationRes = schema.validate({ dogName: req.body.dogName, specialAlerts: req.body.specialAlerts });
+    // validate the two user typed inputs
+    var validationRes = schema.validate({ dogName: req.body.dogName, specialAlerts: req.body.specialAlerts });
 
-	//Deals with errors from validation
-	if (validationRes.error != null) {
-		let doc = '<body><p>Invalid Dog</p><br><a href="/addDog">Try again</a></body>';
-		res.send(doc);
-		return;
-	}
-	
-	//create a dog document
-	let dog = {
-		dogName: req.body.dogName
-	};
+    // Deals with errors from validation
+    if (validationRes.error != null) {
+        let doc = '<body><p>Invalid Dog</p><br><a href="/addDog">Try again</a></body>';
+        res.send(doc);
+        return;
+    }
 
-	//FILIP this is the file management stuff
-	//If req.files.length == 0 there are no uploaded files
-	//A max of 6 files can be uploaded
-	//There is a change that the first file in the list will be an image file and not a pdf
-	if(req.files.length != 0){
+    // create a dog document
+    let dog = {
+        dogName: req.body.dogName
+    };
 
-		//Checks if the first image is an image file and uploads the image if it is
-		let filename = req.files[0].mimetype;
-		filename = filename.split('/');
-		let fileType = filename[0];
+    // this is the file management stuff
+    // If req.files.length == 0 there are no uploaded files
+    // A max of 6 files can be uploaded
+    // There is a chance that the first file in the list will be an image file and not a pdf
+    if (req.files.length != 0) {
+        // Check if the first image is an image file and upload the image if it is
+        let filename = req.files[0].mimetype;
+        filename = filename.split('/');
+        let fileType = filename[0];
 
-		//FILIP you could probably if else this because if the first image isn't an image file, it must be a pdf and everything after it will also be a pdf
-		if(fileType == 'image'){
-			dog.dogPic = await uploadImage(req.files[0], 'dogPics');
-		}
-	
-	} else {
-		dog.dogPic = ''
-	}
+        // If the first file is an image, upload it to Cloudinary
+        if (fileType == 'image') {
+            dog.dogPic = await uploadImage(req.files[0], 'dogPics');
+        } else {
+            dog.dogPic = '';
+        }
 
-	//stores the neutered status
-	if(req.body.neuteredStatus == 'neutered'){
-		dog.neuteredStatus = req.body.neuteredStatus;
-	} else {
-		dog.neuteredStatus = 'not neutered';
-	}
-	
-	//Stores sex, birthday, weight, specialAlerts of the dog
-	dog.sex = req.body.sex;
-	dog.birthday = req.body.birthday;
-	dog.weight = req.body.weight + 'lb';
-	dog.specialAlerts = req.body.specialAlerts;
+        // Loop through all files and upload PDFs to Google Cloud Storage
+        for (let file of req.files) {
+            let filename = file.mimetype;
+            filename = filename.split('/');
+            let fileType = filename[0];
 
-	//Creates documents in the dog document for each vaccine
-	let allVaccines = ['rabies', 'leptospia', 'bordatella', 'bronchiseptica', 'DA2PP'];
-	allVaccines.forEach((vaccine)=>{
-		eval('dog.' + vaccine + '= {}');
-	});
+            if (fileType === 'application') {
+                let fileName = `pdfs/${file.originalname}`;
+                let fileUrl = await uploadFileToGoogleCloud(file.buffer, fileName);
+                dog.vaccineRecords = dog.vaccineRecords || [];
+                dog.vaccineRecords.push({ fileName: file.originalname, fileUrl });
+            }
+        }
+    } else {
+        dog.dogPic = '';
+    }
 
-	//If dog has more than one vaccines, add the expiration date and pdf of the proof of vaccination to the specific vaccine document
-	if(Array.isArray(req.body.vaccineCheck)){
-		req.body.vaccineCheck.forEach((vaccine)=>{
+    // stores the neutered status
+    if (req.body.neuteredStatus == 'neutered') {
+        dog.neuteredStatus = req.body.neuteredStatus;
+    } else {
+        dog.neuteredStatus = 'not neutered';
+    }
 
-			eval('dog.' + vaccine + '.expirationDate = ' + 'req.body.' + vaccine + 'Date');
+    // Stores sex, birthday, weight, specialAlerts of the dog
+    dog.sex = req.body.sex;
+    dog.birthday = req.body.birthday;
+    dog.weight = req.body.weight + 'lb';
+    dog.specialAlerts = req.body.specialAlerts;
 
-			//FILIP this is where you would add the pdf reference, after the equals sign
-			eval('dog.' + vaccine + '.vaccineRecord = ' + 'req.body.' + vaccine + 'Proof');
-		});
+    // Creates documents in the dog document for each vaccine
+    let allVaccines = ['rabies', 'leptospira', 'bordetella', 'bronchiseptica', 'DA2PP'];
+    allVaccines.forEach((vaccine) => {
+        dog[vaccine] = {};
+    });
 
-	//If the dog only has one vaccine
-	} else if (req.body.vaccineCheck){
-		eval('dog.' + req.body.vaccineCheck + '.expirationDate = ' + 'req.body.' + req.body.vaccineCheck + 'Date');
+    // If dog has more than one vaccine, add the expiration date and pdf of the proof of vaccination to the specific vaccine document
+    if (Array.isArray(req.body.vaccineCheck)) {
+        req.body.vaccineCheck.forEach((vaccine) => {
+            dog[vaccine].expirationDate = req.body[vaccine + 'Date'];
+            dog[vaccine].vaccineRecord = req.body[vaccine + 'Proof'];
+        });
+    } else if (req.body.vaccineCheck) {
+        dog[req.body.vaccineCheck].expirationDate = req.body[req.body.vaccineCheck + 'Date'];
+        dog[req.body.vaccineCheck].vaccineRecord = req.body[req.body.vaccineCheck + 'Proof'];
+    }
 
-		//FILIP this is also where you would add the pdf reference, after the equals sign
-		eval('dog.' + req.body.vaccineCheck + '.vaccineRecord = ' + 'req.body.' + req.body.vaccineCheck + 'Proof');
-	}
-	
-
-	await userdb.collection('dogs').insertOne(dog);
-	res.redirect('/profile');
+    await userdb.collection('dogs').insertOne(dog);
+    res.redirect('/profile');
 });
 
 app.use(express.static(__dirname + "/public"));
