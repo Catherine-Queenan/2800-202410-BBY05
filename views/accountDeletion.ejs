@@ -1,11 +1,11 @@
 <%- include("templates/header") %>
 Are you sure you want to delete your account?
 <form method="get">
-    <%- include('templates/button', {action:'',xClasses:'',xAttributes:'',content:'No. Take me back'}) %>
+    <%- include('templates/button', {action:'/profile',xClasses:'',xAttributes:'',content:'No. Take me back'}) %>
 </form>
 
 <form method="post">
-    <%- include('templates/button', {action:'',xClasses:'',xAttributes:'',content:'I am sure'}) %>
+    <%- include('templates/button', {action:'/deleteAccount',xClasses:'',xAttributes:'',content:'I am sure'}) %>
 </form>
 
 <%- include("templates/footerCopyright") %>

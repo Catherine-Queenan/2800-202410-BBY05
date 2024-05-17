@@ -625,12 +625,18 @@ app.post('/addingDog',  upload.array('dogUpload', 6), async(req, res) => {
 	await userdb.collection('dogs').insertOne(dog);
 	res.redirect('/profile');
 });
-
-app.get('/deleteConfirmation', (req, res) => {
-	console.log(isValidSession(req));
-	res.render('/profile', {loggedIn: isValidSession(req), name: req.session.name , userType: req.session.userType});
+//-----------------------------------------------
+app.get('/accountConfirmation', (req, res) => {
+	res.render('accountDeletion', {loggedIn: isValidSession(req), name: req.session.name , userType: req.session.userType});
 });
 
+app.post('/deleteAccount', async (req, res) => {
+	console.log(req.session.email);
+
+	user = await appUserCollection.deleteOne({email: req.params.email});
+	console.log(user);
+});
+//-----------------------------------------------
 app.use(express.static(__dirname + "/public"));
 
 app.get('*', (req, res) => {
