@@ -826,6 +826,20 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
 });
 //-----------------------------------------------
 
+app.get('/accountConfirmation', (req, res) => {
+	res.render('accountDeletion', {loggedIn: isValidSession(req), name: req.session.name , userType: req.session.userType});
+});
+
+app.post('/deleteAccount', async (req, res) => {
+	// console.log(req.session.email);
+	email = req.session.email;
+	
+	await userdb.dropDatabase();
+	res.redirect('/logout');
+	// console.log(user);
+	
+});
+//-----------------------------------------------
 async function getUserEvents() {
 	var userEvents = await userdb.collection('eventSource').find().project({ title: 1, start: 1, end: 1, _id: 0 }).toArray();
 	// console.log(userEvents);
