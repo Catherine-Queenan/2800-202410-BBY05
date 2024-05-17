@@ -833,6 +833,30 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
     res.redirect('/profile');
 });
 
+app.get('/accountDeletion', (req, res) => {
+	res.render('accountDeletion', {loggedIn: isValidSession(req), name: req.session.name , userType: req.session.userType});
+});
+
+app.post('/deleteAccount', async (req, res) => {
+
+	// Store the email
+	email = req.session.email;
+
+	// Logic for business accounts and clients (safe coding)
+	if (req.session.userType == 'client') {
+		await appUserCollection.deleteMany({email: email, userType: 'client'});
+		await userdb.dropDatabase();
+	} else if (req.session.userType == 'business') {
+		await appUserCollection.deleteMany({email: email, userType: 'business'});
+		await userdb.dropDatabase();
+	}
+	// console.log(req.session.userType);
+	// await appUserCollection.deleteMany({email: email, userType: 'business'});
+	// await userdb.dropDatabase();
+
+	res.redirect('/logout');
+});
+
 async function getUserEvents() {
 	var userEvents = await userdb.collection('eventSource').find().project({ title: 1, start: 1, end: 1, _id: 0 }).toArray();
 	// console.log(userEvents);
