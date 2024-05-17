@@ -58,8 +58,9 @@
 	<% } else { %>
 		hi <%= name %>
 		<form method="get">
-				<%- include('templates/button', {action:'/logout',xClasses:'',xAttributes:'',content:'Get me out of here'}) %>
-				<!-- <button formaction="/logout">Get me out of here</button> -->
+			<%- include('templates/button', {action:'/calendar',xClasses:'',xAttributes:'',content:'Check out the Calendar'}) %>
+			<%- include('templates/button', {action:'/logout',xClasses:'',xAttributes:'',content:'Logout'}) %>
+			<!-- <button formaction="/logout">Get me out of here</button> -->
 		</form>
 	<% } %>
 </div>

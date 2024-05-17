@@ -1,4 +1,4 @@
-<div class="login-wrap" style="background: url('images/BeachPaws.png') center no-repeat; background-size:cover;">
+<div class="login-wrap" style="background: url('/images/BeachPaws.png') center no-repeat; background-size:cover;">
     <div class="login-html">
         <input id="tab-1" type="radio" name="tab" class="sign-in" checked>
         <label for="tab-1" class="tab"><%= login %></label>
@@ -26,7 +26,7 @@
                 <form method="get"></form>
                     <div class="hr"></div>
                     <div class="foot-lnk">
-                        <a href="#forgot">Forgot Password?</a>
+                        <a href="/forgotPassword">Forgot Password?</a>
                     </div>
                 </form>
             </div>
@@ -86,11 +86,11 @@
                         </div>
                         <div class="group">
                             <label for="emailField" class="label"><%= signupEmail %></label>
-                            <input name="email" id="emailField" type="email" class="input">
+                            <input name="businessEmail" id="emailField" type="email" class="input">
                         </div>
                         <div class="group">
                             <label for="phoneField" class="label"><%= phone %></label>
-                            <input name="phone" id="phoneField" type="tel" class="input">
+                            <input name="businessPhone" id="phoneField" type="tel" class="input">
                         </div>
                         <div class="group">
                             <label for="companyWebsiteField" class="label"><%= companySite %></label>
@@ -118,7 +118,7 @@
                             <p id="passwordWarning" class="purple" style="font-weight:bolder; font-style:italic; text-shadow: -1px -1px 0 #F0F1FA, 1px -1px 0 #F0F1FA, -1px 1px 0 #F0F1FA, 1px 1px 0 #F0F1FA;"></p>
                         </div>
                         <div class="group">
-                            <%- include('button', {action:'/submitSignup/client',xClasses:'button',xAttributes:'id=signUpSubmit disabled',content:'Submit'}) %>
+                            <%- include('button', {action:'/submitSignup/business',xClasses:'button',xAttributes:'id=signUpSubmit disabled',content:'Submit'}) %>
                             <!-- <button id="signUpSubmit" formaction="/submitSignup/client" disabled>Submit</button> -->
                         </div>
                     </form>

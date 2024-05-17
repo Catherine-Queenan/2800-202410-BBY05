@@ -10,17 +10,21 @@ document.addEventListener('DOMContentLoaded', function () {
 		},
 		events: '/events',
 		eventClick: function(info) {
-			// var modDate = document.getElementById("calModDate");
+			// Modal header
 			modViewTitle.innerText = "Session booked for " + info.event.start.toLocaleDateString("en-CA");
 
-			// var modBod = document.getElementById("calModBod");
+			// Original Event values
 			var modTitle = info.event.title;
 			var modStartOrig = info.event.start;
+			var modEndOrig = info.event.end;
+
+			// Fields to edit
 			var modStartHH = info.event.start.toLocaleString([], {hour:"2-digit", hour12:false}).padStart(2, '0');
 			var modStartMM = info.event.start.toLocaleString([], {minute:"2-digit"}).padStart(2, '0');
-			var modEndOrig = info.event.end;
 			var modEndHH = info.event.end.toLocaleString([], {hour:"2-digit", hour12:false}).padStart(2, '0');
 			var modEndMM = info.event.start.toLocaleString([], {minute:"2-digit"}).padStart(2, '0');
+
+			// This will fill the modal with the event info
 			var modalBody = `
 			<label for="calModTitle" class="form-label">Session Title</label>
 			<input type="text" class="form-control-plaintext d-none" name="calModDate" value="${info.event.start.toLocaleDateString("en-CA")}">
@@ -117,9 +121,12 @@ document.addEventListener('DOMContentLoaded', function () {
 				<button formaction="/removeEvent" id="deleteButton" disabled class="btn btn-danger">Delete</button>
 				<button formaction="/updateEvent" id="saveButton" disabled class="btn btn-success">Save changes</button>
 			`;
+
+			// Add the above HTML into the modal
 			modBod.innerHTML = modalBody;
 			modal.show();
 
+			// Containing all above buttons and input fields in variables
 			var editButton = document.getElementById("calModEdit");
 			var deleteButton = document.getElementById("deleteButton");
 			var saveButton = document.getElementById("saveButton");
@@ -131,6 +138,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 			editButton.addEventListener("click", onEditClick, false);
 
+			// Enables editing
 			function onEditClick() {
 				modal.show();
 				calModTitleEdit.classList.remove("form-control-plaintext");
@@ -146,6 +154,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
 		},
 		dateClick: function(info) {
+
+			// Modal header
 			modViewTitle.innerText = 'Add a session for '+info.date.toLocaleDateString("en-CA");
 			var selectedDate = info.date.toLocaleDateString("en-CA");
 			var modalBody = `
@@ -245,13 +255,12 @@ document.addEventListener('DOMContentLoaded', function () {
 	calendar.render();
 });
 
+// Grabs the modal from /calendar
 const modal = new bootstrap.Modal(document.getElementById("calendarModal"));
 const modViewTitle = document.getElementById("calModViewTitle");
 const modBod = document.getElementById("calModBod");
-// modal.addEventListener("shown.bs.modal", () => {
-// 	myInput.focus();
-// });
 
+// This is a format that FullCalendar likes
 function formatDate(date) {
 	var year = date.getFullYear();
 	var month = ('0' + (date.getMonth() + 1)).slice(-2);
