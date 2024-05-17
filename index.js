@@ -835,8 +835,8 @@ app.post('/deleteAccount', async (req, res) => {
 	
 
 
-	await appUserCollection.deleteOne({email: req.params.email});
-	await userdb.dropDatabase('client-' + emailParse);
+	await appUserCollection.deleteOne({email: email});
+	await userdb.dropDatabase();
 	res.redirect('/logout');
 	// console.log(user);
 	
