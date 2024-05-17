@@ -12,6 +12,7 @@ const cloudinary = require('cloudinary').v2;
 
 const saltRounds = 10;
 
+
 //GOOGLE CLOUD STORAGE
 
 //Take the credentials from the .env file and construct them into one const
@@ -34,9 +35,12 @@ const bucketName = process.env.BUCKET_NAME;
 
 //END OF GOOGLE CLOUD STORAGE
 
+const nodemailer = require('nodemailer');
+const crypto = require('crypto')
 const app = express();
 const port = process.env.PORT || 3000;
 const Joi = require('joi');
+const ejs = require('ejs');
 
 // 1 hour
 const expireTime = 60 * 60 * 1000;
@@ -51,6 +55,9 @@ const mongodb_clientdb = process.env.MONGODB_CLIENTDATABASE;
 const mongodb_session_secret = process.env.MONGODB_SESSION_SECRET;
 
 const node_session_secret = process.env.NODE_SESSION_SECRET;
+
+const autoreply_email = process.env.EMAIL_ADDRESS;
+const autoreply_email_password = process.env.EMAIL_ADDRESS_PASSWORD;
 /* END secret section */
 
 // var { database } = include('databaseConnection');
@@ -98,6 +105,17 @@ cloudinary.config({
 //File uploader
 const storage = multer.memoryStorage();
 const upload = multer({storage: storage});
+
+// Creating the transporter object in order to login to the noreply email and send emails 
+const transporter = nodemailer.createTransport({
+	service: 'Gmail',
+	auth: {
+		user: autoreply_email,
+		pass: autoreply_email_password
+	}
+});
+
+
 
 app.use(session({
 	secret: node_session_secret,
@@ -469,6 +487,157 @@ app.post('/submitLogin', async (req, res) => {
 	}
 });
 
+// forget password (link it after) -> enter email -> get email (in progress) -> make a password -> 
+// This is the reset password landing page where the user can enter their email for a reset
+
+// This function is solely for sending emails. It will need an ejs file for the email templating later
+function sendMail(emailAddress, resetToken) {
+	ejs.renderFile('./views/email.ejs', { resetToken: resetToken }, (err, str) => {
+		if (err) {
+			console.error('Error rendering email template', err);
+			return;
+		}
+
+		// Custom settings for the mail
+		const mailOptions = {
+			from: `${autoreply_email}`,
+			to: emailAddress,
+			subject: 'Reset Pawfolio password',
+			html: str
+		};
+
+		// This uses the transporter object near the top of the file to send emails
+		transporter.sendMail(mailOptions, (error, info) => {
+
+			// Error handling
+			if (error) {
+				res.render('errorMessge', { error: 'Email couldn\'t be sent' })
+			}
+			// console.log('successfuly sent email')
+		});
+	});
+}
+
+// This routing is the main page for forgetting your password.
+app.get('/forgotPassword', (req, res) => {
+
+	// If the email is invalid, the query will have an error message. Otherwise, we want it blank so it doesn't always show
+	const errorMessage = req.query.errorMessage || '';
+	res.render('forgotPassword', { errorMessage: errorMessage });
+});
+
+// This handles the submitted email for the /forgotpassword routing
+app.post('/emailConfirmation', async (req, res) => {
+
+	// deciding what collection the user is in (WILL BE REMOVED)
+	let emailVerification = false;
+
+	// Storing the email that was entered
+	email = req.body.email;
+
+	// if the email is found in the client side, we are allowed to send an email 
+	emailValidation = await appUserCollection.find({ email: email }).project({ email: 1, password: 1, _id: 1 }).toArray();
+	if (emailValidation.length == 1) {
+		emailVerification = true;
+	}
+
+	// if the email exists in the database
+	if (emailVerification) {
+		// Create a unique token and 1 hour expiration limit using crypto
+		const token = crypto.randomBytes(20).toString('hex');
+		const PasswordResetToken = token;
+		const tokenExpiriationDate = Date.now() + 3600000;
+
+		// Gives the user information collection the token and expiration time
+		appUserCollection.updateOne({ email: email }, {
+			$set: {
+				resetToken: `${PasswordResetToken}`,
+				tokenExpiration: `${tokenExpiriationDate}`
+			}
+		});
+
+		// send the email with the unique token link
+		sendMail(email, token);
+
+		// Redirect to an email sent page
+		res.redirect('/emailSent');
+		return;
+	}
+
+	// This is a custom error message for if the email is invalid
+	// This does not have anything to do with the errorMessage.ejs file, this is simply for query
+	const error = 'woof woof woof woof (not a valid email)';
+
+	// the encodeURIComponent ensures that any special characters make it into the query if necessary
+	res.redirect(`/forgotPassword?errorMessage=${encodeURIComponent(error)}`);
+});
+
+app.get('/resetPassword/:token', async (req, res) => {
+
+	// refer to the token using token.token
+	const token = req.params;
+
+	// find and store the user and store their document for later verification
+	const clientUser = await appUserCollection.findOne({ resetToken: token.token });
+
+	// This detects if we couldn't find the token in any user
+	if (clientUser == null) {
+		res.render('errorMessage', { error: 'Token expired or invalid.' })
+		return;
+	}
+
+	// checks if the url token is valid and not expired. 
+	if (clientUser.resetToken == token.token && clientUser.tokenExpiration > Date.now()) {
+		res.redirect(`/resetPasswordForm/${token.token}`);
+		return;
+	}
+});
+
+// This routes to the form where the new user password would be submitted
+app.get('/resetPasswordForm/:token', (req, res) => {
+
+	// store the token
+	token = req.params;
+	res.render('resetPasswordForm', { token: token.token });
+});
+
+// Handles the new password submission
+app.post('/resettingPassword/:token', async (req, res) => {
+
+	// store the new password
+	let password = req.body.password;
+
+	// validate using the same schema config from the signup
+	const schema = Joi.string().max(20).min(2).required();
+	if (schema.validate(password).error != null) {
+		res.redirect('/resetPasswordForm/:token');
+	}
+
+	// hash the password just like in the signup
+	passwordHashed = await bcrypt.hash(password, saltRounds);
+
+	// sets the new password based on the account with the token
+	appUserCollection.updateOne({ resetToken: token.token }, { $set: { password: passwordHashed } });
+
+	// deletes the token information so that it can no longer be accessed on accident or injection
+	appUserCollection.updateOne(
+		{ resetToken: token.token },
+		{ $unset: { resetToken: "", tokenExpiration: "" } }
+
+	);
+
+	res.redirect('/passwordChangedSuccessfully');
+});
+
+// This is a page for when your password is successfully changed
+app.get('/passwordChangedSuccessfully', (req, res) => {
+	res.render('passwordChangedSuccessfully');
+});
+
+app.get('/emailSent', (req, res) => {
+	res.render('checkInbox');
+});
+
 app.get('/logout', (req, res) => {
 	req.session.destroy();
 	setUserDatabase(req);
@@ -660,7 +829,7 @@ app.use(express.static(__dirname + "/public"));
 
 app.get('*', (req, res) => {
 	res.status(404);
-	res.render('errorMessage', { error: 'Page not found - 404' });
+	res.render('errorMessage', { error: 'Page not found - 404', loggedIn: isValidSession(req), userType: req.session.userType});
 })
 
 app.listen(port, () => {
