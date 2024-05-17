@@ -836,12 +836,15 @@ app.post('/deleteAccount', async (req, res) => {
 
 	// Logic for business accounts and clients (safe coding)
 	if (req.session.userType == 'client') {
-		await appUserCollection.deleteMany({email: email, userTupe: 'client'});
+		await appUserCollection.deleteMany({email: email, userType: 'client'});
 		await userdb.dropDatabase();
 	} else if (req.session.userType == 'business') {
-		await appUserCollection.deleteMany({email: email, userTupe: 'business'});
+		await appUserCollection.deleteMany({email: email, userType: 'business'});
 		await userdb.dropDatabase();
 	}
+	// console.log(req.session.userType);
+	// await appUserCollection.deleteMany({email: email, userType: 'business'});
+	// await userdb.dropDatabase();
 
 	res.redirect('/logout');
 });
