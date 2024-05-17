@@ -108,55 +108,46 @@ h1 {
     }
 /* End of Buttons */
 
-/* Navbar */
-/* Ensure the navbar sits above the content */
-.navbar.fixed-top {
-    z-index: 1030; /* Bootstrap default for fixed-top navbar */
-}
-  /* Add padding to the body to avoid content being overlapped by the navbar */
-body {
-    padding-top: 56px; /* Adjust this value based on the navbar height */
-}
-/* End of Navbar */
+
 
 /* Resources */
 
-/* Tab styling */
-.tabR {
-  text-transform: uppercase;
-  font-weight: bold;
-  font-size: 16px;
-  margin-right: 20px;
-  padding: 10px;
-  cursor: pointer;
-  border-radius: 5px;
-  color: #201335;
-  border-bottom:2px solid transparent;
-  display: inline-block;
-}
+  /* Tab styling */
+  .tabR {
+    text-transform: uppercase;
+    font-weight: bold;
+    font-size: 16px;
+    margin-right: 20px;
+    padding: 10px;
+    cursor: pointer;
+    border-radius: 5px;
+    color: #201335;
+    border-bottom:2px solid transparent;
+    display: inline-block;
+  }
 
-.tabR:hover {
-  background-color: #2013352e;
-}
+  .tabR:hover {
+    background-color: #2013352e;
+  }
 
-/* Define CSS classes for tab content */
-.tabR-one-htm,
-.tabR-two-htm,
-.tabR-three-htm,
-.tabR-four-htm,
-.tabR-five-htm {
-  /* Initially hide tab content */
-  display: none;
-}
+  /* Define CSS classes for tab content */
+  .tabR-one-htm,
+  .tabR-two-htm,
+  .tabR-three-htm,
+  .tabR-four-htm,
+  .tabR-five-htm {
+    /* Initially hide tab content */
+    display: none;
+  }
 
-/* Show tab content when associated radio input is checked */
-.tabR-one:checked ~ .resource-form .tabR-one-htm,
-.tabR-two:checked ~ .resource-form .tabR-two-htm,
-.tabR-three:checked ~ .resource-form .tabR-three-htm,
-.tabR-four:checked ~ .resource-form .tabR-four-htm,
-.tabR-five:checked ~ .resource-form .tabR-five-htm {
-  display: block;
-}
+  /* Show tab content when associated radio input is checked */
+  .tabR-one:checked ~ .resource-form .tabR-one-htm,
+  .tabR-two:checked ~ .resource-form .tabR-two-htm,
+  .tabR-three:checked ~ .resource-form .tabR-three-htm,
+  .tabR-four:checked ~ .resource-form .tabR-four-htm,
+  .tabR-five:checked ~ .resource-form .tabR-five-htm {
+    display: block;
+  }
 /* End of Resources */
 
 /* Login Forms */
@@ -356,7 +347,7 @@ body{
 }
 
 .white {
-    color: #F0F1FA
+    color: #F0F1FA;
 }
 
 .lemonBackground {
