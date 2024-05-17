@@ -122,7 +122,7 @@ body {
 /* Resources */
 
 /* Tab styling */
-.tab {
+.tabR {
   text-transform: uppercase;
   font-weight: bold;
   font-size: 16px;
@@ -130,148 +130,33 @@ body {
   padding: 10px;
   cursor: pointer;
   border-radius: 5px;
-  background-color: #f0f1fa;
   color: #201335;
+  border-bottom:2px solid transparent;
+  display: inline-block;
 }
 
-.tab:hover {
-  background-color: #dcdde1;
+.tabR:hover {
+  background-color: #2013352e;
 }
 
 /* Define CSS classes for tab content */
-.tab-one-htm,
-.tab-two-htm,
-.tab-three-htm,
-.tab-four-htm,
-.tab-five-htm {
+.tabR-one-htm,
+.tabR-two-htm,
+.tabR-three-htm,
+.tabR-four-htm,
+.tabR-five-htm {
   /* Initially hide tab content */
   display: none;
 }
 
 /* Show tab content when associated radio input is checked */
-.tab-one:checked ~ .resource-form .tab-one-htm,
-.tab-two:checked ~ .resource-form .tab-two-htm,
-.tab-three:checked ~ .resource-form .tab-three-htm,
-.tab-four:checked ~ .resource-form .tab-four-htm,
-.tab-five:checked ~ .resource-form .tab-five-htm {
+.tabR-one:checked ~ .resource-form .tabR-one-htm,
+.tabR-two:checked ~ .resource-form .tabR-two-htm,
+.tabR-three:checked ~ .resource-form .tabR-three-htm,
+.tabR-four:checked ~ .resource-form .tabR-four-htm,
+.tabR-five:checked ~ .resource-form .tabR-five-htm {
   display: block;
 }
-
-
-/* .resource-wrap{
-  margin:auto;
-  position:relative;
-  box-shadow:0 12px 15px 0 rgba(0,0,0,.24),0 17px 50px 0 rgba(0,0,0,.19);
-}
-
-.resource-html{
-  padding:90px 70px 50px 70px;
-  background:rgba(240, 241, 250, 0.7);
-}
-
-.resource-html .tab-one-htm,
-.resource-html .tab-two-htm,
-.resource-html .tab-three-htm,
-.resource-html .tab-four-htm{
-  top:0;
-  left:0;
-  right:0;
-  bottom:0;
-  position:absolute;
-  transform:rotateY(180deg);
-  backface-visibility:hidden;
-  transition:all .4s linear;
-}
-
-.resource-html .tab-one-htm,
-.resource-html .tab-two-htm,
-.resource-html .tab-three-htm,
-.resource-html .tab-four-htm,
-.resource-form .group .check{
-  display:none;
-}
-
-.resource-html .tab,
-.resource-form .group .label,
-.resource-form .group .button{
-  text-transform:uppercase;
-  font-weight:bold;
-}
-
-.resource-html .tab{
-  font-size:22px;
-  margin-right:15px;
-  padding-bottom:5px;
-  margin:0 15px 10px 0;
-  display:inline-block;
-  border-bottom:2px solid transparent;
-}
-.resource-html .tab-one:checked + .tab,
-.resource-html .tab-two:checked + .tab,
-.resource-html .tab-three:checked + .tab,
-.resource-html .tab-four:checked + .tab{
-  color:#5E53A2;
-  border-color:#201335;
-}
-
-.resource-form{
-  min-height:345px;
-  position:relative;
-  perspective:1000px;
-  transform-style:preserve-3d;
-}
-
-.resource-form .group{
-  margin-bottom:15px;
-}
-
-.resource-form .group .label,
-.resource-form .group .input,
-.resource-form .group .button{
-  width:100%;
-  color:#201335;
-  display:block;
-}
-
-.resource-form .group .input {
-  border:none;
-  color: #201335;
-  border: none;
-  border-radius: 5px;
-  padding: 8px 25px;
-  font-size: 18px;
-  letter-spacing: 1px;
-  cursor: pointer;
-  background: rgba(32, 19, 53, 0.15);
-}
-.resource-form .group .button{
-  border:none;
-  color: #FEF6C3;
-  border: none;
-  border-radius: 5px;
-  padding: 8px 25px;
-  font-size: 18px;
-  font-weight: 500;
-  letter-spacing: 1px;
-  cursor: pointer;
-}
-
-.resource-form .group .label{
-  color:#201335;
-}
-
-.resource-form .group .button{
-  background: rgba(32, 19, 53, 0.8);
-}
-
-.resource-form .group label .icon{
-  width:15px;
-  height:15px;
-  border-radius:2px;
-  position:relative;
-  display:inline-block;
-  background:rgba(32, 19, 53, 0.1);
-} */
 /* End of Resources */
 
 /* Login Forms */
