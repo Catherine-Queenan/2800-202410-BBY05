@@ -1,0 +1,184 @@
+<%- include("templates/header") %>
+<div>
+<span class="h5"><%=dog.dogName%></span> 
+<%- include('templates/button', {action: '',xClasses:'',xAttributes:'id=viewVaccines type=button',content:'View Vaccination Records'}) %>
+</div>
+	<%- include('templates/defaultingPic', {pic: dog.dogPic, picId: 'dogPic'})%>
+	<form class="my-3" id="basicInfo" method="post" enctype="multipart/form-data">
+		<%- include('templates/uploadFile', {divId:'newDogPic', xDivAttributes:'style=display:none', fileId:'dogUpload',fileName:'dogUpload', label:'Upload a New Photo:', xfileAttributes:'accept=.png,.jpg'}) %>
+			<div class="form-group">
+				<label for="dogName">Dog Name:</label>
+				<input class="dogInfo" type="text" id="dogName" name="dogName" value="<%=dog.dogName%>" required disabled>
+			</div>
+			<br>
+			<% if (dog.neuteredStatus == 'neutered') {%>
+				<%- include('templates/checkmark', {classes: 'dogInfo', value:'neutered', name:'neuteredStatus', id: 'neuteredStatus', label:'Neutered', xAttr:'checked disabled'}) %>
+			<% } else { %>
+				<%- include('templates/checkmark', {classes: 'dogInfo', value:'neutered', name:'neuteredStatus', id: 'neuteredStatus', label:'Neutered', xAttr:'disabled'}) %>
+			<%}%>
+		
+			<br>
+				
+			<% if(dog.sex == 'M') { %>
+			<div class="form-check">
+				<input class="form-check-input dogInfo" type="radio" name="sex" value="M" id="sexM" checked disabled>
+				<label class="form-check-label" for="sexM">Male</label>
+		  	</div>
+		  
+			<div class="form-check">
+				<input class="form-check-input dogInfo" type="radio" name="sex" value="F" id="sexF" disabled>
+				<label class="form-check-label" for="sexF">Female</label>
+			</div>
+		<%} else {%> 
+			<div class="form-check">
+				<input class="form-check-input dogInfo" type="radio" name="sex" value="M" id="sexM" disabled>
+				<label class="form-check-label" for="sexM">Male</label>
+		  	</div>
+		  
+			<div class="form-check">
+				<input class="form-check-input dogInfo" type="radio" name="sex" value="F" id="sexF" checked disabled>
+				<label class="form-check-label" for="sexF">Female</label>
+			</div>
+		
+		<%}%>
+				
+			<br>
+			
+			<%- include('templates/dateInput', {divId: 'birthdayDateDiv', xDivAttributes:'', dateId: 'birthday',dateClass:'dogInfo', dateName:'birthday', label:'Birthday', xDateAttributes:'value=' + dog.birthday + ' required disabled'}) %>
+			 
+			<br>
+				
+			<div class="form-group">
+				<label for="weight">Weight (lb):</label>
+				<input class="dogInfo" type="number" id="weight" name="weight" min="0" value="<%=dog.weight%>" disabled>
+			</div>
+				
+			<br>
+				
+			<div class="form-group">
+				<label for="specialAlerts">Special Alerts</label>
+				<textarea class="form-control dogInfo" id="specialAlerts" name="specialAlerts" rows="3" disabled><%=dog.specialAlerts%></textarea>
+			</div>
+			<%- include('templates/button', {action:'',xClasses:'',xAttributes:'id=editBasicButton type=button',content:'Edit'}) %>
+			<%- include('templates/button', {action: dog._id + '/edit',xClasses:'',xAttributes:'id=saveBasicButton style=display:none',content:'Save'}) %>
+		</form>
+		
+		<form  class="my-3" id="vaccinationRecords" method="post"  enctype="multipart/form-data" style="display:none">
+			<div class="my-3 py-2">
+				<h5>Rabies</h5>
+				<%- include('templates/dateInput', {divId: 'rabiesDateDiv', xDivAttributes:'', dateId: 'rabiesDate',dateClass:'vaccineInput', dateName:'rabiesDate', label:'Expiration Date', xDateAttributes:'disabled value=' + dog.rabies.expirationDate}) %>
+				<%- include('templates/uploadFile', {divId:'rabiesProofDiv', xDivAttributes:'class=vaccineUpload style=display:none', fileId: 'rabiesProof', fileName:'dogUpload', label:'Please Provide a Vaccination Record for Proof', xfileAttributes: 'class=vaccineProof accept=.pdf'})%>
+			</div>
+
+			<div class="my-3 py-2">
+				<h5>Leptospia</h5>
+				<%- include('templates/dateInput', {divId: 'leptospiaDateDiv', xDivAttributes:'', dateId: 'leptospiaDate',dateClass:'vaccineInput', dateName:'leptospiaDate', label:'Expiration Date', xDateAttributes:'disabled value=' + dog.leptospia.expirationDate}) %>
+				<%- include('templates/uploadFile', {divId:'leptospiaProofDiv', xDivAttributes:'class=vaccineUpload style=display:none', fileId: 'leptospiaProof', fileName:'dogUpload', label:'Provide New Proof of Vaccincation', xfileAttributes: 'class=vaccineProof accept=.pdf'})%>
+			</div>
+
+			<div class="my-3 py-2">
+				<h5>Bordatella</h5>
+				<%- include('templates/dateInput', {divId: 'bordatellaDateDiv', xDivAttributes:'', dateId: 'bordatellaDate',dateClass:'vaccineInput', dateName:'bordatellaDate', label:'Expiration Date', xDateAttributes:'disabled value=' + dog.bordatella.expirationDate}) %>
+				<%- include('templates/uploadFile', {divId:'bordatellaProofDiv', xDivAttributes:'class=vaccineUpload style=display:none', fileId: 'bordatellaProof', fileName:'dogUpload', label:'Provide New Proof of Vaccincation', xfileAttributes: 'class=vaccineProof accept=.pdf'})%>
+			</div>
+
+			<div class="my-3 py-2">
+				<h5>Bronchiseptica</h5>
+				<%- include('templates/dateInput', {divId: 'bronchisepticaDateDiv', xDivAttributes:'', dateId: 'bronchisepticaDate',dateClass:'vaccineInput', dateName:'bronchisepticaDate', label:'Expiration Date', xDateAttributes:'disabled value=' + dog.bronchiseptica.expirationDate}) %>
+				<%- include('templates/uploadFile', {divId:'bronchisepticaProofDiv', xDivAttributes:'class=vaccineUpload style=display:none', fileId: 'bronchisepticaProof', fileName:'dogUpload', label:'Provide New Proof of Vaccincation', xfileAttributes: 'class=vaccineProof accept=.pdf'})%>
+			</div>
+		
+			<div class="my-3 py-2">
+				<h5>DA2PP</h5>
+				<%- include('templates/dateInput', {divId: 'DA2PPDateDiv', xDivAttributes:'', dateId: 'DA2PPDate',dateClass:'vaccineInput', dateName:'DA2PPDate', label:'Expiration Date', xDateAttributes:'disabled value=' + dog.DA2PP.expirationDate}) %>
+				<%- include('templates/uploadFile', {divId:'DA2PPProofDiv', xDivAttributes:'class=vaccineUpload style=display:none', fileId: 'DA2PPProof', fileName:'dogUpload', label:'Provide New Proof of Vaccincation', xfileAttributes: 'class=vaccineProof accept=.pdf'})%>
+			</div>
+
+			<%- include('templates/button', {action:'',xClasses:'',xAttributes:'id=editVaccinesButton type=button',content:'Edit'}) %>
+			<%- include('templates/button', {action: dog._id + '/editVaccines',xClasses:'',xAttributes:'id=saveVaccinesButton style=display:none',content:'Save'}) %>
+		</form>
+		  
+		  
+		<script>
+			let editBasicButton = document.getElementById('editBasicButton');
+			editBasicButton.addEventListener('click', ()=>{
+				editBasicButton.style = 'display:none';
+
+				let inputFields = document.querySelectorAll('.dogInfo');
+				inputFields.forEach((input)=>{
+					input.disabled = false;
+				});
+
+				let picDiv = document.getElementById('newDogPic');
+				picDiv.style = 'display:block';
+
+				picUpload = document.getElementById('dogUpload');
+				//Change the image upload if a file was inputted
+				picUpload.addEventListener('input', (event) => {
+				//get the image, its url and the element to display it in
+				let imageFile = event.target.files[0]
+				let path = URL.createObjectURL(imageFile);
+				let dogPic = document.getElementById('dogPic');
+
+				//update the image display
+				dogPic.src = path;
+				});
+
+				let saveBasicButton = document.getElementById('saveBasicButton');
+
+        		saveBasicButton.style = 'display:block';
+			});
+
+			var page = 'basic';
+			let basicForm = document.getElementById('basicInfo');
+			let vaccineForm = document.getElementById('vaccinationRecords');
+
+			let toggleButton = document.getElementById('viewVaccines');
+			toggleButton.addEventListener('click', ()=>{
+				if(page == 'basic'){
+					basicForm.style = "display:none;";
+					vaccineForm.style = "display:block;";
+					toggleButton.innerHTML = "View Profile";
+
+					page = 'vaccines';
+				} else {
+					vaccineForm.style = "display:none;"
+					basicForm.style = "display:block;"
+					toggleButton.innerHTML = "View Vaccination Records";
+
+					page = 'basic';
+				}
+			});
+
+
+			let editVaccinesButton = document.getElementById('editVaccinesButton');
+			editVaccinesButton.addEventListener('click', ()=>{
+				editVaccinesButton.style = 'display:none';
+
+				let dateFields = document.querySelectorAll('.vaccineInput');
+				dateFields.forEach((date)=>{
+					date.disabled = false;
+					let originalDate = date.value;
+					let fileUpload = date.name.substring(0, date.name.length-4);
+					fileUpload = fileUpload + "Proof";
+					console.log(fileUpload);
+
+					let fileUploadElement = document.getElementById(fileUpload);
+					date.addEventListener('input', ()=>{
+						if(originalDate != date.value){
+							fileUploadElement.required = true;
+							fileUploadElement.parentNode.style = 'display:block';
+						} else {
+							fileUploadElement.required = false;
+							fileUploadElement.parentNode.style = 'display:none';
+						}
+					});
+				});
+
+				let saveVaccinesButton = document.getElementById('saveVaccinesButton');
+
+        		saveVaccinesButton.style = 'display:block';
+			});
+
+		</script>
+		<%- include("templates/footerCopyright") %>
