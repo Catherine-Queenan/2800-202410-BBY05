@@ -183,7 +183,7 @@ function setUserDatabase(req) {
 			let clientEmail = req.session.email.split('.').join("");
 			db = mongodb_clientdb + '-' + clientEmail;
 		} else if (isBusiness(req)) {
-			db = mongodb_businessdb + '-' + req.session.name;
+			db = mongodb_businessdb + '-' + req.session.name.replace(/\s/g, "");
 		}
 		let userdbAccess = new MongoClient(`mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/${db}?retryWrites=true`);
 		userdb = userdbAccess.db(db);
@@ -232,6 +232,9 @@ async function deleteUploadedImage(id){
 
 app.get('/', (req, res) => {
 	setUserDatabase(req);
+	console.log(req.session.authenticated);
+	console.log(req.session.name);
+	console.log(req.session.userType);
 	res.render('index', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType});
 });
 
@@ -350,7 +353,7 @@ app.post('/submitSignup/:type', async (req, res) => {
 		//Validation schema for user inputs
 		var schema = Joi.object(
 			{
-				companyName: Joi.string().pattern(/^[a-zA-Z\s]*$/).max(20).required(),
+				companyName: Joi.string().pattern(/^[a-zA-Z0-9\s']*$/).max(40).required(),
 				businessEmail: Joi.string().email().required(),
 				businessPhone: Joi.string().pattern(/^[0-9\s]*$/).length(10).required(),
 				firstName: Joi.string().pattern(/^[a-zA-Z\s]*$/).max(20).required(),
@@ -480,13 +483,18 @@ app.post('/submitLogin', async (req, res) => {
 
 		setUserDatabase(req);
 
-		res.redirect('/'); // redirect to home page
+		res.redirect('/loggedIn'); // redirect to home page
 		return;
 	} else {
 
 		// if the password is incorrect, say so
 		res.render('errorMessage', {loggedIn: isValidSession(req), userType: req.session.userType, error: 'Password is incorrect' });
 	}
+});
+
+app.get('/loggedIn', (req, res) => {
+	console.log(req.session.userType);
+	res.redirect('/');
 });
 
 // forget password (link it after) -> enter email -> get email (in progress) -> make a password -> 
