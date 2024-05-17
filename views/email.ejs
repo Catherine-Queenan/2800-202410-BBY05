@@ -97,8 +97,6 @@
             
             h1 {
                 color: #201335;
-                display: flex;
-                justify-content: center;
             }
             
             p {
@@ -131,13 +129,15 @@
             /*End of HTML stuff*/
 
         </style>
-    </head>
+    </head> 
     <body>
-        <div class="container"><img class="logo" src="/images/Pawfolio_Logo.png" alt="Pawfolio Logo">
-            <h1 class="yeseva-one">PAW-ssword Reset!</h1>
+        <div class="container">
+            <img class="logo" src="https://i.imgur.com/nBorDC4.png" alt="Pawfolio Logo">
+            <h1>PAW-ssword Reset!</h1>
             <p class="karla-regular">You're receiving this email because you have requested to reset your Pawfolio account password. Click the button below to reset it!</p>
             <br>
-            <a href="PUT SOMETHING HERE, EVIN"><button class="karla-heavy">Reset Password!</button></a>
+            <a href="my.bcit.ca"><button class="karla-heavy">Reset Password!</button></a> <!--SITEDOMAIN/resetPassword/<%= resetToken %>-->
+            <p>localhost:3000/resetPassword/<%= resetToken %></p>
             <br>
             <br>
             <p class="karla-light">If you didn't mean to reset your password, you can ignore this email :)</p>
