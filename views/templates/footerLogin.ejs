@@ -1,0 +1,11 @@
+ <!--Sticky footer template for users that have not logged in-->
+<footer class="footer mt-auto py-3 sticky-bottom">
+    <div class="container">
+        <form method="get">
+			<%- include('button', {action:'/login',xClasses:'',xAttributes:'',content:'Log in'}) %>
+			<!-- <button formaction="/login">Log in</button> -->
+			<%- include('button', {action:'/signup',xClasses:'',xAttributes:'',content:'Sign up'}) %>
+			<!-- <button formaction="/signup">Sign up</button> -->
+		</form>
+    </div>
+</footer>

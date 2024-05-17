@@ -1,0 +1,55 @@
+<%- include("templates/header") %>
+<form method="post">
+	<div class="form-group">
+		<label class="form-check-label" for="companyNameField">Company Name</label>
+		<input name="companyName" placeholder="Company Name" id="companyNameField">
+	</div>
+
+	<div class="form-group">
+		<label class="form-check-label" for="businessEmailField">Business Email</label>
+		<input name="businessEmail" placeholder="Business Email" id="businessEmailField">
+	</div>
+
+	<div class="form-group">
+		<label class="form-check-label" for="businessPhoneField">Business Phone Number</label>
+		<input name="businessPhone" placeholder="Business Phone Number" id="businessPhoneField">
+	</div>
+
+	<div class="form-group">
+		<div class="form-check form-check-inline">
+			<input class="form-check-input" name='services' type="checkbox" value="training" id="dogTrainingBox">
+			<label class="form-check-label" for="dogTraining">Dog Training</label>
+		</div>
+	</div>
+
+	<div class="form-group">
+		<label class="form-check-label" for="firstnameField">First Name</label>
+		<input name="firstName" placeholder="First Name" id="firstnameField">
+	</div>
+
+	<div class="form-group">
+		<label class="form-check-label" for="lastNameField">Last Name</label>
+		<input name="lastName" placeholder="Last Name" id="lastNameField">
+	</div>
+
+	<div class="form-group">
+		<label class="form-check-label" for="companyWebsiteField">Company Website</label>
+		<input name="companyWebsite" placeholder="Company Website" id="companyWebsiteField">
+	</div>
+	
+	<div class="form-group">
+		<label class="form-check-label" for="password">Password</label>
+		<input name="password" placeholder="Password" id="passwordField" class="passwordField" type="password">
+	</div>
+
+	<div class="form-group">
+		<label class="form-check-label" for="confirmPasswordField">Confirm Password</label>
+		<input name="confirmPassword" placeholder="Confirm Password" id="confirmPasswordField" class="passwordField" type="password">
+		<small id="passwordWarning"></small>
+	</div>
+
+	<%- include('templates/button', {action:'/submitSignup/business',xClasses:'',xAttributes:'id=signUpSubmit disabled',content:'Submit'}) %>
+	<!-- <button id="signUpSubmit" formaction="/submitSignup/business" disabled>Submit</button> -->
+</form>
+<script src="/scripts/signUp.js"></script>
+<%- include("templates/footerCopyright") %>
