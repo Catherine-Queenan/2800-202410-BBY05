@@ -1,0 +1,22 @@
+<%- include("templates/header") %>
+    <style>
+        .login-wrap {
+            min-height:1150px;
+        }
+    </style>
+	<%- include("templates/loginForms", {
+        login: 'Sign in', 
+        signup: 'Sign up',
+        loginEmail: 'company email',
+        loginPassword: 'password',
+        companyName: 'Company Name',
+        firstName: 'First Name',
+        lastName: 'Last Name',
+        signupEmail: 'company Email',
+        phone: 'company phone Number',
+        companySite: 'Company Website',
+        signupPass: 'Password',
+        confirmPass: 'Confirm Password',
+        type: loginType
+    }) %>
+<%- include("templates/footerCopyright") %>

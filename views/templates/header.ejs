@@ -16,9 +16,15 @@
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css" rel="stylesheet">
 	<link href="/css/style.css" rel="stylesheet">
 
-	<link href="/images/tempFavicon.ico" rel="icon" type="image/x-icon" />
+	<link href="/images/Favicon.ico" rel="icon" type="image/x-icon" />
 </head>
 
 <body>
-	<!-- TODO: Filip just need to do a check for userType here. -->
-	<%- include("navbarClient") %>
+	<!--If statements to determine which navbar to load based on authentication and authorization-->
+	<% if (!loggedIn) { %>
+        <%- include("navbarEmpty") %>
+    <% } else if (userType == "client") { %>
+		<%- include("navbarClient") %>
+	<% } else if (userType == "business") { %>
+		<%- include("navbarBusinessHome") %>
+	<% } %>

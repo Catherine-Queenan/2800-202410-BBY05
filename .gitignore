@@ -80,6 +80,9 @@ web_modules/
 .env.production.local
 .env.local
 
+#google storage stuff
+pawfoliodb-82ab44daa991.json
+
 # parcel-bundler cache (https://parceljs.org/)
 .cache
 .parcel-cache
