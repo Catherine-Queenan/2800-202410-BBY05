@@ -238,6 +238,10 @@ app.get('/about', (req, res) => {
 	res.render('about', {loggedIn: isValidSession(req), userType: req.session.userType});
 });
 
+app.get('/test', (req, res) => {
+	res.render('test', {loggedIn: true, name: 'Test User', userType: 'business'});
+});
+
 app.get('/FAQ', (req, res) => {
 	res.render('FAQ', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType});
 });
