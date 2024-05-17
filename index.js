@@ -208,6 +208,16 @@ app.get('/clientResources', (req, res) => {
 	res.render('clientResources', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType});
 });
 
+app.get('/login/:loginType', (req, res) => {
+	res.render(req.params.loginType, {loggedIn: isValidSession(req), loginType: req.params.loginType});
+})
+
+app.get('/business/:action', (req, res) => {
+	if(res.params.action == 'login'){
+		res.render('businessLogin');
+	}
+})
+
 //Page to choose what account to sign up for (business or client)
 app.get('/signup', (req, res) => {
 	res.render('signupChoice', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType});
@@ -378,7 +388,7 @@ app.post('/submitSignup/:type', async (req, res) => {
 
 // Login routing
 app.get('/login', (req, res) => {
-	res.render('login.ejs', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType});
+	res.render('login', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType});
 });
 
 // Handling login subission information
