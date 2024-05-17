@@ -152,7 +152,7 @@ function sessionValidation(req, res, next) {
 	if (isValidSession(req)) {
 		next();
 	} else {
-		res.redirect('/login');
+		res.redirect('/');
 	}
 }
 
@@ -167,7 +167,7 @@ function isAdmin(req) {
 function adminAuthorization(req, res, next) {
 	if (!isAdmin(req)) {
 		res.status(403);
-		res.render('errorMessage', { error: 'Not Authorized - 403' });
+		res.render('errorMessage', { error: 'Not Authorized - 403', loggedIn: isValidSession(req), userType: req.session.userType });
 	} else {
 		next();
 	}
@@ -235,7 +235,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/about', (req, res) => {
-	res.render('about');
+	res.render('about', {loggedIn: isValidSession(req), userType: req.session.userType});
 });
 
 app.get('/FAQ', (req, res) => {
@@ -250,11 +250,12 @@ app.get('/login/:loginType', (req, res) => {
 	res.render(req.params.loginType, {loggedIn: isValidSession(req), loginType: req.params.loginType});
 })
 
-app.get('/business/:action', (req, res) => {
-	if(res.params.action == 'login'){
-		res.render('businessLogin');
-	}
-})
+// I think this does nothing so I'll comment out, but delete later.
+// app.get('/business/:action', (req, res) => {
+// 	if(res.params.action == 'login'){
+// 		res.render('businessLogin', {loggedIn: isValidSession(req), userType: req.session.userType});
+// 	}
+// })
 
 //Page to choose what account to sign up for (business or client)
 app.get('/signup', (req, res) => {
@@ -302,7 +303,7 @@ app.post('/submitSignup/:type', async (req, res) => {
 
 		//Deal with errors from validation
 		if (validationRes.error != null) {
-			let doc = '<p>Invalid Signup</p><br><a href="/signup">Try again</a></body>';
+			let doc = '<p>Invalid Signup</p><br><a href="/login/clientLogin">Try again</a></body>';
 			res.send(doc);
 			return;
 		}
@@ -370,7 +371,7 @@ app.post('/submitSignup/:type', async (req, res) => {
 
 		//Deals with errors from validation
 		if (validationRes.error != null) {
-			let doc = '<body><p>Invalid Signup</p><br><a href="/signup">Try again</a></body>';
+			let doc = '<body><p>Invalid Signup</p><br><a href="/login/businessLogin">Try again</a></body>';
 			res.send(doc);
 			return;
 		}
@@ -391,7 +392,7 @@ app.post('/submitSignup/:type', async (req, res) => {
 			firstName: user.firstName,
 			lastName: user.lastName,
 			phone: user.businessPhone,
-			password: hashPass,
+			password: user.password,
 			userType: 'business'
 		});
 
@@ -424,10 +425,10 @@ app.post('/submitSignup/:type', async (req, res) => {
 	res.redirect('/');
 });
 
-// Login routing
-app.get('/login', (req, res) => {
-	res.render('login', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType});
-});
+// Deprecated: Will probable delete
+// app.get('/login', (req, res) => {
+// 	res.render('login', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType});
+// });
 
 // Handling login subission information
 app.post('/submitLogin', async (req, res) => {
@@ -440,7 +441,7 @@ app.post('/submitLogin', async (req, res) => {
 	const schema = Joi.string().email().required();
 	const validationResult = schema.validate(email);
 	if (validationResult.error != null) {
-		res.redirect("/login");
+		res.redirect("/");
 		return;
 	}
 
@@ -452,7 +453,7 @@ app.post('/submitLogin', async (req, res) => {
 	// 	result = await adminsCollection.find({ businessEmail: email }).project({ email: 1, password: 1, _id: 1 }).toArray();
 	// }
 	if (result.length == 0) {
-		var doc = '<p>No user found</p><br><a href="/login">Try again</a>';
+		var doc = '<p>No user found</p><br><a href="/">Try again</a>';
 		res.send(doc);
 		return;
 	}
@@ -507,7 +508,7 @@ function sendMail(emailAddress, resetToken) {
 
 			// Error handling
 			if (error) {
-				res.render('errorMessge', { error: 'Email couldn\'t be sent' })
+				res.render('errorMessge', { error: 'Email couldn\'t be sent', loggedIn: false, userType: null })
 			}
 			// console.log('successfuly sent email')
 		});
@@ -519,7 +520,7 @@ app.get('/forgotPassword', (req, res) => {
 
 	// If the email is invalid, the query will have an error message. Otherwise, we want it blank so it doesn't always show
 	const errorMessage = req.query.errorMessage || '';
-	res.render('forgotPassword', { errorMessage: errorMessage });
+	res.render('forgotPassword', { errorMessage: errorMessage, loggedIn: false, userType: null});
 });
 
 // This handles the submitted email for the /forgotpassword routing
@@ -578,7 +579,7 @@ app.get('/resetPassword/:token', async (req, res) => {
 
 	// This detects if we couldn't find the token in any user
 	if (clientUser == null) {
-		res.render('errorMessage', { error: 'Token expired or invalid.' })
+		res.render('errorMessage', { error: 'Token expired or invalid.', loggedIn: false, userType: null })
 		return;
 	}
 
@@ -594,7 +595,7 @@ app.get('/resetPasswordForm/:token', (req, res) => {
 
 	// store the token
 	token = req.params;
-	res.render('resetPasswordForm', { token: token.token });
+	res.render('resetPasswordForm', { token: token.token, loggedIn: false, userType: null });
 });
 
 // Handles the new password submission
@@ -627,11 +628,11 @@ app.post('/resettingPassword/:token', async (req, res) => {
 
 // This is a page for when your password is successfully changed
 app.get('/passwordChangedSuccessfully', (req, res) => {
-	res.render('passwordChangedSuccessfully');
+	res.render('passwordChangedSuccessfully', {loggedIn: isValidSession(req), userType: req.session.userType});
 });
 
 app.get('/emailSent', (req, res) => {
-	res.render('checkInbox');
+	res.render('checkInbox', {loggedIn: isValidSession(req), userType: req.session.userType});
 });
 
 app.get('/logout', (req, res) => {
@@ -653,7 +654,6 @@ app.get('/profile', sessionValidation, async(req, res) => {
 
 	//currently no profile page available for the business side
 	if(req.session.userType == 'client'){
-		let profilePic = user.profilePic;
 		if(user.profilePic != ''){
 			user.profilePic = cloudinary.url(user.profilePic);
 		}
@@ -684,7 +684,6 @@ app.get('/profile/edit', sessionValidation,  async(req, res) => {
 	let dogs = await userdb.collection('dogs').find({}).project({_id: 1, dogName: 1, sex: 1, dogPic: 1}).toArray();
 	//currently no profile page available for the business side
 	if(req.session.userType == 'client'){
-		let profilePic = user.profilePic;
 		if(user.profilePic != ''){
 			user.profilePic = cloudinary.url(user.profilePic);
 		}
@@ -820,6 +819,92 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
     await userdb.collection('dogs').insertOne(dog);
     res.redirect('/profile');
 });
+
+async function getUserEvents() {
+	var userEvents = await userdb.collection('eventSource').find().project({ title: 1, start: 1, end: 1, _id: 0 }).toArray();
+	// console.log(userEvents);
+	return userEvents;
+}
+
+app.get('/calendar', async (req, res) => {
+	setUserDatabase(req);
+	res.render('calendarBusiness', {loggedIn: isValidSession(req), userType: req.session.userType});
+});
+
+app.get('/events', async (req, res) => {
+	const events = await getUserEvents();
+	res.json(events);
+});
+
+app.post('/addEvent', async (req, res) => {
+	var date = req.body.calModDate;
+	var startDate = date + "T" + req.body.calModStartHH + ":" + req.body.calModStartMM + ":00";
+	var endDate = date + "T" + req.body.calModEndHH + ":" + req.body.calModEndMM + ":00";
+	var event = {
+		title: req.body.calModTitle,
+		start: startDate,
+		end: endDate
+	};
+	console.log(event.title);
+	console.log(event.start);
+	console.log(event.end);
+
+	await userdb.collection('eventSource').insertOne({
+		title: event.title,
+		start: event.start,
+		end: event.end
+	});
+	res.redirect('/calendar');
+});
+
+app.post('/updateEvent', async (req, res) => {
+	var date = req.body.calModDate;
+	var startNew = date + "T" + req.body.calModStartHH + ":" + req.body.calModStartMM + ":00";
+	var endNew = date + "T" + req.body.calModEndHH + ":" + req.body.calModEndMM + ":00";
+	var eventOrig = {
+		title: req.body.calModTitleOrig,
+		start: req.body.calModStartOrig,
+		end: req.body.calModEndOrig
+	}
+	console.log("eventOrig: ");
+	console.log(eventOrig)
+
+	var eventNew = {
+		title: req.body.calModTitle,
+		start: startNew,
+		end: endNew
+	}
+	console.log("eventNew: ");
+	console.log(eventNew);
+
+	await userdb.collection('eventSource').updateOne({
+		title: eventOrig.title,
+		start: eventOrig.start,
+		end: eventOrig.end
+	}, {
+		$set: {
+			title: eventNew.title,
+			start: eventNew.start,
+			end: eventNew.end
+		}
+	});
+	res.redirect('/calendar');
+})
+
+app.post('/removeEvent', async (req, res) => {
+	var calTitle = req.body.calModTitleOrig;
+	var calStart = req.body.calModStartOrig;
+	var calEnd = req.body.calModEndOrig;
+	console.log(calTitle);
+	console.log(calStart);
+	console.log(calEnd);
+	await userdb.collection('eventSource').deleteOne({
+		title: calTitle,
+		start: calStart,
+		end: calEnd
+	});
+	res.redirect('/calendar');
+})
 
 app.use(express.static(__dirname + "/public"));
 
