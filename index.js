@@ -936,7 +936,6 @@ app.post('/deleteAccount', async (req, res) => {
 	await userdb.dropDatabase();
 
 	res.redirect('/logout');
-	dog.specialAlerts = req.body.specialAlerts;
 });
 
 async function getUserEvents() {
@@ -1000,7 +999,19 @@ app.post('/updateEvent', async (req, res) => {
 		}
 	});
 	res.redirect('/calendar');
-})
+});
+
+app.post('/removeEvent', async (req, res) => {
+	var calTitle = req.body.calModTitleOrig;
+	var calStart = req.body.calModStartOrig;
+	var calEnd = req.body.calModEndOrig;
+	await userdb.collection('eventSource').deleteOne({
+		title: calTitle,
+		start: calStart,
+		end: calEnd
+	});
+	res.redirect('/calendar');
+});
 
 app.use(express.static(__dirname + "/public"));
 
