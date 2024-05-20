@@ -101,7 +101,7 @@
 						title: 'Your Dogs', 
 						content: 'Dynamically loaded dog profiles from database',
 						prevClass: '',
-						actionOne: '/addDog',
+						actionOne: '/profile',
 						classesOne: '',
 						attributesOne: '',
 						contentOne: 'All Resources',
@@ -133,7 +133,7 @@
 			</div>
 		</section> 
 		<form method="get">
-				<%- include('templates/button', {action:'/logout',xClasses:'',xAttributes:'',content:'Get me out of here'}) %>
+				<%- include('templates/button', {action:'/logout',xClasses:'',xAttributes:'',content:'Logout'}) %>
 				<!-- <button formaction="/logout">Get me out of here</button> -->
 		</form>
 	<% } else if (userType == "business") { %>
