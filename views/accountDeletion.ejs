@@ -4,8 +4,44 @@ Are you sure you want to delete your account?
     <%- include('templates/button', {action:'/profile',xClasses:'',xAttributes:'',content:'No. Take me back'}) %>
 </form>
 
-<form method="post">
-    <%- include('templates/button', {action:'/deleteAccount',xClasses:'',xAttributes:'',content:'I am sure'}) %>
-</form>
+<!-- <form id="deleteAccountform">
+    <%- include('templates/button', {action:'',xClasses:'',xAttributes:'id="deleteAccountButton"',content:'I am sure'}) %>
+</form> -->
+
+<!-- sorry Catherine, I'll betray you just this once. -->
+<button id="deleteAccountButton">I am sure</button>
 
 <%- include("templates/footerCopyright") %>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.getElementById('deleteAccountButton').addEventListener('click', function () {
+        Swal.fire({
+            title: 'Are you ABSOLUTELY sure?',
+            text: "All of your documents will be deleted from the database. You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, delete it!',
+            
+            cancelButtonText: 'No, cancel!'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    const response = await fetch('/deleteAccount', {
+                        method: 'POST',
+                        action: '/deleteAccount'
+                    });
+
+                    if (response.ok) {
+                        console.log("Account deleted successfully!");
+                        window.location.href = '/';
+                    } else {
+                        console.error("Failed to delete account.");
+                    }
+                } catch (error) {
+                    console.error("Network error:", error);
+                }
+            }
+        });
+    });
+    </script>
