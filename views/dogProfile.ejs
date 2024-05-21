@@ -102,12 +102,22 @@
 			<%- include('templates/button', {action: dog._id + '/editVaccines',xClasses:'',xAttributes:'id=saveVaccinesButton style=display:none',content:'Save'}) %>
 		</form>
 
-		<form method="post">
-		<%- include('templates/button', {action: dog._id + '/delete' , xClasses:'',xAttributes:'id=deleteDogButton',content:'Delete Dog'}) %>
+		<form id="deleteForm" method="post" action="<%=dog._id%>/delete">
+		<%- include('templates/button', {action: '' , xClasses:'',xAttributes:'id=deleteDogButton type=button',content:'Delete Dog'}) %>
 		</form>
 	</div>
-
+	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.all.min.js"></script>
+	<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.min.css" rel="stylesheet">
 		<script>
+			//Sweet alert button template
+			const swalWithBootstrapButtons = Swal.mixin({
+				customClass: {
+					confirmButton: "btn btn-success",
+					cancelButton: "btn btn-danger"
+				},
+				buttonsStyling: false
+			});
+
 			//Identify what form to show on page
 			var page = 'basic';
 
@@ -131,6 +141,36 @@
 			//Toggles between the two forms
 			let toggleButton = document.getElementById('viewVaccines');
 
+			deleteButton.addEventListener('click', () =>{
+				swalWithBootstrapButtons.fire({
+					title: "Are you sure?",
+					text: "You won't be able to revert this!",
+					icon: "warning",
+					showCancelButton: true,
+					confirmButtonText: "Yes, delete it!",
+					cancelButtonText: "No, cancel!",
+					reverseButtons: true
+				}).then((result) => {
+					if (result.isConfirmed) {
+						swalWithBootstrapButtons.fire({
+							title: "Deleted!",
+							text: "Your file has been deleted.",
+							icon: "success"
+						}).then((result) => {
+							document.getElementById('deleteForm').submit();
+						});
+					} else if (
+						/* Read more about handling dismissals below */
+						result.dismiss === Swal.DismissReason.cancel
+					) {
+						swalWithBootstrapButtons.fire({
+							title: "Cancelled",
+							text: "Your imaginary file is safe :)",
+							icon: "error"
+						});
+					}
+				});
+			});
 			//Sets up the basic form for editting
 			editBasicButton.addEventListener('click', ()=>{
 				//Hide the delete button and edit buttons

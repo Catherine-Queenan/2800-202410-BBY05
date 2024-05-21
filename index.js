@@ -12,6 +12,8 @@ const multer = require("multer");
 const stream = require("stream");
 const cloudinary = require('cloudinary').v2;
 
+const Swal = require('sweetalert2');
+
 const saltRounds = 10;
 
 
