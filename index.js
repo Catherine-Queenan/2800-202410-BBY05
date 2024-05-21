@@ -744,11 +744,15 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
 	var schema = Joi.object(
 		{
 			dogName: Joi.string().pattern(/^[a-zA-Z\s]*$/).max(20),
-			specialAlerts: Joi.string().pattern(/^[A-Za-z0-9 _.,!"'()#;:\s]*$/)
+			specialAlerts: Joi.string().pattern(/^[A-Za-z0-9 _.,!"'()#;:\s]*$/).allow(null, '')
 		}
 	);
 
+	if(!req.body.specialAlerts){
+		req.body.specialAlerts = '';
+	}
 
+	let validationRes = schema.validate({dogName: req.body.dogName, specialAlerts: req.body.specialAlerts});
     // Deals with errors from validation
     if (validationRes.error != null) {
         let doc = '<body><p>Invalid Dog</p><br><a href="/addDog">Try again</a></body>';
@@ -825,6 +829,12 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
 	dog.birthday = req.body.birthday;
 	dog.weight = req.body.weight;
 	dog.specialAlerts = req.body.specialAlerts;
+
+	//Creates documents in the dog document for each vaccine
+	let allVaccines = ['rabies', 'leptospia', 'bordatella', 'bronchiseptica', 'DA2PP'];
+	allVaccines.forEach((vaccine)=>{
+		eval('dog.' + vaccine + '= {}');
+	});
 
     // If dog has more than one vaccine, add the expiration date and pdf of the proof of vaccination to the specific vaccine document
     if (Array.isArray(req.body.vaccineCheck)) {
@@ -926,7 +936,6 @@ app.post('/deleteAccount', async (req, res) => {
 	await userdb.dropDatabase();
 
 	res.redirect('/logout');
-	dog.specialAlerts = req.body.specialAlerts;
 });
 
 async function getUserEvents() {
@@ -990,7 +999,19 @@ app.post('/updateEvent', async (req, res) => {
 		}
 	});
 	res.redirect('/calendar');
-})
+});
+
+app.post('/removeEvent', async (req, res) => {
+	var calTitle = req.body.calModTitleOrig;
+	var calStart = req.body.calModStartOrig;
+	var calEnd = req.body.calModEndOrig;
+	await userdb.collection('eventSource').deleteOne({
+		title: calTitle,
+		start: calStart,
+		end: calEnd
+	});
+	res.redirect('/calendar');
+});
 
 app.use(express.static(__dirname + "/public"));
 
