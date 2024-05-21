@@ -8,6 +8,9 @@ body {
     font-size: 16px;
     color:#201335;
     background-color: #F0F1FA;
+    background: linear-gradient(180deg, rgba(240,241,250,1) 0%, rgba(240, 241, 250, 0.60) 73%),
+                url('/images/PawBack.png') center no-repeat;
+    background-size:cover;
 }
 
 .content {
@@ -77,6 +80,12 @@ h1 {
     box-shadow: 15px 15px 1.5px 1.5px #201335;
 }
 
+.smallShadow {
+    box-shadow: 3px 4px 1.5px 0px #20133557;
+    box-shadow: -3px -4px 1.5px 0px #2013353f;
+    box-shadow: 0 0 3px 3px #20133549;
+}
+
 /* Buttons */
     .btn-main {
         background-color: rgba(32, 19, 53, 0.8);
@@ -106,6 +115,18 @@ h1 {
         width: 180px;
         height: 50px;
     }
+
+    .btn-main:hover {
+        background-color: #FFA05C;
+        color:#201335;
+        font-weight:500;
+    }
+
+    .btn-secondary:hover {
+        background-color: #FEF6C3;
+        color:#5E53A2;
+        font-weight:800;
+    }
 /* End of Buttons */
 
 
@@ -126,8 +147,21 @@ h1 {
     display: inline-block;
   }
 
-  .tabR:hover {
+  .tabR-active {
     background-color: #2013352e;
+    color: #5E53A2;
+    border-color: #201335;
+  }
+  
+  /* Apply active style when associated radio input is checked */
+  .tabR-one:checked + .tabR,
+  .tabR-two:checked + .tabR,
+  .tabR-three:checked + .tabR,
+  .tabR-four:checked + .tabR,
+  .tabR-five:checked + .tabR {
+    background-color: #2013352e;
+    color: #5E53A2;
+    border-color: #201335;
   }
 
   /* Define CSS classes for tab content */
