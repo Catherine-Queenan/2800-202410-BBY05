@@ -913,7 +913,7 @@ app.post('/dog/:dogId/delete',upload.single('dogUpload'), async(req, res) => {
 
 	//Delete the dog from the mongodb database
 	await userdb.collection('dogs').deleteOne({_id: dogId});
-
+	
 	//Return to user profile
 	res.redirect('/profile');
 });
@@ -931,6 +931,13 @@ app.post('/deleteAccount', async (req, res) => {
 	if (req.session.userType == 'client') {
 		await appUserCollection.deleteMany({email: email, userType: 'client'});
 	} else if (req.session.userType == 'business') {
+
+		// Updating all clients that have the deleted dog trainer as their company name
+		// (this may not work yet, we will see once other features are updated)
+		await appUserCollection.updateMany(
+			{ companyName: req.session.name, userType: 'client' },
+			{ $set: { companyName: null } }
+		);
 		await appUserCollection.deleteMany({email: email, userType: 'business'});
 	}
 	await userdb.dropDatabase();
