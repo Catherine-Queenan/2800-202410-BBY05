@@ -1,38 +1,46 @@
 <%- include("templates/header") %>
-<%- include('templates/defaultingPic', {pic: user.profilePic})%>
+<div class="m-3">
+<%- include('templates/defaultingPic', {pic: user.profilePic, picId:'profilePic'})%>
     <form method="post" enctype="multipart/form-data">
         <% if (editting == true){ %>
             <%- include('templates/uploadFile', {divId:'newProfilePic', xDivAttributes:'', fileId:'profilePicInput',fileName:'profilePic', label:'Upload a New Photo:', xfileAttributes:''}) %>
+            <br>
         <% } %>
             
-        <input name="firstName" type="text" class="profileInfo" value="<%= user.firstName %>" disabled>
-        <input name="lastName" type="text" class="profileInfo" value="<%= user.lastName %>" disabled>
-        <input name="email" type="text" class="profileInfo" value="<%= user.email %>" disabled>
-        <input name="phone" type="text" class="profileInfo" value="<%= user.phone %>" disabled>
+        <input name="firstName" type="text" class="profileInfo col-3" value="<%= user.firstName %>" disabled>
+        <input name="lastName" type="text" class="profileInfo col-3" value="<%= user.lastName %>" disabled> <br><br>
+        <input name="email" type="text" class="col-6" value="<%= user.email %>" disabled><br><br>
+        <input name="phone" type="text" class="profileInfo col-6" value="<%= user.phone %>" disabled>
 
         <% if (editting == true){ %>
            <%- include('templates/button', {action:'/profile/editting',xClasses:'',xAttributes:'',content:'Save'}) %>
             <script src="/scripts/editProfile.js"></script>
         <% } else { %>
-            <a class="btn btn-primary" href="/profile/edit" role="button">Edit</a>
+            <a href="/profile/edit">
+            <%-include('templates/button', {action:'',xClasses:'',xAttributes:'type=button',content:'Edit'})%>
+        </a>
         <% } %>
     </form> 
 
-   
+   <br><br>
     <%if (editting != true){ %> 
         <h3><%=userName%>'s Dogs:</h3>
         <% for(let i = 0; i < dogs.length; i++){ %>
-            <%- include('templates/dog', {dogImage: dogs[i].dogPic, dogName: dogs[i].dogName}) %>
+            <%- include('templates/dog', {dog: dogs[i]}) %>
         <%} %>
         <br>
-        <form>
-        <%- include('templates/button', {action:'/addDog',xClasses:'',xAttributes:'',content:'Add New Dog'}) %>
-        </form>
     <%} %>
+
+    <form>
+        <%- include('templates/button', {action:'/addDog',xClasses:'',xAttributes:'',content:'Add New Dog'}) %>
+    </form>
     
     <form method="get">
         <%- include('templates/button', {action:'/accountDeletion',xClasses:'',xAttributes:'',content:'Delete Account'}) %>
     </form>
 
-<%- include("templates/footerCopyright") %>
-  
+    </div>
+   
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script src="/scripts/dogProfile.js"></script>
+    <%- include("templates/footerCopyright") %>

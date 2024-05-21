@@ -3,6 +3,8 @@ require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
 const MongoStore = require('connect-mongo');
+const ObjectId = require('mongodb').ObjectId;
+
 const bcrypt = require('bcrypt');
 const {Storage} = require('@google-cloud/storage');
 const {Readable} = require('stream');
@@ -188,7 +190,6 @@ function setUserDatabase(req) {
 		let userdbAccess = new MongoClient(`mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/${db}?retryWrites=true`);
 		userdb = userdbAccess.db(db);
 	}
-	// console.log(userdb);
 }
 
 //Upload files to Google Cloud
@@ -223,7 +224,9 @@ async function deleteUploadedImage(id){
 	//Pre: id must be empty or a valid public_id from cloudinary
 	//Post: image is deleted from cloudinary
 	if(id != ''){
-		cloudinary.uploader.destroy(id);
+		cloudinary.uploader.destroy(id, (error) => {
+			console.error(error);
+		});
 	}
 }
 
@@ -232,9 +235,6 @@ async function deleteUploadedImage(id){
 
 app.get('/', (req, res) => {
 	setUserDatabase(req);
-	console.log(req.session.authenticated);
-	console.log(req.session.name);
-	console.log(req.session.userType);
 	res.render('index', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType});
 });
 
@@ -412,7 +412,6 @@ app.post('/submitSignup/:type', async (req, res) => {
 		req.session.cookie.maxAge = expireTime;
 
 		setUserDatabase(req);
-		console.log(userdb);
 		//Store business information in client collection
 		await userdb.collection('info').insertOne({
 			companyName: user.companyName,
@@ -493,7 +492,6 @@ app.post('/submitLogin', async (req, res) => {
 });
 
 app.get('/loggedIn', (req, res) => {
-	console.log(req.session.userType);
 	res.redirect('/');
 });
 
@@ -523,7 +521,6 @@ function sendMail(emailAddress, resetToken) {
 			if (error) {
 				res.render('errorMessge', { error: 'Email couldn\'t be sent', loggedIn: false, userType: null })
 			}
-			// console.log('successfuly sent email')
 		});
 	});
 }
@@ -651,7 +648,6 @@ app.get('/emailSent', (req, res) => {
 app.get('/logout', (req, res) => {
 	req.session.destroy();
 	setUserDatabase(req);
-	// console.log(userdb);
 	res.render('logout', {loggedIn: false, userType: null});
 });
 
@@ -671,7 +667,7 @@ app.get('/profile', sessionValidation, async(req, res) => {
 			user.profilePic = cloudinary.url(user.profilePic);
 		}
 
-		let dogs = await userdb.collection('dogs').find({}).project({_id: 1, dogName: 1, sex: 1, dogPic: 1}).toArray();
+		let dogs = await userdb.collection('dogs').find({}).toArray();
 		for(let i = 0; i < dogs.length; i++){
 			let pic = dogs[i].dogPic;
 			if(pic != ''){
@@ -694,7 +690,7 @@ app.get('/profile/edit', sessionValidation,  async(req, res) => {
 
 	//upload the info of the user
 	let user = await userdb.collection('info').findOne({email: req.session.email});
-	let dogs = await userdb.collection('dogs').find({}).project({_id: 1, dogName: 1, sex: 1, dogPic: 1}).toArray();
+	let dogs = await userdb.collection('dogs').find({}).toArray();
 	//currently no profile page available for the business side
 	if(req.session.userType == 'client'){
 		if(user.profilePic != ''){
@@ -744,15 +740,19 @@ app.get('/addDog', (req, res) => {
 app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
     setUserDatabase(req); // bandaid for testing
 
-    // validation schema
-    var schema = Joi.object({
-        dogName: Joi.string().pattern(/^[a-zA-Z\s]*$/).max(20),
-        specialAlerts: Joi.string().pattern(/^[A-Za-z0-9 _.,!"'/$]*$/),
-    });
+	//validation schema
+	var schema = Joi.object(
+		{
+			dogName: Joi.string().pattern(/^[a-zA-Z\s]*$/).max(20),
+			specialAlerts: Joi.string().pattern(/^[A-Za-z0-9 _.,!"'()#;:\s]*$/).allow(null, '')
+		}
+	);
 
-    // validate the two user typed inputs
-    var validationRes = schema.validate({ dogName: req.body.dogName, specialAlerts: req.body.specialAlerts });
+	if(!req.body.specialAlerts){
+		req.body.specialAlerts = '';
+	}
 
+	let validationRes = schema.validate({dogName: req.body.dogName, specialAlerts: req.body.specialAlerts});
     // Deals with errors from validation
     if (validationRes.error != null) {
         let doc = '<body><p>Invalid Dog</p><br><a href="/addDog">Try again</a></body>';
@@ -766,9 +766,6 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
     };
 
     // this is the file management stuff
-    // If req.files.length == 0 there are no uploaded files
-    // A max of 6 files can be uploaded
-    // There is a chance that the first file in the list will be an image file and not a pdf
     if (req.files.length != 0) {
         // Check if the first image is an image file and upload the image if it is
         let filename = req.files[0].mimetype;
@@ -783,54 +780,142 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
         }
 
         // Loop through all files and upload PDFs to Google Cloud Storage
-        for (let file of req.files) {
-            let filename = file.mimetype;
+        let v = 0;
+        for (let i = 0; i < req.files.length; i++) {
+            let vaccineType;
+            
+            // Check if you have one or multiple vaccines to upload
+            if (Array.isArray(req.body.vaccineCheck)) {
+                vaccineType = req.body.vaccineCheck[v]; // We put v here because the first iteration (i) might be the profile photo image
+            } else {
+                vaccineType = req.body.vaccineCheck;
+            }
+            
+            let filename = req.files[i].mimetype;
             filename = filename.split('/');
             let fileType = filename[0];
+            let dogName = req.body.dogName;
+            
+            // Iterate v so that we can get the number of vaccines
+            // This accounts for the potential profile photo upload
+            if(fileType != 'image') {
+                v++;
+            }
+            
+            // Get the last name of the client
+            let lastName = req.session.name.split(' ')[1];
 
             if (fileType === 'application') {
-                let fileName = `pdfs/${file.originalname}`;
-                let fileUrl = await uploadFileToGoogleCloud(file.buffer, fileName);
+                let fullFileName = `${lastName}_${dogName}_${vaccineType}.pdf`;
+                let filePath = `pdfs/${fullFileName}`;
+                let fileUrl = await uploadFileToGoogleCloud(req.files[i].buffer, filePath);
                 dog.vaccineRecords = dog.vaccineRecords || [];
-                dog.vaccineRecords.push({ fileName: file.originalname, fileUrl });
+                dog.vaccineRecords.push({ fileName: req.files[i].originalname, fileUrl });
             }
         }
     } else {
         dog.dogPic = '';
     }
 
-    // stores the neutered status
-    if (req.body.neuteredStatus == 'neutered') {
-        dog.neuteredStatus = req.body.neuteredStatus;
-    } else {
-        dog.neuteredStatus = 'not neutered';
-    }
+	//stores the neutered status
+	if(req.body.neuteredStatus == 'neutered'){
+		dog.neuteredStatus = req.body.neuteredStatus;
+	} else {
+		dog.neuteredStatus = 'not neutered';
+	}
+	
+	//Stores sex, birthday, weight, specialAlerts of the dog
+	dog.sex = req.body.sex;
+	dog.birthday = req.body.birthday;
+	dog.weight = req.body.weight;
+	dog.specialAlerts = req.body.specialAlerts;
 
-    // Stores sex, birthday, weight, specialAlerts of the dog
-    dog.sex = req.body.sex;
-    dog.birthday = req.body.birthday;
-    dog.weight = req.body.weight + 'lb';
-    dog.specialAlerts = req.body.specialAlerts;
-
-    // Creates documents in the dog document for each vaccine
-    let allVaccines = ['rabies', 'leptospira', 'bordetella', 'bronchiseptica', 'DA2PP'];
-    allVaccines.forEach((vaccine) => {
-        dog[vaccine] = {};
-    });
+	//Creates documents in the dog document for each vaccine
+	let allVaccines = ['rabies', 'leptospia', 'bordatella', 'bronchiseptica', 'DA2PP'];
+	allVaccines.forEach((vaccine)=>{
+		eval('dog.' + vaccine + '= {}');
+	});
 
     // If dog has more than one vaccine, add the expiration date and pdf of the proof of vaccination to the specific vaccine document
     if (Array.isArray(req.body.vaccineCheck)) {
         req.body.vaccineCheck.forEach((vaccine) => {
-            dog[vaccine].expirationDate = req.body[vaccine + 'Date'];
-            dog[vaccine].vaccineRecord = req.body[vaccine + 'Proof'];
+            dog[vaccine] = {
+                expirationDate: req.body[vaccine + 'Date'],
+                vaccineRecord: req.body[vaccine + 'Proof']
+            };
         });
     } else if (req.body.vaccineCheck) {
-        dog[req.body.vaccineCheck].expirationDate = req.body[req.body.vaccineCheck + 'Date'];
-        dog[req.body.vaccineCheck].vaccineRecord = req.body[req.body.vaccineCheck + 'Proof'];
+        dog[req.body.vaccineCheck] = {
+            expirationDate: req.body[req.body.vaccineCheck + 'Date'],
+            vaccineRecord: req.body[req.body.vaccineCheck + 'Proof']
+        };
     }
-
+	
+	//Insert the dog into the database and return to profile
     await userdb.collection('dogs').insertOne(dog);
     res.redirect('/profile');
+});
+
+//Show specific dog
+app.get('/dog/:dogId', async(req, res) => {
+	setUserDatabase(req); //bandaid for testing
+
+	//Use the dog document id to find the specific dog
+	let dogId =  ObjectId.createFromHexString(req.params.dogId);
+	let dogRecord = await userdb.collection('dogs').find({_id: dogId}).toArray();
+
+	//If there is a dog pic attached to this dog, create a link to it
+	if(dogRecord[0].dogPic != ''){
+		dogRecord[0].dogPic = cloudinary.url(dogRecord[0].dogPic);
+	}
+
+	//Render the dog's profile
+	res.render('dogProfile', {loggedIn: isValidSession(req), userType: req.session.userType, dog: dogRecord[0]});
+});
+
+//Edit specific dog
+app.post('/dog/:dogId/edit',upload.single('dogUpload'), async(req, res) => {
+
+	//Create the Id object from the dog id
+	let dogId =  ObjectId.createFromHexString(req.params.dogId);
+
+	//grab current image id
+	let dog = await userdb.collection('dogs').find({_id: dogId}).project({dogPic: 1}).toArray();	
+
+	//If a new image was submitted, delete the old one and upload it
+	if(req.file){
+		await deleteUploadedImage(dog[0].dogPic);
+		req.body.dogPic = await uploadImage(req.file, "clientAccountAvatars");
+	} else {
+		req.body.dogPic = dog[0].dogPic;
+	}
+
+	//Update the dog's information
+	await userdb.collection('dogs').updateOne({_id: dogId}, {$set: req.body});
+
+	//Redirect back to the dog's profile
+	let redirect = '/dog/' + req.params.dogId;
+	res.redirect(redirect);
+});
+
+//Delete specific dog
+app.post('/dog/:dogId/delete',upload.single('dogUpload'), async(req, res) => {
+	//Create the Id object from the dog id
+	let dogId =  ObjectId.createFromHexString(req.params.dogId);
+
+	//grab current image id
+	let dog = await userdb.collection('dogs').find({_id: dogId}).project({dogPic: 1}).toArray();	
+	
+	//If there is an image attached to this dog, delete it
+	if(dog[0].dogPic != ''){
+		deleteUploadedImage(dog[0].dogPic);
+	}
+
+	//Delete the dog from the mongodb database
+	await userdb.collection('dogs').deleteOne({_id: dogId});
+
+	//Return to user profile
+	res.redirect('/profile');
 });
 
 app.get('/accountDeletion', (req, res) => {
@@ -848,7 +933,6 @@ app.post('/deleteAccount', async (req, res) => {
 	} else if (req.session.userType == 'business') {
 		await appUserCollection.deleteMany({email: email, userType: 'business'});
 	}
-
 	await userdb.dropDatabase();
 
 	res.redirect('/logout');
@@ -856,7 +940,6 @@ app.post('/deleteAccount', async (req, res) => {
 
 async function getUserEvents() {
 	var userEvents = await userdb.collection('eventSource').find().project({ title: 1, start: 1, end: 1, _id: 0 }).toArray();
-	// console.log(userEvents);
 	return userEvents;
 }
 
@@ -879,9 +962,6 @@ app.post('/addEvent', async (req, res) => {
 		start: startDate,
 		end: endDate
 	};
-	console.log(event.title);
-	console.log(event.start);
-	console.log(event.end);
 
 	await userdb.collection('eventSource').insertOne({
 		title: event.title,
@@ -900,16 +980,12 @@ app.post('/updateEvent', async (req, res) => {
 		start: req.body.calModStartOrig,
 		end: req.body.calModEndOrig
 	}
-	console.log("eventOrig: ");
-	console.log(eventOrig)
 
 	var eventNew = {
 		title: req.body.calModTitle,
 		start: startNew,
 		end: endNew
 	}
-	console.log("eventNew: ");
-	console.log(eventNew);
 
 	await userdb.collection('eventSource').updateOne({
 		title: eventOrig.title,
@@ -923,22 +999,19 @@ app.post('/updateEvent', async (req, res) => {
 		}
 	});
 	res.redirect('/calendar');
-})
+});
 
 app.post('/removeEvent', async (req, res) => {
 	var calTitle = req.body.calModTitleOrig;
 	var calStart = req.body.calModStartOrig;
 	var calEnd = req.body.calModEndOrig;
-	console.log(calTitle);
-	console.log(calStart);
-	console.log(calEnd);
 	await userdb.collection('eventSource').deleteOne({
 		title: calTitle,
 		start: calStart,
 		end: calEnd
 	});
 	res.redirect('/calendar');
-})
+});
 
 app.use(express.static(__dirname + "/public"));
 
