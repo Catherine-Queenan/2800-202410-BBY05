@@ -12,6 +12,8 @@ const multer = require("multer");
 const stream = require("stream");
 const cloudinary = require('cloudinary').v2;
 
+const Swal = require('sweetalert2');
+
 const saltRounds = 10;
 
 
@@ -43,6 +45,7 @@ const app = express();
 const port = process.env.PORT || 3000;
 const Joi = require('joi');
 const ejs = require('ejs');
+const { content_v2_1 } = require("googleapis");
 
 // 1 hour
 const expireTime = 60 * 60 * 1000;
@@ -71,6 +74,7 @@ let appdb = new MongoClient(`mongodb+srv://${mongodb_user}:${mongodb_password}@$
 
 // This database is set when the user is logged in or signs up for the first time using setUserDatabase().
 let userdb = '';
+let trainerdb = '';
 
 // ----- Collections -----
 const appUserCollection = appdb.db(mongodb_appdb).collection('users');
@@ -82,6 +86,7 @@ const appUserCollection = appdb.db(mongodb_appdb).collection('users');
 app.set('view engine', 'ejs');
 
 app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
 
 // This is for storing active sessions
 var mongoStore = MongoStore.create({
@@ -192,6 +197,23 @@ function setUserDatabase(req) {
 	}
 }
 
+// Allows access to the trainer's database when tied to a client
+async function setTrainerDatabase(req) {
+	if (!isClient(req)) {
+		trainerdb = null;
+	} else {
+		let trainer = await appUserCollection.find({ email: req.session.email}).project({companyName: 1, _id: 1}).toArray();
+		// Checking for if the client currently has a hired trainer.
+		if (trainer[0].companyName == null || trainer[0].companyName == '' || trainer[0].companyName == undefined) {
+			trainerdb = null;
+		} else {
+			let db = mongodb_businessdb + '-' + trainer[0].companyName.replace(/\s/g, "");
+			let trainerdbAccess = new MongoClient(`mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/${db}?retryWrites=true`);
+			trainerdb = trainerdbAccess.db(db);
+		}
+	}
+}
+
 //Upload files to Google Cloud
 async function uploadFileToGoogleCloud(fileBuffer, fileName) {
     const bucket = googleStorage.bucket(bucketName);
@@ -223,7 +245,7 @@ async function uploadImage (fileObject, folder){
 async function deleteUploadedImage(id){
 	//Pre: id must be empty or a valid public_id from cloudinary
 	//Post: image is deleted from cloudinary
-	if(id != ''){
+	if(id != '' && id != null){
 		cloudinary.uploader.destroy(id, (error) => {
 			console.error(error);
 		});
@@ -358,7 +380,7 @@ app.post('/submitSignup/:type', async (req, res) => {
 				businessPhone: Joi.string().pattern(/^[0-9\s]*$/).length(10).required(),
 				firstName: Joi.string().pattern(/^[a-zA-Z\s]*$/).max(20).required(),
 				lastName: Joi.string().pattern(/^[a-zA-Z\s]*$/).max(20).required(),
-				companyWebsite: Joi.string().pattern(/^[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/),
+				companyWebsite: Joi.string().pattern(/^(https?:\/\/)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/),
 				password: Joi.string().max(20).min(2).required()
 			}
 		);
@@ -391,7 +413,14 @@ app.post('/submitSignup/:type', async (req, res) => {
 		//This currently only functions for the single checkbox and would need to be adjusted for multiple service options
 		user.services = [];
 		if (Boolean(req.body.services)) {
-			user.services.push(req.body.services);
+			if(Array.isArray(req.body.services)){
+				for(let i = 0; i < req.body.services.length; i++){
+					user.services.push(req.body.services[i]);
+				}
+			} else {
+				user.services.push(req.body.services);
+			}
+			
 		}
 
 		await appUserCollection.insertOne({
@@ -418,9 +447,14 @@ app.post('/submitSignup/:type', async (req, res) => {
 			email: user.businessEmail,
 			phone: user.businessPhone,
 			services: user.services,
-			firstName: user.firstName,
-			lastName: user.lastName,
 			companyWebsite: user.companyWebsite
+		});
+
+		//Store business owner information in client collection
+		await userdb.collection('trainer').insertOne({
+			companyName: user.companyName,
+			firstName: user.firstName,
+			lastName: user.lastName
 		});
 	}
 
@@ -661,12 +695,14 @@ app.get('/profile', sessionValidation, async(req, res) => {
 	//upload the info of the user
 	let user = await userdb.collection('info').findOne();
 
-	//currently no profile page available for the business side
+	//Client profile page
 	if(req.session.userType == 'client'){
+		//Collect profile pic link if there is one
 		if(user.profilePic != ''){
 			user.profilePic = cloudinary.url(user.profilePic);
 		}
 
+		//Gather dogs and their images if they have one
 		let dogs = await userdb.collection('dogs').find({}).toArray();
 		for(let i = 0; i < dogs.length; i++){
 			let pic = dogs[i].dogPic;
@@ -675,60 +711,162 @@ app.get('/profile', sessionValidation, async(req, res) => {
 			}
 		}
 
-		res.render('clientProfile', {loggedIn: isValidSession(req), user: user, editting: false, dogs: dogs, userName: req.session.name, userType: req.session.userType});
+		//Render client profile page
+		res.render('clientProfile', {loggedIn: isValidSession(req), user: user, dogs: dogs, userName: req.session.name, userType: req.session.userType});
 		return;
+
+	//Business user profile
 	} else {
-		res.redirect('/');
+		//Collect programs
+		let programs = await userdb.collection('programs').find({}).toArray();
+
+		//Collect logo link if there is one
+		if(user.logo != ''){
+			user.logo = cloudinary.url(user.logo);
+		}
+
+		//Collect business' trainer and their profile pic if there is one
+		let trainer = await userdb.collection('trainer').findOne();
+		if(trainer.trainerPic != ''){
+			trainer.trainerPic = cloudinary.url(trainer.trainerPic);
+		}
+
+		//Start on different tabs depending on the req.query
+		if(req.query.tab == 'trainer'){
+			res.render('businessProfile', {loggedIn: isValidSession(req), business: user, trainer: trainer, programs: programs, businessTab: '', trainerTab: 'checked', programsTab: '', userType: req.session.userType});
+		} else if(req.query.tab == 'program'){
+			res.render('businessProfile', {loggedIn: isValidSession(req), business: user, trainer: trainer, programs: programs, businessTab: '', trainerTab: '', programsTab: 'checked', userType: req.session.userType});
+		} else {
+			res.render('businessProfile', {loggedIn: isValidSession(req), business: user, trainer: trainer, programs: programs, businessTab: 'checked', trainerTab: '', programsTab: '', userType: req.session.userType});
+		}
+	}
+});
+
+//Profile Editting (both client and business)
+app.post('/profile/edit/:editType', sessionValidation, upload.array('accountUpload', 1), async(req, res) => {
+	//bandaid fix so its easier to test (delete later)
+	setUserDatabase(req);
+
+	//Edit client profile
+	if(req.params.editType == 'clientProfile'){
+
+		//grab current image id
+		let user = await userdb.collection('info').find({email: req.session.email}).project({profilePic: 1}).toArray();	
+
+		//Image id is updated with a newly upload image or kept the same
+		if(req.files.length != 0){
+			await deleteUploadedImage(user[0].profilePic);
+			req.body.profilePic = await uploadImage(req.files[0], "clientAccountAvatars");
+		} else {
+			req.body.profilePic = user[0].profilePic;
+		}
+
+		//Update the database
+		await userdb.collection('info').updateOne({email: req.session.email}, {$set: req.body});
+
+		//Return to profile
+		res.redirect('/profile');
+
+	//Edit business profile -> business details
+	} else if (req.params.editType == 'businessDetails'){
+
+		//Grab current logo id
+		let business = await userdb.collection('info').find({companyName: req.session.name}).project({logo: 1}).toArray();
+
+		//Logo id is updated with a newly upload logo or kept the same
+		if(req.files.length != 0){
+			await deleteUploadedImage(business[0].logo);
+			req.body.logo = await uploadImage(req.files[0], "businessLogos");
+		} else {
+			req.body.logo - business[0].logo;
+		}
+
+		//update database
+		await userdb.collection('info').updateOne({companyName: req.session.name}, {$set: req.body});
+
+		//Return to profile, business details tab
+		res.redirect('/profile?tab=business');
+
+	//Edit business profile -> trainer profile
+	} else if(req.params.editType == 'trainer'){
+
+		//Grab current profile pic id
+		let trainer = await userdb.collection('trainer').find({companyName: req.session.name}).project({trainerPic: 1}).toArray();
+
+		//Profile pic id is updated with a newly upload Profile pic or kept the same
+		if(req.files.length != 0){
+			await deleteUploadedImage(trainer[0].trainerPic);
+			req.body.trainerPic = await uploadImage(req.files[0], "trainerAvatars");
+		} else {
+			req.body.trainerPic - trainer[0].trainerPic;
+		}
+
+		//Update database
+		await userdb.collection('trainer').updateOne({companyName: req.session.name}, {$set: req.body});
+
+		//Return to profile, trainer profile tab
+		res.redirect('/profile?tab=trainer');
+	
+	//Edit business profile -> Programs (can only add a program from profile page)
+	} else if(req.params.editType == 'addProgram'){
+
+		//Set up program from submitted information 
+		let program = {
+			name: req.body.name,
+			pricing: {
+				priceType: req.body.priceType,
+				price: req.body.price
+			},
+			discount: req.body.discounts,
+			hours: req.body.hours,
+			description: req.body.description
+		}
+
+		//Insert program into database
+		await userdb.collection('programs').insertOne(program);
+
+		//Return to profile, programs tab
+		res.redirect('/profile?tab=program');
 	}
 
 });
 
-//Client user profile edit
-app.get('/profile/edit', sessionValidation,  async(req, res) => {
+//Display specific program
+app.get('/program/:programId', async(req, res) => {
 	//bandaid fix so its easier to test (delete later)
 	setUserDatabase(req);
 
-	//upload the info of the user
-	let user = await userdb.collection('info').findOne({email: req.session.email});
-	let dogs = await userdb.collection('dogs').find({}).toArray();
-	//currently no profile page available for the business side
-	if(req.session.userType == 'client'){
-		if(user.profilePic != ''){
-			user.profilePic = cloudinary.url(user.profilePic);
-		}
+	//Use program id to access program
+	let programId =  ObjectId.createFromHexString(req.params.programId);
+	let program = await userdb.collection('programs').find({_id: programId}).toArray();
 
-		for(let i = 0; i < dogs.length; i++){
-			let pic = dogs[i].dogPic;
-			if(pic != ''){
-				dogs[i].dogPic = cloudinary.url(pic);
-			}
-		}
+	//Render program page with the specific program details
+	res.render('programDetails', {loggedIn: isValidSession(req), userType: req.session.userType, program: program[0]});
+});
 
-		//render client profile page but with editting set up
-		res.render('clientProfile', {loggedIn: isValidSession(req), user: user, editting: true, dogs: dogs, userName: req.session.name, userType: req.session.userType});
-		return;
-	} else {
-		res.redirect('/');
+//Edit specific program
+app.post('/program/:programId/edit', async(req, res) => {
+	//bandaid fix so its easier to test (delete later)
+	setUserDatabase(req);
+
+	//Set up program with submitted info
+	let = program = {
+		name: req.body.name,
+		pricing: {
+			priceType: req.body.priceType,
+			price: req.body.price
+		},
+		discount: req.body.discounts,
+		hours: req.body.hours,
+		description: req.body.description
 	}
 
-})
+	//Use program id to update program with new details
+	let programId =  ObjectId.createFromHexString(req.params.programId);
+	await userdb.collection('programs').updateOne({_id: programId}, {$set: program});
 
-//Post for editting the profile
-app.post('/profile/editting', upload.single('profilePic'), async(req, res) => {
-
-	//grab current image id
-	let user = await userdb.collection('info').find({email: req.session.email}).project({profilePic: 1}).toArray();	
-	//update database
-	if(req.file){
-		await deleteUploadedImage(user[0].profilePic);
-		req.body.profilePic = await uploadImage(req.file, "clientAccountAvatars");
-	} else {
-		req.body.profilePic = user[0].profilePic;
-	}
-
-	await userdb.collection('info').updateOne({email: req.session.email}, {$set: req.body});
-	res.redirect('/profile');
-
+	//Return to specific program page
+	res.redirect('/program/' + req.params.programId);
 });
 
 //Form for adding a new dog
@@ -938,80 +1076,173 @@ app.post('/deleteAccount', async (req, res) => {
 	res.redirect('/logout');
 });
 
-async function getUserEvents() {
-	var userEvents = await userdb.collection('eventSource').find().project({ title: 1, start: 1, end: 1, _id: 0 }).toArray();
+// ----------------- CALENDAR STUFF GOES HERE -------------------
+
+app.get('/findTrainer', async (req, res) => {
+	const trainers = await appUserCollection.find({ userType: 'business' }).project({ _id: 1, companyName: 1 }).toArray();
+	res.render('findTrainer', {loggedIn: isValidSession(req), userType: req.session.userType, trainers: trainers});
+});
+
+// Temporary add Trainer button for this Branch
+app.post('/addTrainer/:trainer', async (req, res) => {
+	let trainer = req.params.trainer;
+	await appUserCollection.updateOne({email: req.session.email}, {$set: { companyName: trainer}});
+
+	await setTrainerDatabase(req);
+
+	let client = await userdb.collection('info').find().project({email: 1, firstName: 1, lastName: 1, phone: 1}).toArray();
+
+	trainerdb.collection('clients').insertOne(client[0]);
+
+	res.redirect('/');
+});
+
+async function getUserEvents(req) {
+	let userEvents;
+	if (req.session.userType == 'business') {
+		userEvents = await userdb.collection('eventSource').find().project({ _id: 1, title: 1, client: 1, start: 1, end: 1, info: 1}).toArray();
+	} else if (req.session.userType == 'client') {
+		if (trainerdb == null || trainerdb == '' || trainerdb == undefined) {
+			userEvents = null;
+		} else {
+			userEvents = await trainerdb.collection('eventSource').find().project({ _id: 1, title: 1, client: 1, start: 1, end: 1, info: 1}).toArray();
+		}
+	}
 	return userEvents;
 }
 
 app.get('/calendar', async (req, res) => {
 	setUserDatabase(req);
-	res.render('calendarBusiness', {loggedIn: isValidSession(req), userType: req.session.userType});
+	await setTrainerDatabase(req);
+	if (req.session.userType == 'business') {
+		res.render('calendarBusiness', {loggedIn: isValidSession(req), userType: req.session.userType});
+		return;
+	} else if (req.session.userType == 'client') {
+		res.render('calendarClient', {loggedIn: isValidSession(req), userType: req.session.userType});
+	}
+	
 });
 
+// Returns all events to the calendar
 app.get('/events', async (req, res) => {
-	const events = await getUserEvents();
+	const events = await getUserEvents(req);
 	res.json(events);
 });
 
+app.post('/getThisEvent', async (req, res) => {
+	let event = {
+		title: req.body.title,
+		start: req.body.start,
+		end: req.body.end
+	}
+	let result = await userdb.collection('eventSource').find(event).project({_id: 1, client: 1, info: 1}).toArray();
+	res.json(result);
+});
+
+// Returns client list to the calendar
+app.post('/getClients', async (req, res) => {
+	const clientList = await userdb.collection('clients').find().project({ email: 1, _id: 1 }).toArray();
+	res.json(clientList);
+});
+
 app.post('/addEvent', async (req, res) => {
-	var date = req.body.calModDate;
-	var startDate = date + "T" + req.body.calModStartHH + ":" + req.body.calModStartMM + ":00";
-	var endDate = date + "T" + req.body.calModEndHH + ":" + req.body.calModEndMM + ":00";
-	var event = {
+	let date = req.body.calModDate;
+	let startDate = date + "T" + req.body.calModStartHH + ":" + req.body.calModStartMM + ":00";
+	let endDate = date + "T" + req.body.calModEndHH + ":" + req.body.calModEndMM + ":00";
+	let clientEmail = req.body.calModClient;
+	let eventInfo = req.body.calModInfo;
+	let event = {
 		title: req.body.calModTitle,
 		start: startDate,
-		end: endDate
+		end: endDate,
+		client: clientEmail,
+		info: eventInfo
 	};
 
-	await userdb.collection('eventSource').insertOne({
-		title: event.title,
+	// Check for duplicate event
+	let check = userdb.collection('eventSource').find({
+		event: event.title,
 		start: event.start,
-		end: event.end
-	});
+		end: event.end,
+		client: event.client
+	}).project({_id: 1}).toArray(); //Check for everything but info
+
+	if (check.length > 0) {
+		// TODO DUPE ERROR EXIT HERE
+	} else {
+		await userdb.collection('eventSource').insertOne(event);
+	}
+
 	res.redirect('/calendar');
 });
 
 app.post('/updateEvent', async (req, res) => {
-	var date = req.body.calModDate;
-	var startNew = date + "T" + req.body.calModStartHH + ":" + req.body.calModStartMM + ":00";
-	var endNew = date + "T" + req.body.calModEndHH + ":" + req.body.calModEndMM + ":00";
-	var eventOrig = {
+	let date = req.body.calModDate;
+	let startNew = date + "T" + req.body.calModStartHH + ":" + req.body.calModStartMM + ":00";
+	let endNew = date + "T" + req.body.calModEndHH + ":" + req.body.calModEndMM + ":00";
+	let eventOrig = {
 		title: req.body.calModTitleOrig,
 		start: req.body.calModStartOrig,
-		end: req.body.calModEndOrig
+		end: req.body.calModEndOrig,
+		client: req.body.calModEmailOrig,
+		info: req.body.calModInfoOrig
 	}
 
-	var eventNew = {
+	let eventNew = {
 		title: req.body.calModTitle,
 		start: startNew,
-		end: endNew
+		end: endNew,
+		client: req.body.calModEmail,
+		info: req.body.calModInfo
 	}
 
 	await userdb.collection('eventSource').updateOne({
 		title: eventOrig.title,
 		start: eventOrig.start,
-		end: eventOrig.end
+		end: eventOrig.end,
+		client: eventOrig.client,
+		info: eventOrig.info
 	}, {
 		$set: {
 			title: eventNew.title,
 			start: eventNew.start,
-			end: eventNew.end
+			end: eventNew.end,
+			client: eventNew.client,
+			info: eventNew.info
 		}
 	});
+
+	// update using _id, but doesn't work
+	// let eventID = req.body.calModEventID;
+	// console.log(eventID);
+	// await userdb.collection('eventSource').updateOne({ _id: eventID }, { $set: {eventNew} });
+
 	res.redirect('/calendar');
 });
 
 app.post('/removeEvent', async (req, res) => {
-	var calTitle = req.body.calModTitleOrig;
-	var calStart = req.body.calModStartOrig;
-	var calEnd = req.body.calModEndOrig;
+
+	// Delete by _id, but doesn't work
+	// let eventID = req.body.calModEventID;
+	// await userdb.collection('eventSource').deleteOne({ _id: eventID});
+
+	let calTitle = req.body.calModTitleOrig;
+	let calStart = req.body.calModStartOrig;
+	let calEnd = req.body.calModEndOrig;
+	let calEmail = req.body.calModEmailOrig;
+	let calInfo = req.body.calModInfoOrig;
+
 	await userdb.collection('eventSource').deleteOne({
 		title: calTitle,
 		start: calStart,
-		end: calEnd
+		end: calEnd,
+		client: calEmail,
+		info: calInfo
 	});
 	res.redirect('/calendar');
 });
+
+// ----------------- CALENDAR SECTION ENDS HERE -------------------
 
 app.use(express.static(__dirname + "/public"));
 
