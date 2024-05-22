@@ -1,12 +1,13 @@
 <%- include("templates/header") %>
-<p><%=program.name%></p>
-<form id="newProgramForm" method="post">
-    <div class="form-group row">
-        <label class="col-2" for="programName">Program Name:</label>
-        <input class="col-4 programInfo" type="text" id="programName" value="<%=program.name%>" name="name" required disabled>
+<%- include('templates/backLinkButton', {page:'/profile?tab=program'})%>
+<p class="h3"><%=program.name%></p>
+<form class="container" id="newProgramForm" method="post">
+    <div class="form-group my-2">
+        <label for="programName">Program Name:</label>
+        <input class="programInfo" type="text" id="programName" value="<%=program.name%>" name="name" required disabled>
     </div>
     
-    <div class="form-group">
+    <div class="form-group my-2">
 
         <% if(program.pricing.priceType == 'Hourly Rate'){ %>
             <div>
@@ -32,57 +33,131 @@
         
     </div>
 
-    <div class="form-group row">
-        <label class="col-2" id="priceLabel" for="price">Hourly Rate:</label>
-        <input class="col-4 programInfo" type="number" id="price" name="price" value="<%=program.pricing.price%>" min="0" step="0.01" required disabled/>
+    <div class="form-group my-2">
+        <label id="priceLabel" for="price">Hourly Rate:</label>
+        <input class="programInfo" type="number" id="price" name="price" value="<%=program.pricing.price%>" min="0" step="0.01" required disabled/>
     </div>
 
-    <div class="form-group row">
-        <label class="col-2" for="programDiscounts">Discounts:</label>
-        <textarea class="col-4 form-control programInfo" style="width:80%" id="programDiscounts" name="discounts" rows="2" disabled><%=program.discount%></textarea>
+    <div class="form-group my-2">
+        <label for="programDiscounts">Discounts:</label>
+        <textarea class="form-control programInfo" style="width:80%" id="programDiscounts" name="discounts" rows="2" disabled><%=program.discount%></textarea>
     </div>
 
-    <div class="form-group row">
-        <label class="col-2" for="hours">Total Hours:</label>
-        <input class="col-4 programInfo" type="number" id="hours" name="hours" value="<%=program.hours%>" min="0" step="0.01" required disabled/>
+    <div class="form-group my-2">
+        <label for="hours">Total Hours:</label>
+        <input class="programInfo" type="number" id="hours" name="hours" value="<%=program.hours%>" min="0" step="0.01" required disabled/>
     </div>
 
-    <div class="form-group row">
-        <label class="col-2" for="programDescription">Program Description:</label>
-        <textarea class="col-4 form-control programInfo" style="width:80%" id="programDescription" name="description" rows="3" required disabled><%=program.description%></textarea>
+    <div class="form-group my-2">
+        <label for="programDescription">Program Description:</label>
+        <textarea class="form-control programInfo" style="width:80%" id="programDescription" name="description" rows="3" required disabled><%=program.description%></textarea>
     </div>
 
-    <%- include('templates/button', {action:'',xClasses:'editButton',xAttributes:'id=programEditButton type=button',content:'Edit'}) %>
-	<%- include('templates/button', {action: '/program/' + program._id + '/edit',xClasses:'saveButton',xAttributes:'id=programSaveButton style=display:none',content:'Save'}) %>
+    <div class="row">
+        <%- include('templates/button', {action:'',xClasses:'editButton col-2',xAttributes:'id=programEditButton type=button',content:'Edit'}) %>
+        <%- include('templates/button', {action:'',xClasses:'cancelButton col-2',xAttributes:'id=cancelEdit type=button style=display:none',content:'Cancel'}) %>
+        <%- include('templates/button', {action: '/program/' + program._id + '/edit',xClasses:'saveButton col-2',xAttributes:'id=programSaveButton style=display:none',content:'Save'}) %>
+    </div>
 </form>
 
+<form id="deleteForm" action="/program/<%=program._id%>/delete" method="post">
+    <%- include('templates/button', {action:'',xClasses:'deleteButton',xAttributes:'id=programDeleteButton type=button',content:'Delete'}) %>
+</form>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.all.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.min.css" rel="stylesheet">
 <script>
+    //Sweet alert button template
+	const swalWithBootstrapButtons = Swal.mixin({
+		customClass: {
+			confirmButton: "btn btn-main",
+			cancelButton: "btn btn-secondary"
+			},
+	        buttonsStyling: false
+	});
+
+    //Buttons that need event listeners
     let editButton = document.getElementById('programEditButton');
     let saveButton = document.getElementById('programSaveButton');
+    let deleteButton = document.getElementById('programDeleteButton');
+    let cancelButton = document.getElementById('cancelEdit');
 
+    //editable input fields
+    let inputs = document.querySelectorAll('.programInfo');
+
+    //Price radio buttons and type of price label
+    let priceLabel = document.getElementById('priceLabel');
+	let pricingToggles = document.querySelectorAll('.pricingChoice');
+    
+    //edit button event
     editButton.addEventListener('click', () => {
+        //Show cancel and save buttons, hide edit button
         saveButton.style = 'display:block';
         editButton.style = 'display:none';
+        cancelButton.style = 'display:block';
 
-        let inputs = document.querySelectorAll('.programInfo');
+        //Enable input editting
         inputs.forEach((input) => {
             input.disabled = false;
         });
     });
 
-    let priceLabel = document.getElementById('priceLabel');
-	let pricingToggles = document.querySelectorAll('.pricingChoice');
+    //Cancel button event
+    cancelButton.addEventListener('click', () => {
+        //Show edit button, hide cancel and save buttons
+        saveButton.style = 'display:none';
+        editButton.style = 'display:block';
+        cancelButton.style = 'display:none';
+
+        //Disable input editting
+        inputs.forEach((input) => {
+            input.disabled = true;
+        });
+    });    
+
+    //Change label on price according to selected type
 	pricingToggles.forEach((toggle) => {
 		toggle.addEventListener('change', () => {
-			console.log('aaaa');
 			if(toggle.checked){
 				priceLabel.innerHTML = toggle.value + ":";
 			}
-
-
 		});
 	});
 
+    //Delete button event
+    deleteButton.addEventListener('click', () =>{
+        //Sweet alert pop up
+		swalWithBootstrapButtons.fire({
+			title: "Are you sure?",
+			text: "You won't be able to revert this!",
+			icon: "warning",
+			showCancelButton: true,
+			confirmButtonText: "Delete Program",
+			cancelButtonText: "Cancel",
+			reverseButtons: true
+		}).then((result) => {
+            //Confirm delete
+			if (result.isConfirmed) {
+				swalWithBootstrapButtons.fire({
+					title: "Deleted!",
+					text: "Your program has been deleted.",
+					icon: "success"
+			}).then((result) => {
+                    //Submit delete
+					document.getElementById('deleteForm').submit();
+			});
+			} else if (
+			/* Read more about handling dismissals below */
+			result.dismiss === Swal.DismissReason.cancel
+			) {
+                //Cancel delete
+				swalWithBootstrapButtons.fire({
+					title: "Cancelled",
+					icon: "error"
+				});
+		    }
+	    });
+	});
 
 </script>
 <%- include("templates/footerCopyright") %>

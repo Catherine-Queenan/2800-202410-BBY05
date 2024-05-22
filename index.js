@@ -675,12 +675,14 @@ app.get('/profile', sessionValidation, async(req, res) => {
 	//upload the info of the user
 	let user = await userdb.collection('info').findOne();
 
-	//currently no profile page available for the business side
+	//Client profile page
 	if(req.session.userType == 'client'){
+		//Collect profile pic link if there is one
 		if(user.profilePic != ''){
 			user.profilePic = cloudinary.url(user.profilePic);
 		}
 
+		//Gather dogs and their images if they have one
 		let dogs = await userdb.collection('dogs').find({}).toArray();
 		for(let i = 0; i < dogs.length; i++){
 			let pic = dogs[i].dogPic;
@@ -689,20 +691,27 @@ app.get('/profile', sessionValidation, async(req, res) => {
 			}
 		}
 
+		//Render client profile page
 		res.render('clientProfile', {loggedIn: isValidSession(req), user: user, dogs: dogs, userName: req.session.name, userType: req.session.userType});
 		return;
+
+	//Business user profile
 	} else {
+		//Collect programs
 		let programs = await userdb.collection('programs').find({}).toArray();
 
+		//Collect logo link if there is one
 		if(user.logo != ''){
 			user.logo = cloudinary.url(user.logo);
 		}
 
+		//Collect business' trainer and their profile pic if there is one
 		let trainer = await userdb.collection('trainer').findOne();
 		if(trainer.trainerPic != ''){
 			trainer.trainerPic = cloudinary.url(trainer.trainerPic);
 		}
 
+		//Start on different tabs depending on the req.query
 		if(req.query.tab == 'trainer'){
 			res.render('businessProfile', {loggedIn: isValidSession(req), business: user, trainer: trainer, programs: programs, businessTab: '', trainerTab: 'checked', programsTab: '', userType: req.session.userType});
 		} else if(req.query.tab == 'program'){
@@ -710,22 +719,21 @@ app.get('/profile', sessionValidation, async(req, res) => {
 		} else {
 			res.render('businessProfile', {loggedIn: isValidSession(req), business: user, trainer: trainer, programs: programs, businessTab: 'checked', trainerTab: '', programsTab: '', userType: req.session.userType});
 		}
-		
 	}
-
 });
 
-//Client user profile edit
+//Profile Editting (both client and business)
 app.post('/profile/edit/:editType', sessionValidation, upload.array('accountUpload', 1), async(req, res) => {
 	//bandaid fix so its easier to test (delete later)
 	setUserDatabase(req);
 
-	let editType = req.params.editType;
+	//Edit client profile
+	if(req.params.editType == 'clientProfile'){
 
-	if(editType == 'clientProfile'){
 		//grab current image id
 		let user = await userdb.collection('info').find({email: req.session.email}).project({profilePic: 1}).toArray();	
-		//update database
+
+		//Image id is updated with a newly upload image or kept the same
 		if(req.files.length != 0){
 			await deleteUploadedImage(user[0].profilePic);
 			req.body.profilePic = await uploadImage(req.files[0], "clientAccountAvatars");
@@ -733,11 +741,19 @@ app.post('/profile/edit/:editType', sessionValidation, upload.array('accountUplo
 			req.body.profilePic = user[0].profilePic;
 		}
 
+		//Update the database
 		await userdb.collection('info').updateOne({email: req.session.email}, {$set: req.body});
+
+		//Return to profile
 		res.redirect('/profile');
-	} else if (editType == 'businessDetails'){
+
+	//Edit business profile -> business details
+	} else if (req.params.editType == 'businessDetails'){
+
+		//Grab current logo id
 		let business = await userdb.collection('info').find({companyName: req.session.name}).project({logo: 1}).toArray();
 
+		//Logo id is updated with a newly upload logo or kept the same
 		if(req.files.length != 0){
 			await deleteUploadedImage(business[0].logo);
 			req.body.logo = await uploadImage(req.files[0], "businessLogos");
@@ -745,11 +761,19 @@ app.post('/profile/edit/:editType', sessionValidation, upload.array('accountUplo
 			req.body.logo - business[0].logo;
 		}
 
+		//update database
 		await userdb.collection('info').updateOne({companyName: req.session.name}, {$set: req.body});
+
+		//Return to profile, business details tab
 		res.redirect('/profile?tab=business');
-	} else if(editType == 'trainer'){
+
+	//Edit business profile -> trainer profile
+	} else if(req.params.editType == 'trainer'){
+
+		//Grab current profile pic id
 		let trainer = await userdb.collection('trainer').find({companyName: req.session.name}).project({trainerPic: 1}).toArray();
 
+		//Profile pic id is updated with a newly upload Profile pic or kept the same
 		if(req.files.length != 0){
 			await deleteUploadedImage(trainer[0].trainerPic);
 			req.body.trainerPic = await uploadImage(req.files[0], "trainerAvatars");
@@ -757,10 +781,17 @@ app.post('/profile/edit/:editType', sessionValidation, upload.array('accountUplo
 			req.body.trainerPic - trainer[0].trainerPic;
 		}
 
+		//Update database
 		await userdb.collection('trainer').updateOne({companyName: req.session.name}, {$set: req.body});
+
+		//Return to profile, trainer profile tab
 		res.redirect('/profile?tab=trainer');
-	} else if(editType == 'addProgram'){
-		program = {
+	
+	//Edit business profile -> Programs (can only add a program from profile page)
+	} else if(req.params.editType == 'addProgram'){
+
+		//Set up program from submitted information 
+		let program = {
 			name: req.body.name,
 			pricing: {
 				priceType: req.body.priceType,
@@ -771,29 +802,35 @@ app.post('/profile/edit/:editType', sessionValidation, upload.array('accountUplo
 			description: req.body.description
 		}
 
+		//Insert program into database
 		await userdb.collection('programs').insertOne(program);
+
+		//Return to profile, programs tab
 		res.redirect('/profile?tab=program');
 	}
 
 });
 
+//Display specific program
 app.get('/program/:programId', async(req, res) => {
 	//bandaid fix so its easier to test (delete later)
 	setUserDatabase(req);
 
+	//Use program id to access program
 	let programId =  ObjectId.createFromHexString(req.params.programId);
 	let program = await userdb.collection('programs').find({_id: programId}).toArray();
+
+	//Render program page with the specific program details
 	res.render('programDetails', {loggedIn: isValidSession(req), userType: req.session.userType, program: program[0]});
 });
 
+//Edit specific program
 app.post('/program/:programId/edit', async(req, res) => {
 	//bandaid fix so its easier to test (delete later)
 	setUserDatabase(req);
-	
 
-	let programId =  ObjectId.createFromHexString(req.params.programId);
-
-	program = {
+	//Set up program with submitted info
+	let = program = {
 		name: req.body.name,
 		pricing: {
 			priceType: req.body.priceType,
@@ -804,10 +841,11 @@ app.post('/program/:programId/edit', async(req, res) => {
 		description: req.body.description
 	}
 
-	console.log(program);
-
+	//Use program id to update program with new details
+	let programId =  ObjectId.createFromHexString(req.params.programId);
 	await userdb.collection('programs').updateOne({_id: programId}, {$set: program});
 
+	//Return to specific program page
 	res.redirect('/program/' + req.params.programId);
 });
 

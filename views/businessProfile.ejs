@@ -119,14 +119,14 @@
 							Description
 						-->
 						<br>
-						<div class="border">
-						<form id="newProgramForm" method="post" style="display:none">
-							<div class="form-group row">
-								<label class="col-2" for="programName">Program Name:</label>
-								<input class="col-4 newProgramInfo" type="text" id="programName" name="name" required>
+						<div class="border p-2">
+						<form class="container" id="newProgramForm" method="post" style="display:none">
+							<div class="form-group my-2">
+								<label for="programName">Program Name:</label>
+								<input class="newProgramInfo" type="text" id="programName" name="name" required>
 							</div>
 							
-							<div class="form-group">
+							<div class="form-group my-2">
 								<div>
 									<label for="hourlyToggle">Hourly Rate</label>
 									<input type="radio" id="hourlyToggle" name="priceType" class="pricingChoice" value="Hourly Rate" checked>
@@ -138,24 +138,24 @@
 								</div>
 							</div>
 
-							<div class="form-group row">
-								<label class="col-2" id="priceLabel" for="price">Hourly Rate:</label>
-								<input class="col-4 newProgramInfo" type="number" id="price" name="price" min="0" step="0.01" required/>
+							<div class="form-group my-2">
+								<label id="priceLabel" for="price">Hourly Rate:</label>
+								<input class="newProgramInfo" type="number" id="price" name="price" min="0" step="0.01" required/>
 							</div>
 
-							<div class="form-group row">
-								<label class="col-2" for="programDiscounts">Discounts:</label>
-								<textarea class="col-4 form-control newProgramInfo" style="width:80%" id="programDiscounts" name="discounts" rows="2"></textarea>
+							<div class="form-group my-2">
+								<label for="programDiscounts">Discounts:</label>
+								<textarea class="form-control newProgramInfo" style="width:80%" id="programDiscounts" name="discounts" rows="2"></textarea>
 							</div>
 
-							<div class="form-group row">
-								<label class="col-2" for="hours">Total Hours:</label>
-								<input class="col-4 newProgramInfo" type="number" id="hours" name="hours" min="0" step="0.01" required/>
+							<div class="form-group my-2">
+								<label for="hours">Total Hours:</label>
+								<input class="newProgramInfo" type="number" id="hours" name="hours" min="0" step="0.01" required/>
 							</div>
 
-							<div class="form-group row">
-								<label class="col-2" for="programDescription">Program Description:</label>
-								<textarea class="col-4 form-control newProgramInfo" style="width:80%" id="programDescription" name="description" rows="3" required></textarea>
+							<div class="form-group my-2">
+								<label for="programDescription">Program Description:</label>
+								<textarea class="form-control newProgramInfo" style="width:80%" id="programDescription" name="description" rows="3" required></textarea>
 							</div>
 
 							<%- include('templates/button', {action:'/profile/edit/addProgram',xClasses:'',xAttributes:'',content:'Add'}) %>
@@ -187,90 +187,115 @@
 		});
 	});
 
+	//Buttons on page
 	let serviceButtons = document.querySelectorAll('.serviceDelete');
+	let editButtons = document.querySelectorAll('.editButton');
+	let addProgramButton = document.getElementById('addProgramButton');
+
+	//Form for adding a new program on the programs page
+	let programForm = document.getElementById('newProgramForm');
+
+	//Toggle for pricing type and price label
+	let priceLabel = document.getElementById('priceLabel');
+	let pricingToggles = document.querySelectorAll('.pricingChoice');
+
+	//Delete each listed service
 	serviceButtons.forEach((button) => {
 		button.addEventListener('click', () => {
 			document.getElementById(button.value + 'Item').remove();
 		});
 	});
 
-	let editButtons = document.querySelectorAll('.editButton');
+	//Edit event
 	editButtons.forEach((button) => {
 		button.addEventListener('click', () => {
-			let fields = document.querySelectorAll('.' + button.value + 'Info');
 
+			//Hide the edit button
+			button.style = 'display: none';
+
+			//Select and enable all input fields
+			let fields = document.querySelectorAll('.' + button.value + 'Info');
 			fields.forEach((field) => {
 				field.disabled = false;
 			});
 
+			//Show the logo or profile pic upload
 			let upload = document.getElementById(button.value + 'Upload');
 			upload.style = 'display: block';
 
+			//Show the save button
 			let saveButton = document.getElementById(button.value + 'SaveButton');
 			saveButton.style = 'display: block';
 
+			//Show the delete service buttons
 			serviceButtons.forEach((button) => {
 				button.style = 'display: inline';
 			});
-
-			button.style = 'display: none';
-
+			
+			//Display the add service button
 			let addServiceButton = document.getElementById('addService');
 			addServiceButton.style = 'display: block';
+
+			//Add service event
 			addServiceButton.addEventListener('click', () => {
+				//Hide the add service button
 				addServiceButton.style = 'display: none';
 
+				//Show the add service form and submit service button
 				let addServiceInput = document.getElementById('addServiceInputDiv');
 				addServiceInput.style = 'display: block';
-				
+
+				//Collect save service buttons and service name input
 				let saveServiceButton = document.getElementById('submitService');
 				let serviceInput = document.getElementById('toAddService');
 
-				
+				//Clone service list template
 				let newService = document.getElementById("serviceTemplate").content.cloneNode(true);
+
+				//Save service event
 				saveServiceButton.addEventListener('click', () => {
+					//Convert to string for easy manipulation
 					let service = String(serviceInput.value);
 
+					//Populate template
 					newService.querySelector('li').id = service.replace(' ', '') + 'Item';
 					newService.querySelector('span').innerHTML = service;
 					newService.querySelector('.serviceField').value = service;
 					
-					let closeButton = newService.querySelector('button');
-					closeButton.style = 'display:inline';
-					closeButton.value = service.replace(' ', '');
-					closeButton.addEventListener('click', ()=> {
-						document.getElementById(closeButton.value + 'Item').remove();
+					//Show service delete and add the delete event
+					let deleteButton = newService.querySelector('button');
+					deleteButton.style = 'display:inline';
+					deleteButton.value = service.replace(' ', '');
+					deleteButton.addEventListener('click', ()=> {
+						document.getElementById(deleteButton.value + 'Item').remove();
 					});
 
+					//Add the new service to the page and reset the input
 					document.getElementById('serviceList').appendChild(newService);
-					
+					document.getElementById('toAddService').value = '';
+
+					//Show the add service button and hide the service input
 					addServiceButton.style = 'display: block';
 					addServiceInput.style = 'display: none';
-
-					document.getElementById('toAddService').value = '';
 				});
 			});
 
 		});
 	});
 
-	let addProgramButton = document.getElementById('addProgramButton');
-	let programForm = document.getElementById('newProgramForm');
+	//Add program event shows the new program form and hides the add program button
 	addProgramButton.addEventListener('click', () => {
 		programForm.style = 'display:block';
 		addProgramButton.style = 'display:none';
 	});
 	
-	let priceLabel = document.getElementById('priceLabel');
-	let pricingToggles = document.querySelectorAll('.pricingChoice');
+	//Change the label for the price input in the program form according to the selected pricing type
 	pricingToggles.forEach((toggle) => {
 		toggle.addEventListener('change', () => {
 			console.log('aaaa');
 			if(toggle.checked){
 				priceLabel.innerHTML = toggle.value + ":";
 			}
-
-
 		});
 	});
 	

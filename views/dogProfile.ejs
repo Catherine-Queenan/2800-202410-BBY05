@@ -128,8 +128,8 @@
 			//Sweet alert button template
 			const swalWithBootstrapButtons = Swal.mixin({
 				customClass: {
-					confirmButton: "btn btn-success",
-					cancelButton: "btn btn-danger"
+					confirmButton: "btn btn-main",
+					cancelButton: "btn btn-secondary"
 				},
 				buttonsStyling: false
 			});
@@ -163,14 +163,14 @@
 					text: "You won't be able to revert this!",
 					icon: "warning",
 					showCancelButton: true,
-					confirmButtonText: "Yes, delete it!",
-					cancelButtonText: "No, cancel!",
+					confirmButtonText: "Delete Dog",
+					cancelButtonText: "Cancel",
 					reverseButtons: true
 				}).then((result) => {
 					if (result.isConfirmed) {
 						swalWithBootstrapButtons.fire({
 							title: "Deleted!",
-							text: "Your file has been deleted.",
+							text: "Your dog has been deleted.",
 							icon: "success"
 						}).then((result) => {
 							document.getElementById('deleteForm').submit();
@@ -181,7 +181,7 @@
 					) {
 						swalWithBootstrapButtons.fire({
 							title: "Cancelled",
-							text: "Your imaginary file is safe :)",
+							text: "Delete cancelled; your dog is safe",
 							icon: "error"
 						});
 					}
