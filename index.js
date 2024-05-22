@@ -43,6 +43,7 @@ const app = express();
 const port = process.env.PORT || 3000;
 const Joi = require('joi');
 const ejs = require('ejs');
+const { content_v2_1 } = require("googleapis");
 
 // 1 hour
 const expireTime = 60 * 60 * 1000;
@@ -71,6 +72,7 @@ let appdb = new MongoClient(`mongodb+srv://${mongodb_user}:${mongodb_password}@$
 
 // This database is set when the user is logged in or signs up for the first time using setUserDatabase().
 let userdb = '';
+let trainerdb = '';
 
 // ----- Collections -----
 const appUserCollection = appdb.db(mongodb_appdb).collection('users');
@@ -189,6 +191,24 @@ function setUserDatabase(req) {
 		}
 		let userdbAccess = new MongoClient(`mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/${db}?retryWrites=true`);
 		userdb = userdbAccess.db(db);
+	}
+}
+
+// Allows access to the trainer's database when tied to a client
+async function setTrainerDatabase(req) {
+	if (!isClient(req)) {
+		trainerdb = null;
+	} else {
+		let trainer = await appUserCollection.find({ email: req.session.email}).project({companyName: 1, _id: 1}).toArray();
+		console.log(trainer);
+		// Checking for if the client currently has a hired trainer.
+		if (trainer[0].companyName == null || trainer[0].companyName == '' || trainer[0].companyName == undefined) {
+			trainerdb = null;
+		} else {
+			let db = mongodb_businessdb + '-' + trainer[0].companyName.replace(/\s/g, "");
+			let trainerdbAccess = new MongoClient(`mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/${db}?retryWrites=true`);
+			trainerdb = trainerdbAccess.db(db);
+		}
 	}
 }
 
@@ -938,18 +958,43 @@ app.post('/deleteAccount', async (req, res) => {
 	res.redirect('/logout');
 });
 
-async function getUserEvents() {
-	var userEvents = await userdb.collection('eventSource').find().project({ title: 1, start: 1, end: 1, _id: 0 }).toArray();
+// ----------------- CALENDAR STUFF GOES HERE -------------------
+
+async function getUserEvents(req) {
+	let userEvents;
+	if (req.session.userType == 'business') {
+		userEvents = await userdb.collection('eventSource').find().project({ title: 1, start: 1, end: 1, _id: 0 }).toArray();
+	} else if (req.session.userType == 'client') {
+		if (trainerdb == null || trainerdb == '' || trainerdb == undefined) {
+			userEvents = null;
+		} else {
+			userEvents = await trainerdb.collection('eventSource').find().project({title: 1, start: 1, end: 1, _id: 0}).toArray();
+		}
+	}
+	console.log(userEvents);
 	return userEvents;
 }
 
+// Temporary add Trainer button for this Branch
+app.get('/addTrainer', async (req, res) => {
+	await appUserCollection.updateOne({email: req.session.email}, {$set: { companyName: 'Banunu'}});
+	res.redirect('/');
+});
+
 app.get('/calendar', async (req, res) => {
 	setUserDatabase(req);
-	res.render('calendarBusiness', {loggedIn: isValidSession(req), userType: req.session.userType});
+	setTrainerDatabase(req);
+	if (req.session.userType == 'business') {
+		res.render('calendarBusiness', {loggedIn: isValidSession(req), userType: req.session.userType});
+		return;
+	} else if (req.session.userType == 'client') {
+		res.render('calendarClient', {loggedIn: isValidSession(req), userType: req.session.userType});
+	}
+	
 });
 
 app.get('/events', async (req, res) => {
-	const events = await getUserEvents();
+	const events = await getUserEvents(req);
 	res.json(events);
 });
 
@@ -1012,6 +1057,8 @@ app.post('/removeEvent', async (req, res) => {
 	});
 	res.redirect('/calendar');
 });
+
+// ----------------- CALENDAR SECTION ENDS HERE -------------------
 
 app.use(express.static(__dirname + "/public"));
 

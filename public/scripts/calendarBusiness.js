@@ -8,6 +8,8 @@ document.addEventListener('DOMContentLoaded', function () {
 			center: 'title',
 			right: 'prev,next today'
 		},
+		aspectRatio: 1,
+		contentHeight: 'auto',
 		events: '/events',
 		eventClick: function(info) {
 			// Modal header
