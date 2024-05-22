@@ -2,12 +2,15 @@
 
 /* General */
 body {
-	height: 100%;
-	max-width: 100%;
-	font-family: 'Karla', sans-serif;
-	font-size: 16px;
-	color: #201335;
-	background-color: #F0F1FA;
+    height: 100%;
+    max-width: 100%;
+    font-family: 'Karla', sans-serif;
+    font-size: 16px;
+    color:#201335;
+    background-color: #F0F1FA;
+    background: linear-gradient(180deg, rgba(240,241,250,1) 0%, rgba(240, 241, 250, 0.60) 73%),
+                url('/images/PawBack.png') center no-repeat;
+    background-size:cover;
 }
 
 .content {
@@ -85,6 +88,10 @@ h1 {
 	box-shadow: 15px 15px 1.5px 1.5px #201335;
 }
 
+.smallShadow {
+    box-shadow: 3px 4px 1.5px 0px #20133557;
+    box-shadow: -3px -4px 1.5px 0px #2013353f;
+    box-shadow: 0 0 3px 3px #20133549;
 /* Buttons */
 .btn-main {
 	background-color: rgba(32, 19, 53, 0.8);
@@ -99,7 +106,9 @@ h1 {
 }
 
 .btn-main:hover {
-	background-color: rgba(32, 19, 53, 0.5);
+    background-color: #FFA05C;
+    color:#201335;
+    font-weight:500;
 }
 
 /* Copy of the above button but applied to the bootstrap button class */
@@ -117,7 +126,9 @@ h1 {
 
 /* element:hover This changes the properties of the button when hovering */
 .btn-primary:hover {
-	background-color: rgba(32, 19, 53, 0.5);
+    background-color: #FFA05C;
+    color:#201335;
+    font-weight:500;
 }
 
 .btn-primary:disabled {
@@ -137,7 +148,9 @@ h1 {
 }
 
 .btn-secondary:hover {
-	background-color: rgba(94, 83, 162, 0.5);
+    background-color: #FEF6C3;
+    color:#5E53A2;
+    font-weight:800;
 }
 
 .btn-secondary:disabled {
@@ -190,9 +203,20 @@ h1 {
 	display: inline-block;
 }
 
-.tabR:hover {
-	background-color: #2013352e;
-}
+  .tabR-active {
+    background-color: #2013352e;
+    color: #5E53A2;
+    border-color: #201335;
+  }
+  
+  /* Apply active style when associated radio input is checked */
+  .tabR-one:checked + .tabR,
+  .tabR-two:checked + .tabR,
+  .tabR-three:checked + .tabR,
+  .tabR-four:checked + .tabR,
+  .tabR-five:checked + .tabR {
+    color: #5E53A2;
+    border-color: #201335;
 
 /* Define CSS classes for tab content */
 .tabR-one-htm,
