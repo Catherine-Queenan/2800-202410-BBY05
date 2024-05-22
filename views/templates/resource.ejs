@@ -1,19 +1,18 @@
 <!--Resource template with tabs to filter-->
 
                 <!--Template for each resource-->
-                <div class="card mb-3" id="resourceCollapse">
+                <div class="card mb-3" id="resourceCollapse" style="background-color:#2013350f; border:none; box-shadow: 0 4px 8px #201335b2;">
                     <!--Preview Image-->
                     <a href="<%= link %>" target="_blank">
                         <img src="<%= imageUrl %>" class="card-img-top p-1" alt="<%= altText %>">
                         <div class="card-body">
 
                             <!--Name and description-->
-                            <h2 class="card-title yeseva-one"><%= title %></h2>
-                            <p class="card-text"><%= bodyContent %></p>
+                            <h2 class="card-title yeseva-one purple"><%= title %></h2>
+                            <p class="card-text purple"><%= bodyContent %></p>
                             
                             <!--Disclaimer-->
-                            <p class="card-text"><small class="text-body-secondary"><%= disclaimer %></small></p>
+                            <p class="card-text purple"><small class="text-body-secondary"><%= disclaimer %></small></p>
                         </div>
                     </a>
                 </div>
-

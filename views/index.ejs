@@ -59,7 +59,7 @@
 			</div>
 		</section> 
 	<% } else if (userType == "client") { %>
-		<%- include('templates/hero', {content: 'Welcome back!'}) %>
+		<%- include('templates/hero', {content: 'Welcome back to Pawfolio!'}) %>
 		<section class="py-3 py-md-5">
 			<div class="container overflow-visible">
 				<div class="row gy-5">
@@ -68,7 +68,7 @@
 					<%- include('templates/homepage', { 
 						title: 'Your Upcoming Sessions',
 						content: 'Dynamically loaded content based on your upcoming sessions. Click here to view your upcoming sessions.',
-						prevClass: '',
+						prevClass: 'smallShadow',
 						actionOne: '/',
 						classesOne: 'lg-button',
 						attributesOne: '',
@@ -83,9 +83,9 @@
 
 					<%- include('templates/homepage', { 
 						title: 'Find a Trainer', 
-						content: '',
-						prevClass: '',
-						actionOne: '/',
+						content: 'Click here to add a trainer',
+						prevClass: 'smallShadow',
+						actionOne: '/findTrainer',
 						classesOne: '',
 						attributesOne: '',
 						contentOne: 'Learn More',
@@ -100,7 +100,7 @@
 					<%- include('templates/homepage', { 
 						title: 'Your Dogs', 
 						content: 'Dynamically loaded dog profiles from database',
-						prevClass: '',
+						prevClass: 'smallShadow',
 						actionOne: '/profile',
 						classesOne: '',
 						attributesOne: '',
@@ -116,7 +116,7 @@
 					<%- include('templates/clientPreview', { 
 						title: 'Helpful Resources', 
 						content: 'Thinking about getting a dog? Looking for helpful care guides or canine enrichment ideas? Browse our curated articles, videos, and more!',
-						prevClass: '',
+						prevClass: 'smallShadow',
 						actionOne: '/clientResources',
 						classesOne: '',
 						attributesOne: '',
@@ -137,14 +137,14 @@
 				<!-- <button formaction="/logout">Get me out of here</button> -->
 		</form>
 	<% } else if (userType == "business") { %>
-		<%- include('templates/hero', {content: 'Welcome back!'}) %>
+		<%- include('templates/hero', {content: 'Welcome back to Pawfolio!'}) %>
 		<section class="py-3 py-md-5">
 			<div class="container overflow-visible">
 				<div class="row gy-5">
 					<%- include('templates/homepage', { 
 						title: 'Today\'s Sessions',
 						content: 'Dynamically loaded content based on your upcoming sessions. Click here to view your upcoming sessions.',
-						prevClass: '',
+						prevClass: 'smallShadow',
 						actionOne: '/',
 						classesOne: 'lg-button',
 						attributesOne: '',
@@ -160,7 +160,7 @@
 					<%- include('templates/homepage', { 
 						title: 'Inbox', 
 						content: 'Dynamically loaded content based on inbox messages.',
-						prevClass: '',
+						prevClass: 'smallShadow',
 						actionOne: '/',
 						classesOne: '',
 						attributesOne: '',
@@ -176,7 +176,7 @@
 					<%- include('templates/homepage', { 
 						title: 'Clients', 
 						content: 'Dynamically loaded client profiles from database',
-						prevClass: '',
+						prevClass: 'smallShadow',
 						actionOne: '/',
 						classesOne: '',
 						attributesOne: '',
@@ -192,7 +192,7 @@
 					<%- include('templates/homepage', { 
 						title: 'Calendar', 
 						content: 'Dynamically loaded calender view of the current week.',
-						prevClass: '',
+						prevClass: 'smallShadow',
 						actionOne: '/calendar',
 						classesOne: '',
 						attributesOne: '',
