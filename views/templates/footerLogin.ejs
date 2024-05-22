@@ -1,10 +1,12 @@
  <!--Sticky footer template for users that have not logged in-->
-<footer class="footer mt-auto py-3 sticky-bottom">
+<footer class="footer mt-auto pb-1 pt-2 sticky-bottom purpleBackground"
+		style="box-shadow: inset -5px 10px 4px -6px #F0F1FA; max-width: 800px; margin: 0; border-top-right-radius: 15px; border-color: transparent;">
     <div class="container">
+		<h3 class="yeseva-one white ps-2">Sign In or Sign Up as:</h3>
         <form method="get">
-			<%- include('button', {action:'/login',xClasses:'',xAttributes:'',content:'Log in'}) %>
+			<%- include('button', {action:'/login/clientLogin',xClasses:'btn-secondary',xAttributes:'style=width:200px;',content:'CLIENT'}) %>
 			<!-- <button formaction="/login">Log in</button> -->
-			<%- include('button', {action:'/signup',xClasses:'',xAttributes:'',content:'Sign up'}) %>
+			<%- include('button', {action:'/login/businessLogin',xClasses:'btn-secondary',xAttributes:'style=width:200px;',content:'BUSINESS'}) %>
 			<!-- <button formaction="/signup">Sign up</button> -->
 		</form>
     </div>
