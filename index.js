@@ -43,6 +43,7 @@ const app = express();
 const port = process.env.PORT || 3000;
 const Joi = require('joi');
 const ejs = require('ejs');
+const { content_v2_1 } = require("googleapis");
 
 // 1 hour
 const expireTime = 60 * 60 * 1000;
@@ -71,6 +72,7 @@ let appdb = new MongoClient(`mongodb+srv://${mongodb_user}:${mongodb_password}@$
 
 // This database is set when the user is logged in or signs up for the first time using setUserDatabase().
 let userdb = '';
+let trainerdb = '';
 
 // ----- Collections -----
 const appUserCollection = appdb.db(mongodb_appdb).collection('users');
@@ -82,6 +84,7 @@ const appUserCollection = appdb.db(mongodb_appdb).collection('users');
 app.set('view engine', 'ejs');
 
 app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
 
 // This is for storing active sessions
 var mongoStore = MongoStore.create({
@@ -189,6 +192,23 @@ function setUserDatabase(req) {
 		}
 		let userdbAccess = new MongoClient(`mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/${db}?retryWrites=true`);
 		userdb = userdbAccess.db(db);
+	}
+}
+
+// Allows access to the trainer's database when tied to a client
+async function setTrainerDatabase(req) {
+	if (!isClient(req)) {
+		trainerdb = null;
+	} else {
+		let trainer = await appUserCollection.find({ email: req.session.email}).project({companyName: 1, _id: 1}).toArray();
+		// Checking for if the client currently has a hired trainer.
+		if (trainer[0].companyName == null || trainer[0].companyName == '' || trainer[0].companyName == undefined) {
+			trainerdb = null;
+		} else {
+			let db = mongodb_businessdb + '-' + trainer[0].companyName.replace(/\s/g, "");
+			let trainerdbAccess = new MongoClient(`mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/${db}?retryWrites=true`);
+			trainerdb = trainerdbAccess.db(db);
+		}
 	}
 }
 
@@ -358,7 +378,7 @@ app.post('/submitSignup/:type', async (req, res) => {
 				businessPhone: Joi.string().pattern(/^[0-9\s]*$/).length(10).required(),
 				firstName: Joi.string().pattern(/^[a-zA-Z\s]*$/).max(20).required(),
 				lastName: Joi.string().pattern(/^[a-zA-Z\s]*$/).max(20).required(),
-				companyWebsite: Joi.string().pattern(/^[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/),
+				companyWebsite: Joi.string().pattern(/^(https?:\/\/)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/),
 				password: Joi.string().max(20).min(2).required()
 			}
 		);
@@ -938,77 +958,168 @@ app.post('/deleteAccount', async (req, res) => {
 	res.redirect('/logout');
 });
 
-async function getUserEvents() {
-	var userEvents = await userdb.collection('eventSource').find().project({ title: 1, start: 1, end: 1, _id: 0 }).toArray();
+// ----------------- CALENDAR STUFF GOES HERE -------------------
+
+app.get('/findTrainer', async (req, res) => {
+	const trainers = await appUserCollection.find({ userType: 'business' }).project({ _id: 1, companyName: 1 }).toArray();
+	res.render('findTrainer', {loggedIn: isValidSession(req), userType: req.session.userType, trainers: trainers});
+});
+
+// Temporary add Trainer button for this Branch
+app.post('/addTrainer/:trainer', async (req, res) => {
+	let trainer = req.params.trainer;
+	await appUserCollection.updateOne({email: req.session.email}, {$set: { companyName: trainer}});
+
+	await setTrainerDatabase(req);
+
+	let client = await userdb.collection('info').find().project({email: 1, firstName: 1, lastName: 1, phone: 1}).toArray();
+
+	trainerdb.collection('clients').insertOne(client[0]);
+
+	res.redirect('/');
+});
+
+async function getUserEvents(req) {
+	let userEvents;
+	if (req.session.userType == 'business') {
+		userEvents = await userdb.collection('eventSource').find().project({ _id: 1, title: 1, client: 1, start: 1, end: 1, info: 1}).toArray();
+	} else if (req.session.userType == 'client') {
+		if (trainerdb == null || trainerdb == '' || trainerdb == undefined) {
+			userEvents = null;
+		} else {
+			userEvents = await trainerdb.collection('eventSource').find().project({ _id: 1, title: 1, client: 1, start: 1, end: 1, info: 1}).toArray();
+		}
+	}
 	return userEvents;
 }
 
 app.get('/calendar', async (req, res) => {
 	setUserDatabase(req);
-	res.render('calendarBusiness', {loggedIn: isValidSession(req), userType: req.session.userType});
+	await setTrainerDatabase(req);
+	if (req.session.userType == 'business') {
+		res.render('calendarBusiness', {loggedIn: isValidSession(req), userType: req.session.userType});
+		return;
+	} else if (req.session.userType == 'client') {
+		res.render('calendarClient', {loggedIn: isValidSession(req), userType: req.session.userType});
+	}
+	
 });
 
+// Returns all events to the calendar
 app.get('/events', async (req, res) => {
-	const events = await getUserEvents();
+	const events = await getUserEvents(req);
 	res.json(events);
 });
 
+app.post('/getThisEvent', async (req, res) => {
+	let event = {
+		title: req.body.title,
+		start: req.body.start,
+		end: req.body.end
+	}
+	let result = await userdb.collection('eventSource').find(event).project({_id: 1, client: 1, info: 1}).toArray();
+	res.json(result);
+});
+
+// Returns client list to the calendar
+app.post('/getClients', async (req, res) => {
+	const clientList = await userdb.collection('clients').find().project({ email: 1, _id: 1 }).toArray();
+	res.json(clientList);
+});
+
 app.post('/addEvent', async (req, res) => {
-	var date = req.body.calModDate;
-	var startDate = date + "T" + req.body.calModStartHH + ":" + req.body.calModStartMM + ":00";
-	var endDate = date + "T" + req.body.calModEndHH + ":" + req.body.calModEndMM + ":00";
-	var event = {
+	let date = req.body.calModDate;
+	let startDate = date + "T" + req.body.calModStartHH + ":" + req.body.calModStartMM + ":00";
+	let endDate = date + "T" + req.body.calModEndHH + ":" + req.body.calModEndMM + ":00";
+	let clientEmail = req.body.calModClient;
+	let eventInfo = req.body.calModInfo;
+	let event = {
 		title: req.body.calModTitle,
 		start: startDate,
-		end: endDate
+		end: endDate,
+		client: clientEmail,
+		info: eventInfo
 	};
 
-	await userdb.collection('eventSource').insertOne({
-		title: event.title,
+	// Check for duplicate event
+	let check = userdb.collection('eventSource').find({
+		event: event.title,
 		start: event.start,
-		end: event.end
-	});
+		end: event.end,
+		client: event.client
+	}).project({_id: 1}).toArray(); //Check for everything but info
+
+	if (check.length > 0) {
+		// TODO DUPE ERROR EXIT HERE
+	} else {
+		await userdb.collection('eventSource').insertOne(event);
+	}
+
 	res.redirect('/calendar');
 });
 
 app.post('/updateEvent', async (req, res) => {
-	var date = req.body.calModDate;
-	var startNew = date + "T" + req.body.calModStartHH + ":" + req.body.calModStartMM + ":00";
-	var endNew = date + "T" + req.body.calModEndHH + ":" + req.body.calModEndMM + ":00";
-	var eventOrig = {
+	let date = req.body.calModDate;
+	let startNew = date + "T" + req.body.calModStartHH + ":" + req.body.calModStartMM + ":00";
+	let endNew = date + "T" + req.body.calModEndHH + ":" + req.body.calModEndMM + ":00";
+	let eventOrig = {
 		title: req.body.calModTitleOrig,
 		start: req.body.calModStartOrig,
-		end: req.body.calModEndOrig
+		end: req.body.calModEndOrig,
+		client: req.body.calModEmailOrig,
+		info: req.body.calModInfoOrig
 	}
 
-	var eventNew = {
+	let eventNew = {
 		title: req.body.calModTitle,
 		start: startNew,
-		end: endNew
+		end: endNew,
+		client: req.body.calModEmail,
+		info: req.body.calModInfo
 	}
 
 	await userdb.collection('eventSource').updateOne({
 		title: eventOrig.title,
 		start: eventOrig.start,
-		end: eventOrig.end
+		end: eventOrig.end,
+		client: eventOrig.client,
+		info: eventOrig.info
 	}, {
 		$set: {
 			title: eventNew.title,
 			start: eventNew.start,
-			end: eventNew.end
+			end: eventNew.end,
+			client: eventNew.client,
+			info: eventNew.info
 		}
 	});
+
+	// update using _id, but doesn't work
+	// let eventID = req.body.calModEventID;
+	// console.log(eventID);
+	// await userdb.collection('eventSource').updateOne({ _id: eventID }, { $set: {eventNew} });
+
 	res.redirect('/calendar');
 });
 
 app.post('/removeEvent', async (req, res) => {
-	var calTitle = req.body.calModTitleOrig;
-	var calStart = req.body.calModStartOrig;
-	var calEnd = req.body.calModEndOrig;
+
+	// Delete by _id, but doesn't work
+	// let eventID = req.body.calModEventID;
+	// await userdb.collection('eventSource').deleteOne({ _id: eventID});
+
+	let calTitle = req.body.calModTitleOrig;
+	let calStart = req.body.calModStartOrig;
+	let calEnd = req.body.calModEndOrig;
+	let calEmail = req.body.calModEmailOrig;
+	let calInfo = req.body.calModInfoOrig;
+
 	await userdb.collection('eventSource').deleteOne({
 		title: calTitle,
 		start: calStart,
-		end: calEnd
+		end: calEnd,
+		client: calEmail,
+		info: calInfo
 	});
 	res.redirect('/calendar');
 });
@@ -1019,6 +1130,8 @@ app.get('/clientList', async (req, res) => {
 	console.log(clientList.length);
 	res.render('clientList', {clientArray: clientList, loggedIn: isValidSession(req), userType: req.session.userType});
 });
+
+// ----------------- CALENDAR SECTION ENDS HERE -------------------
 
 app.use(express.static(__dirname + "/public"));
 
