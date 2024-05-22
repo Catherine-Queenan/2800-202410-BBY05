@@ -3,9 +3,16 @@
 <%- include('templates/backLinkButton', {page: '/profile'}) %>
 <div class=" my-2 mt-3 d-flex flex-row justify-content-between">
 	<span class="h5"><%=dog.dogName%></span> 
-	<%- include('templates/button', {action: '',xClasses:'',xAttributes:'id=viewVaccines type=button',content:'View Vaccination Records'}) %>
 </div>
-	<%- include('templates/defaultingPic', {pic: dog.dogPic, picId: 'dogPic'})%>
+<%- include('templates/defaultingPic', {pic: dog.dogPic, picId: 'dogPic'})%>
+<div class="resource-wrap">
+	<div class="resource-html">
+		<input id="tabR-1" type="radio" name="tab" class="tabR-one btn-check" checked>
+		<label for="tabR-1" class="tabR">Dog Profile</label>
+		<input id="tabR-2" type="radio" name="tab" class="tabR-two btn-check">
+		<label for="tabR-2" class="tabR">Vaccination Records</label>
+	<div class="resource-form">
+		<div class="tabR-one-htm">
 	<form class="my-3" id="basicInfo" method="post" enctype="multipart/form-data">
 		<%- include('templates/uploadFile', {divId:'newDogPic', xDivAttributes:'style=display:none', fileId:'dogUpload',fileName:'dogUpload', label:'Upload a New Photo:', xfileAttributes:'accept=.png,.jpg'}) %>
 			<div class="form-group">
@@ -66,8 +73,13 @@
 			<%- include('templates/button', {action: dog._id + '/edit',xClasses:'',xAttributes:'id=saveBasicButton style=display:none',content:'Save'}) %>
 		</div>
 		</form>
+		</div>
+		</div>
 		
-		<form  class="my-3" id="vaccinationRecords" method="post"  enctype="multipart/form-data" style="display:none">
+		<div class="resource-form">
+			<div class="tabR-two-htm">
+
+		<form  class="my-3" id="vaccineInfo" method="post"  enctype="multipart/form-data">
 			<div class="my-3 py-2">
 				<h5>Rabies</h5>
 				<%- include('templates/dateInput', {divId: 'rabiesDateDiv', xDivAttributes:'', dateId: 'rabiesDate',dateClass:'vaccineInput', dateName:'rabiesDate', label:'Expiration Date', xDateAttributes:'disabled value=' + dog.rabies.expirationDate}) %>
@@ -101,20 +113,34 @@
 			<%- include('templates/button', {action:'',xClasses:'',xAttributes:'id=editVaccinesButton type=button',content:'Edit'}) %>
 			<%- include('templates/button', {action: dog._id + '/editVaccines',xClasses:'',xAttributes:'id=saveVaccinesButton style=display:none',content:'Save'}) %>
 		</form>
-
-		<form method="post">
-		<%- include('templates/button', {action: dog._id + '/delete' , xClasses:'',xAttributes:'id=deleteDogButton',content:'Delete Dog'}) %>
-		</form>
+		</div>
 	</div>
+		</div>
+		</div>
 
+		<form id="deleteForm" method="post" action="<%=dog._id%>/delete">
+			<%- include('templates/button', {action: '' , xClasses:'',xAttributes:'id=deleteDogButton type=button',content:'Delete Dog'}) %>
+			</form>
+	</div>
+	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.all.min.js"></script>
+	<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.min.css" rel="stylesheet">
 		<script>
+			//Sweet alert button template
+			const swalWithBootstrapButtons = Swal.mixin({
+				customClass: {
+					confirmButton: "btn btn-main",
+					cancelButton: "btn btn-secondary"
+				},
+				buttonsStyling: false
+			});
+
 			//Identify what form to show on page
 			var page = 'basic';
 
 			//Basic Form displays and edits all basic information
 			//Vaccine Form displays and edits all vaccine related information
 			let basicForm = document.getElementById('basicInfo');
-			let vaccineForm = document.getElementById('vaccinationRecords');
+			let vaccineForm = document.getElementById('vaccineInfo');
 
 			//Collect the buttons used on the page
 			//delete dog button
@@ -131,6 +157,36 @@
 			//Toggles between the two forms
 			let toggleButton = document.getElementById('viewVaccines');
 
+			deleteButton.addEventListener('click', () =>{
+				swalWithBootstrapButtons.fire({
+					title: "Are you sure?",
+					text: "You won't be able to revert this!",
+					icon: "warning",
+					showCancelButton: true,
+					confirmButtonText: "Delete Dog",
+					cancelButtonText: "Cancel",
+					reverseButtons: true
+				}).then((result) => {
+					if (result.isConfirmed) {
+						swalWithBootstrapButtons.fire({
+							title: "Deleted!",
+							text: "Your dog has been deleted.",
+							icon: "success"
+						}).then((result) => {
+							document.getElementById('deleteForm').submit();
+						});
+					} else if (
+						/* Read more about handling dismissals below */
+						result.dismiss === Swal.DismissReason.cancel
+					) {
+						swalWithBootstrapButtons.fire({
+							title: "Cancelled",
+							text: "Delete cancelled; your dog is safe",
+							icon: "error"
+						});
+					}
+				});
+			});
 			//Sets up the basic form for editting
 			editBasicButton.addEventListener('click', ()=>{
 				//Hide the delete button and edit buttons
@@ -164,32 +220,6 @@
 				//update the image display
 				dogPic.src = path;
 				});
-			});
-
-			//Switch which form is displayed
-			toggleButton.addEventListener('click', ()=>{
-				//Change to vaccine form
-				if(page == 'basic'){
-					//Hide basic form and show the vaccine form
-					basicForm.style = "display:none;";
-					vaccineForm.style = "display:block;";
-
-					//Change toggle button to say it takes you to the basic form
-					toggleButton.innerHTML = "View Profile";
-
-					//Change the variable reflect the current form
-					page = 'vaccines';
-				} else {
-					//Hide vaccine form and show the basic form
-					vaccineForm.style = "display:none;"
-					basicForm.style = "display:block;"
-
-					//Change toggle button to say it takes you to the vaccine form
-					toggleButton.innerHTML = "View Vaccination Records";
-
-					//Change the variable reflect the current form
-					page = 'basic';
-				}
 			});
 
 			//Allow the vaccine records to be editted

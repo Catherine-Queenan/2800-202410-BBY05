@@ -1,46 +1,84 @@
 <style>
-		/* Navbar */
-	/* Ensure the navbar sits above the content */
-	.navbar.fixed-top {
-		z-index: 1030; /* Bootstrap default for fixed-top navbar */
-	}
-	/* Add padding to the body to avoid content being overlapped by the navbar */
-	body {
-		padding-top: 80px; /* Adjust this value based on the navbar height */
-	}
-	/* End of Navbar */
-</style>
-
-<nav class="navbar fixed-top whiteBackground border-bottom border-body">
-    <div class="container-fluid collapse navbar-collapse">
-      	<a class="navbar-brand">
-			<form method="get">
-				<%- include('icon', {iconPath: '/icons/Logo.png', altText: 'Logo', action: '/', theClass: '', theAttributes: 'style= width:50px; height:50px;'}) %>
-			</form>
-	  	</a>
-			
+	/* Navbar */
+  /* Ensure the navbar sits above the content */
+  .navbar.fixed-top {
+	z-index: 1030; /* Bootstrap default for fixed-top navbar */
+  }
+  /* Add padding to the body to avoid content being overlapped by the navbar */
+  body {
+	padding-top: 80px; /* Adjust this value based on the navbar height */
+  }
+  /* End of Navbar */
+  </style>
+  
+  <nav class="navbar fixed-top whiteBackground border-bottom border-body">
+	  <div class="container-fluid">
+		<a class="navbar-brand">
+		  <form method="get">
+			<%- include('icon', {iconPath: '/icons/Logo.png', altText: 'Logo', action: '/', theClass: '', theAttributes: 'style= width:50px; height:50px;'}) %>
+		  </form>
+		</a>
 		<form method="get" class="col-md-4 d-flex">
-	  	<ul class="nav nav-pills align-items-center">
-			<li class="nav-item pe-4">
-				<div class="d-flex flex-column align-items-center">
-					<%- include('icon', {iconPath: '/icons/Calendar.png', altText: 'Logo', action: '/calendar', theClass: '', theAttributes: 'style= width:30px; height:30px;'}) %>
-					<span class="yeseva-one">Calendar</span>
-				</div>
-			</li>
-			<li class="nav-item pe-4">
-				<div class="d-flex flex-column align-items-center">
-					<%- include('icon', {iconPath: '/icons/Resources.png', altText: 'Logo', action: '/', theClass: '', theAttributes: 'style= width:30px; height:30px;'}) %>
-					<span class="yeseva-one">Resources</span>
-				</div>
-			</li>
-			<li class="nav-item">
-				<div class="d-flex flex-column align-items-center">
-					<%- include('icon', {iconPath: '/icons/Profile.png', altText: 'Logo', action: '/', theClass: '', theAttributes: 'style= width:30px; height:30px;'}) %>
-					<span class="yeseva-one">Settings</span>
-				</div>
-			</li>
-			<!--TODO: Get the dropdown working-->
+		  <ul class="nav nav-pills align-items-center">
+		  <li class="nav-item pe-3">
+			<div class="d-flex flex-column align-items-center">
+			  <%- include('icon', {iconPath: '/icons/Schedule.png', altText: 'Schedule', action: '/', theClass: '', theAttributes: 'style= width:30px; height:30px;;'}) %>
+			  <a href="/"><span class="yeseva-one">Sessions</span></a> 
+			</div>
+		  </li>
+		  <li class="nav-item pe-3">
+			<div class="d-flex flex-column align-items-center">
+			  <%- include('icon', {iconPath: '/icons/Calendar.png', altText: 'Calendar', action: '/', theClass: '', theAttributes: 'style= width:30px; height:30px;'}) %>
+			  <a href="/"><span class="yeseva-one">Booking</span></a>
+			</div>
+		  </li>
+		  <li class="nav-item">
+			<div class="d-flex flex-column align-items-center">
+			  <%- include('icon', {iconPath: '/icons/Client.png', altText: 'Trainer', action: '/', theClass: '', theAttributes: 'style= width:30px; height:30px;'}) %>
+			  <a href="/"><span class="yeseva-one">Trainer</span></a>
+			</div>
+		  </li>
 		</ul>
 		</form>
-    </div>
-</nav>
+		<button class="navbar-toggler custom-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar" aria-label="Toggle navigation">
+		  <span class="navbar-toggler-icon"><span></span></span>
+		</button>
+		<div class="offcanvas offcanvas-end offcanvas-custom" style="background-color:#F0F1FA !important" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
+		  <div class="offcanvas-header d-flex">
+			<h5 class="offcanvas-title yeseva-one fw-bold" id="offcanvasNavbarLabel">More Options</h5>
+			<button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+		  </div>
+		  <div class="offcanvas-body" style="background: linear-gradient(180deg, rgba(240,241,250,1) 0%, rgba(240, 241, 250, 0.60) 40%),
+		  									url('/images/PawBack.png') center no-repeat;">
+			<form method="get" class="col-md-4 d-flex">
+			<ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
+			  <li class="nav-item py-3">
+				<div class="d-flex align-items-center">
+				  <%- include('icon', {iconPath: '/icons/Profile.png', altText: 'Account', action: '/', theClass: '', theAttributes: 'style= width:30px; height:30px;'}) %>
+				  <a href="/" class="ps-3"><span class="yeseva-one">Account</span></a>
+				</div>
+			  </li>
+			  <li class="nav-item py-3">
+				<div class="d-flex align-items-center">
+				  <%- include('icon', {iconPath: '/icons/Resources.png', altText: 'Resources', action: '/clientResources', theClass: '', theAttributes: 'style= width:30px; height:30px;'}) %>
+				  <a href="/clientResources" class="ps-3"><span class="yeseva-one">Resources</span></a>
+				</div>
+			  </li>
+			  <li class="nav-item py-3">
+				<div class="d-flex align-items-center">
+				  <%- include('icon', {iconPath: '/icons/Bell.png', altText: 'Bell', action: '/', theClass: '', theAttributes: 'style= width:30px; height:30px;'}) %>
+				  <a href="/" class="ps-3"><span class="yeseva-one">Alerts</span></a>
+				</div>
+			  </li>
+			  <li class="nav-item py-3">
+				<div class="d-flex align-items-center">
+				  <%- include('icon', {iconPath: '/icons/Support.png', altText: 'Support', action: '/', theClass: '', theAttributes: 'style= width:30px; height:30px;;'}) %>
+				  <a href="/" class="ps-3"><span class="yeseva-one">Support</span></a>
+				</div>
+			  </li>
+			</ul>
+		  </form>
+		  </div>
+		</div>
+	  </div>
+	</nav>
