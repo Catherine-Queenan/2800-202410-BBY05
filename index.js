@@ -122,7 +122,11 @@ const transporter = nodemailer.createTransport({
 	}
 });
 
-
+// Passes a variable called 'currentUrl' to whatever page we're on.
+app.use((req, res, next) => {
+    res.locals.currentUrl = req.originalUrl; // I don't think we're doing any internal routing, but for safety, I'm using originalUrl instead of url to prevent issues in the future.
+    next();
+});
 
 app.use(session({
 	secret: node_session_secret,
