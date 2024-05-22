@@ -40,15 +40,16 @@ body {
         </li>
       </ul>
       </form>
-      <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
+      <button class="navbar-toggler custom-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"><span></span></span>
       </button>
-      <div class="offcanvas offcanvas-end" style="background-color:#F0F1FA !important" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
-        <div class="offcanvas-header">
-          <h5 class="offcanvas-title yeseva-one fw-bold" id="offcanvasNavbarLabel">More Options</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+      <div class="offcanvas offcanvas-end offcanvas-custom" style="background-color:#F0F1FA !important" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
+        <div class="offcanvas-header d-flex">
+        <h5 class="offcanvas-title yeseva-one fw-bold" id="offcanvasNavbarLabel">More Options</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
-        <div class="offcanvas-body" style="background-color:#F0F1FA !important">
+        <div class="offcanvas-body" style="background: linear-gradient(180deg, rgba(240,241,250,1) 0%, rgba(240, 241, 250, 0.60) 40%),
+		  									url('/images/PawBack.png') center no-repeat;">
           <form method="get" class="col-md-4 d-flex">
           <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
             <li class="nav-item py-3">
