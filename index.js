@@ -427,8 +427,6 @@ app.post('/submitSignup/:type', async (req, res) => {
 			email: user.businessEmail,
 			phone: user.businessPhone,
 			services: user.services,
-			firstName: user.firstName,
-			lastName: user.lastName,
 			companyWebsite: user.companyWebsite
 		});
 
@@ -697,7 +695,11 @@ app.get('/profile', sessionValidation, async(req, res) => {
 		if(user.logo != ''){
 			user.logo = cloudinary.url(user.logo);
 		}
+
 		let trainer = await userdb.collection('trainer').findOne();
+		if(trainer.trainerPic != ''){
+			trainer.trainerPic = cloudinary.url(trainer.trainerPic);
+		}
 
 		res.render('businessProfile', {loggedIn: isValidSession(req), business: user, trainer: trainer, userType: req.session.userType});
 	}
@@ -734,8 +736,6 @@ app.post('/profile/edit/:editType', sessionValidation, upload.array('accountUplo
 			req.body.logo - business[0].logo;
 		}
 
-		console.log(req.body);
-
 		await userdb.collection('info').updateOne({companyName: req.session.name}, {$set: req.body});
 		res.redirect('/profile');
 	} else if(editType == 'trainer'){
@@ -743,12 +743,12 @@ app.post('/profile/edit/:editType', sessionValidation, upload.array('accountUplo
 
 		if(req.files.length != 0){
 			await deleteUploadedImage(trainer[0].trainerPic);
-			req.body.trainerPic = await uploadImage(req.files[0], "businessLogos");
+			req.body.trainerPic = await uploadImage(req.files[0], "trainerAvatars");
 		} else {
 			req.body.trainerPic - trainer[0].trainerPic;
 		}
 
-		await userdb.collection('info').updateOne({companyName: req.session.name}, {$set: req.body});
+		await userdb.collection('trainer').updateOne({companyName: req.session.name}, {$set: req.body});
 		res.redirect('/profile');
 	}
 

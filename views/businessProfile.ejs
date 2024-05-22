@@ -1,102 +1,122 @@
 <%- include("templates/header") %>
-<span class="h5"><%=business.companyName%></span> 
-	<div class="my-3">
-		<%- include('templates/tab', {xClasses:'toggleButton',xAttributes:'type=button value=business id=businessToggle disabled',content:'View Business Details'}) %>
-		<%- include('templates/tab', {xClasses:'toggleButton',xAttributes:'type=button value=trainer id=trainerToggle',content:'View Trainer Profile'}) %>
-		<%- include('templates/tab', {xClasses:'toggleButton',xAttributes:'type=button value=programs id=programsToggle',content:'View Programs'}) %>
-	</div>
-</div>
+	<div class="container"> <!--Added container div to center content on page-->
+		<p class="h5"><%=business.companyName%></p>  <!--Page title-->
+        
+    	<!--TODO: Catherine links tabs.ejs here-->
+        <div class="resource-wrap">
+            <div class="resource-html">
+                <input id="tabR-1" type="radio" name="tab" class="tabR-one btn-check" checked>
+                <label for="tabR-1" class="tabR">Business Details</label>
+                <input id="tabR-2" type="radio" name="tab" class="tabR-two btn-check" >
+                <label for="tabR-2" class="tabR">Trainer Profile</label>
+                <input id="tabR-3" type="radio" name="tab" class="tabR-three btn-check">
+                <label for="tabR-3" class="tabR">Programs</label>
+                <div class="resource-form">
+                    <div class="tabR-one-htm">
+                        <form class="my-3" id="businessInfo" method="post" enctype="multipart/form-data">
+							<%- include('templates/defaultingPic', {pic: business.logo, picId: 'logoShow'})%>
+							<%- include('templates/uploadFile', {divId:'businessUpload', xDivAttributes:'style=display:none', fileId:'logo',fileName:'accountUpload', label:'Upload your Logo:', xfileAttributes:'accept=.png,.jpg'}) %>
+						
+								<div class="form-group row">
+									<label for="companyEmail">Company Email:</label>
+									<input class="businessInfo col-4" type="email" id="companyEmail" name="email" value="<%=business.email%>" required disabled>
+								</div>
+						
+								<div class="form-group row">
+									<label for="companyPhone">Company Phone Number:</label>
+									<input class="businessInfo col-4" type="tel" id="companyPhone" name="phone" value="<%=business.phone%>" required disabled>
+								</div>
+						
+								
+								<br>
+								<div  class="card" style="width: 18rem;">
+									<ul id="serviceList" class="list-group list-group-flush">
+										<% for(let i = 0; i < business.services.length; i++){ %>
+											<%- include('templates/businessServiceBox', {serviceName: business.services[i]}) %>
+										<%}%>
+									</ul>
+								</div>
+								<%- include('templates/button', {action:'',xClasses:'',xAttributes:'id=addService type=button value=business style=display:none',content:'Add Service'}) %>
+						
+								<div id="addServiceInputDiv" style="display:none">
+									<input class="col-4" type="text" id="toAddService">
+									<%- include('templates/button', {action:'',xClasses:'',xAttributes:'id=submitService type=button value=business ',content:'Save Service'}) %>
+								</div>
+								<br>
+						
+								<div class="form-group row">
+									<label for="companyPhone">Company Website:</label>
+									<input class="businessInfo col-4" type="text" id="companySite" name="companyWebsite" value="<%=business.companyWebsite%>" required disabled>
+								</div>
+									
+								<div class="form-group">
+									<label for="specialAlerts">Business Description:</label>
+									<textarea class="form-control businessInfo" id="businessDescrtiption" name="description" rows="4" disabled><%=business.description%></textarea>
+								</div>
+						
+								<div class="my-3">
+								
+								<%- include('templates/button', {action:'',xClasses:'editButton',xAttributes:'id=businessEditButton type=button value=business',content:'Edit'}) %>
+								<%- include('templates/button', {action: '/profile/edit/businessDetails',xClasses:'saveButton',xAttributes:'id=businessSaveButton style=display:none',content:'Save'}) %>
+								
+							</div>
+							</form>
+                    </div>
+                </div>
+                <div class="resource-form">
+                    <div id="tab2" class="tabR-two-htm">
+                        <form  class="my-3 tabR-two-htm" id="trainerInfo" method="post"  enctype="multipart/form-data">
+							<%- include('templates/defaultingPic', {pic: trainer.trainerPic, picId: 'trainerPicShow'})%>
+							<%- include('templates/uploadFile', {divId:'trainerUpload', xDivAttributes:'style=display:none', fileId:'trainerPic',fileName:'accountUpload', label:'Upload your Photo:', xfileAttributes:'accept=.png,.jpg'}) %>
+							
+							<div class="form-group">
+								<label for="companyName">First Name:</label>
+								<input class="trainerInfo" type="text" id="trainerFirstName" name="firstName" value="<%=trainer.firstName%>" required disabled>
+							</div>
+					
+							<div class="form-group">
+								<label for="companyName">Last Name:</label>
+								<input class="trainerInfo" type="text" id="trainerLastName" name="lastName" value="<%=trainer.lastName%>" required disabled>
+							</div>
 
-	<form class="my-3" id="businessInfo" method="post" enctype="multipart/form-data">
-	<%- include('templates/defaultingPic', {pic: business.logo, picId: 'logoShow'})%>
-	<%- include('templates/uploadFile', {divId:'businessUpload', xDivAttributes:'style=display:none', fileId:'logo',fileName:'accountUpload', label:'Upload your Logo:', xfileAttributes:'accept=.png,.jpg'}) %>
+							<div class="form-group">
+								<label for="specialAlerts">Certifications:</label>
+								<textarea class="form-control trainerInfo" id="trainerCert" name="certifications" rows="2" disabled><%=trainer.certifications%></textarea>
+							</div>
+					
+							<div class="form-group">
+								<label for="specialAlerts">Trainer Introduction:</label>
+								<textarea class="form-control trainerInfo" id="trainerIntro" name="intro" rows="3" disabled><%=trainer.intro%></textarea>
+							</div>
+					
+							<div class="my-3">
+								<%- include('templates/button', {action:'',xClasses:'editButton',xAttributes:'id=trainerEditButton type=button value=trainer',content:'Edit'}) %>
+								<%- include('templates/button', {action: '/profile/edit/trainer',xClasses:'saveButton',xAttributes:'id=trainerSaveButton style=display:none',content:'Save'}) %>
+							</div>
 
-		<div class="form-group row">
-			<label for="companyEmail">Company Email:</label>
-			<input class="businessInfo col-4" type="email" id="companyEmail" name="email" value="<%=business.email%>" required disabled>
-		</div>
-
-		<div class="form-group row">
-			<label for="companyPhone">Company Phone Number:</label>
-			<input class="businessInfo col-4" type="tel" id="companyPhone" name="phone" value="<%=business.phone%>" required disabled>
-		</div>
-
-		
-		<br>
-		<div  class="card" style="width: 18rem;">
-			<ul id="serviceList" class="list-group list-group-flush">
-				<% for(let i = 0; i < business.services.length; i++){ %>
-					<%- include('templates/businessServiceBox', {serviceName: business.services[i]}) %>
-				<%}%>
-			</ul>
-		</div>
-		<%- include('templates/button', {action:'',xClasses:'',xAttributes:'id=addService type=button value=business style=display:none',content:'Add Service'}) %>
-
-		<div id="addServiceInputDiv" style="display:none">
-			<input class="col-4" type="text" id="toAddService">
-			<%- include('templates/button', {action:'',xClasses:'',xAttributes:'id=submitService type=button value=business ',content:'Save Service'}) %>
-		</div>
-		<br>
-
-		<div class="form-group row">
-			<label for="companyPhone">Company Website:</label>
-			<input class="businessInfo col-4" type="text" id="companySite" name="companyWebsite" value="<%=business.companyWebsite%>" required disabled>
-		</div>
-			
-		<div class="form-group">
-			<label for="specialAlerts">Business Description:</label>
-			<textarea class="form-control businessInfo" id="businessDescrtiption" name="description" rows="3" disabled><%=business.description%></textarea>
-		</div>
-
-		<div class="my-3">
-		
-		<%- include('templates/button', {action:'',xClasses:'editButton',xAttributes:'id=businessEditButton type=button value=business',content:'Edit'}) %>
-		<%- include('templates/button', {action: '/profile/edit/businessDetails',xClasses:'saveButton',xAttributes:'id=businessSaveButton style=display:none',content:'Save'}) %>
-		
-	</div>
-	</form>
+						</form>
+                    </div>
+                </div>
+                <div class="resource-form">
+                    <div class="tabR-three-htm">
+                        <form class="my-3" id="programsInfo" method="post"  enctype="multipart/form-data">
 	
-	<form  class="my-3" id="trainerInfo" method="post"  enctype="multipart/form-data" style="display:none">
-		<%- include('templates/defaultingPic', {pic: trainer.profilePic, picId: 'trainerPicShow'})%>
-		<%- include('templates/uploadFile', {divId:'trainerUpload', xDivAttributes:'style=display:none', fileId:'trainerPic',fileName:'accountUpload', label:'Upload your Photo:', xfileAttributes:'accept=.png,.jpg'}) %>
 		
-		<div class="form-group">
-			<label for="companyName">First Name:</label>
-			<input class="trainerInfo" type="text" id="trainerFirstName" name="firstName" value="<%=trainer.firstName%>" required disabled>
-		</div>
+							<div>Nothing here yet</div>
+					
+					
+						
+						</form>	
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div> <!--End container div-->
 
-		<div class="form-group">
-			<label for="companyName">Last Name:</label>
-			<input class="trainerInfo" type="text" id="trainerLastName" name="lastName" value="<%=trainer.lastName%>" required disabled>
-		</div>
-
-		<div class="form-group">
-			<label for="companyName">Certifications:</label>
-			<input class="trainerInfo" type="text" id="trainerCert" name="certifications" value="<%=trainer.certifications%>" disabled>
-		</div>
-
-		<div class="form-group">
-			<label for="specialAlerts">Trainer Introduction:</label>
-			<textarea class="form-control trainerInfo" id="trainerIntro" name="trainerIntro" rows="3" disabled><%=trainer.intro%></textarea>
-		</div>
-
-		<%- include('templates/button', {action:'',xClasses:'editButton',xAttributes:'id=trainerEditButton type=button value=trainer',content:'Edit'}) %>
-		<%- include('templates/button', {action: '/profile/edit/trainer',xClasses:'saveButton',xAttributes:'id=trainerSaveButton style=display:none',content:'Save'}) %>
-	</form>
-
-	<form class="my-3" id="programsInfo" method="post"  enctype="multipart/form-data" style="display:none">
-	
-		
-		<div>Nothing here yet</div>
-
-
-	
-	</form>
 
 	<template id="serviceTemplate">
 		<%- include('templates/businessServiceBox', {serviceName:'', displayButton: 'display'}) %>
 	</template>
-</div>
 
 <script>
 	//Find the profile image upload element
@@ -112,26 +132,6 @@
 
 			//update the image display
 			showPic.src = path;
-		});
-	});
-
-	let page = 'business';
-	let toggleButtons = document.querySelectorAll('.toggleButton');
-	toggleButtons.forEach((button) => {
-		button.addEventListener('click', () =>{
-			let currForm = document.getElementById(page + 'Info');
-			currForm.style = 'display: none';
-
-			let newForm = document.getElementById(button.value + 'Info');
-			newForm.style = 'display: block';
-
-			let currButton = document.getElementById(page + 'Toggle');
-			currButton.disabled = false;
-
-			button.disabled = true;
-
-			page = button.value;
-
 		});
 	});
 
