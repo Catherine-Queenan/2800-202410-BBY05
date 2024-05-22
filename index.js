@@ -1013,6 +1013,33 @@ app.post('/removeEvent', async (req, res) => {
 	res.redirect('/calendar');
 });
 
+app.get('/trainers', async(req, res) => {
+	let businesses = await appUserCollection.find({userType: 'business'}).project({companyName: 1}).toArray();
+	let businessDetails = [];
+	let businessTrainers = [];
+	
+	for(let i = 0; i < businesses.length; i++){
+		let name = businesses[i].companyName;
+		db = mongodb_businessdb + '-' + name.replace(/\s/g, "");
+		let userdbAccess = new MongoClient(`mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/${db}?retryWrites=true`);
+		let tempUser = userdbAccess.db(db);
+
+		let info = await tempUser.collection('info').find({companyName: name}).toArray();
+		let trainer = await tempUser.collection('trainer').find({companyName: name}).toArray();
+
+		if(info[0].logo != ''){
+			info[0].logo = cloudinary.url(info[0].logo);
+		}
+
+		businessDetails.push(info[0]);
+		businessTrainers.push(trainer[0]);
+	}
+	console.log(businessDetails);
+	console.log(businessTrainers);
+
+	res.render('viewTrainers', {loggedIn: isValidSession(req), userType: req.session.userType, businesses: businessDetails, trainers: businessTrainers});
+});
+
 app.use(express.static(__dirname + "/public"));
 
 app.get('*', (req, res) => {
