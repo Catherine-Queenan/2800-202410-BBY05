@@ -1247,6 +1247,9 @@ app.post('/removeEvent', async (req, res) => {
 	res.redirect('/calendar');
 });
 
+// ----------------- CALENDAR SECTION ENDS HERE -------------------
+
+
 app.get('/clientList', async (req, res) => {
 	// console.log(req.session.name);
 	clientList = await appUserCollection.find({companyName: null, userType: 'client'}).project({email: 1, firstName: 1, lastName: 1}).toArray();
@@ -1254,7 +1257,12 @@ app.get('/clientList', async (req, res) => {
 	res.render('clientList', {clientArray: clientList, loggedIn: isValidSession(req), userType: req.session.userType});
 });
 
-// ----------------- CALENDAR SECTION ENDS HERE -------------------
+document.getElementById('searchInput').addEventListener('input', (event) => {
+	const searchTerm = event.target.value.toLowerCase();
+
+	console.log(searchTerm);
+});
+
 
 app.use(express.static(__dirname + "/public"));
 
