@@ -1,8 +1,6 @@
 <li class="list-group-item d-flex flex-row justify-content-between" id="<%=serviceName.replace(' ', '')%>Item">
 	<span><%=serviceName%></span>
 	<%- include('button', {action: '', xClasses: 'serviceDelete', xAttributes: 'type=button style=display:none; value=' + serviceName.replace(' ', ''), content: 'X' }) %>
-	<div class="hiddenDiv" style="display:none">
-		<input class="serviceField" name="services" type="text" value="<%=serviceName%>" required>
-	</div>
+	<input class="serviceField" name="services" type="hidden" value="<%=serviceName%>" required>
 	
 </li>

@@ -1,7 +1,7 @@
 <div class="card" style="width: 18rem;">
   <%- include('defaultingPic', {pic: dog.dogPic, picId: dog._id + 'OldPic'})%>
     <div class="card-body">
-      <h5 class="card-title"><%=dog.dogName%></h5>
+      <a href="/dog/<%=dog._id%>"> <h5 class="card-title"><%=dog.dogName%></h5></a>
       <form>
     <%- include('button', {action:'/dog/' + dog._id,xClasses:'seeMore',xAttributes:'',content:'See More'}) %>
   </form>

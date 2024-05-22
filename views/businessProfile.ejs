@@ -5,12 +5,15 @@
     	<!--TODO: Catherine links tabs.ejs here-->
         <div class="resource-wrap">
             <div class="resource-html">
-                <input id="tabR-1" type="radio" name="tab" class="tabR-one btn-check" checked>
+                <input id="tabR-1" type="radio" name="tab" class="tabR-one btn-check" <%=businessTab%>>
                 <label for="tabR-1" class="tabR">Business Details</label>
-                <input id="tabR-2" type="radio" name="tab" class="tabR-two btn-check" >
+
+                <input id="tabR-2" type="radio" name="tab" class="tabR-two btn-check" <%=trainerTab%>>
                 <label for="tabR-2" class="tabR">Trainer Profile</label>
-                <input id="tabR-3" type="radio" name="tab" class="tabR-three btn-check">
+
+                <input id="tabR-3" type="radio" name="tab" class="tabR-three btn-check" <%=programsTab%>>
                 <label for="tabR-3" class="tabR">Programs</label>
+
                 <div class="resource-form">
                     <div class="tabR-one-htm">
                         <form class="my-3" id="businessInfo" method="post" enctype="multipart/form-data">
@@ -45,12 +48,12 @@
 								<br>
 						
 								<div class="form-group row">
-									<label for="companyPhone">Company Website:</label>
+									<label for="companySite">Company Website:</label>
 									<input class="businessInfo col-4" type="text" id="companySite" name="companyWebsite" value="<%=business.companyWebsite%>" required disabled>
 								</div>
 									
 								<div class="form-group">
-									<label for="specialAlerts">Business Description:</label>
+									<label for="businessDescrtiption">Business Description:</label>
 									<textarea class="form-control businessInfo" id="businessDescrtiption" name="description" rows="4" disabled><%=business.description%></textarea>
 								</div>
 						
@@ -70,22 +73,22 @@
 							<%- include('templates/uploadFile', {divId:'trainerUpload', xDivAttributes:'style=display:none', fileId:'trainerPic',fileName:'accountUpload', label:'Upload your Photo:', xfileAttributes:'accept=.png,.jpg'}) %>
 							
 							<div class="form-group">
-								<label for="companyName">First Name:</label>
+								<label for="trainerFirstName">First Name:</label>
 								<input class="trainerInfo" type="text" id="trainerFirstName" name="firstName" value="<%=trainer.firstName%>" required disabled>
 							</div>
 					
 							<div class="form-group">
-								<label for="companyName">Last Name:</label>
+								<label for="trainerLastName">Last Name:</label>
 								<input class="trainerInfo" type="text" id="trainerLastName" name="lastName" value="<%=trainer.lastName%>" required disabled>
 							</div>
 
 							<div class="form-group">
-								<label for="specialAlerts">Certifications:</label>
+								<label for="trainerCert">Certifications:</label>
 								<textarea class="form-control trainerInfo" id="trainerCert" name="certifications" rows="2" disabled><%=trainer.certifications%></textarea>
 							</div>
 					
 							<div class="form-group">
-								<label for="specialAlerts">Trainer Introduction:</label>
+								<label for="trainerIntro">Trainer Introduction:</label>
 								<textarea class="form-control trainerInfo" id="trainerIntro" name="intro" rows="3" disabled><%=trainer.intro%></textarea>
 							</div>
 					
@@ -99,14 +102,64 @@
                 </div>
                 <div class="resource-form">
                     <div class="tabR-three-htm">
-                        <form class="my-3" id="programsInfo" method="post"  enctype="multipart/form-data">
-	
-		
-							<div>Nothing here yet</div>
-					
-					
-						
-						</form>	
+						<% if(programs.length > 0){ %>
+							<% for(let i = 0; i < programs.length; i++){ %>
+								<%- include('templates/programProfileView', {program: programs[i]}) %>
+							<% } %>
+						<% } else { %>
+							<p>You haven't created any programs</p>
+						<% } %>
+
+						<%- include('templates/button', {action:'',xClasses:'',xAttributes:'type=button id=addProgramButton',content:'Add Program'}) %>
+						<!--
+							Discounts
+							Hourly rate
+							Program hours
+							Program Name
+							Description
+						-->
+						<br>
+						<div class="border">
+						<form id="newProgramForm" method="post" style="display:none">
+							<div class="form-group row">
+								<label class="col-2" for="programName">Program Name:</label>
+								<input class="col-4 newProgramInfo" type="text" id="programName" name="name" required>
+							</div>
+							
+							<div class="form-group">
+								<div>
+									<label for="hourlyToggle">Hourly Rate</label>
+									<input type="radio" id="hourlyToggle" name="priceType" class="pricingChoice" value="Hourly Rate" checked>
+								</div>
+								
+								<div>
+									<label for="setToggle">Set Price</label>
+									<input type="radio" id="setToggle" name="priceType" class="pricingChoice" value="Set Price">
+								</div>
+							</div>
+
+							<div class="form-group row">
+								<label class="col-2" id="priceLabel" for="price">Hourly Rate:</label>
+								<input class="col-4 newProgramInfo" type="number" id="price" name="price" min="0" step="0.01" required/>
+							</div>
+
+							<div class="form-group row">
+								<label class="col-2" for="programDiscounts">Discounts:</label>
+								<textarea class="col-4 form-control newProgramInfo" style="width:80%" id="programDiscounts" name="discounts" rows="2"></textarea>
+							</div>
+
+							<div class="form-group row">
+								<label class="col-2" for="hours">Total Hours:</label>
+								<input class="col-4 newProgramInfo" type="number" id="hours" name="hours" min="0" step="0.01" required/>
+							</div>
+
+							<div class="form-group row">
+								<label class="col-2" for="programDescription">Program Description:</label>
+								<textarea class="col-4 form-control newProgramInfo" style="width:80%" id="programDescription" name="description" rows="3" required></textarea>
+							</div>
+
+							<%- include('templates/button', {action:'/profile/edit/addProgram',xClasses:'',xAttributes:'',content:'Add'}) %>
+						</form>
                     </div>
                 </div>
             </div>
@@ -117,7 +170,6 @@
 	<template id="serviceTemplate">
 		<%- include('templates/businessServiceBox', {serviceName:'', displayButton: 'display'}) %>
 	</template>
-
 <script>
 	//Find the profile image upload element
 	let picUploads = document.querySelectorAll('[name=accountUpload]');
@@ -202,23 +254,27 @@
 		});
 	});
 
+	let addProgramButton = document.getElementById('addProgramButton');
+	let programForm = document.getElementById('newProgramForm');
+	addProgramButton.addEventListener('click', () => {
+		programForm.style = 'display:block';
+		addProgramButton.style = 'display:none';
+	});
 	
-	
+	let priceLabel = document.getElementById('priceLabel');
+	let pricingToggles = document.querySelectorAll('.pricingChoice');
+	pricingToggles.forEach((toggle) => {
+		toggle.addEventListener('change', () => {
+			console.log('aaaa');
+			if(toggle.checked){
+				priceLabel.innerHTML = toggle.value + ":";
+			}
+
+
+		});
+	});
 	
 
 </script>
 
 <%- include("templates/footerCopyright") %>
-
-<!--
-Business Specifics:
-	Company name
-	Email
-	Phone
-	Services
-	Company Website
-
-trainer:
-	First Name
-	Last Name
--->

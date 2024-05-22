@@ -692,6 +692,8 @@ app.get('/profile', sessionValidation, async(req, res) => {
 		res.render('clientProfile', {loggedIn: isValidSession(req), user: user, dogs: dogs, userName: req.session.name, userType: req.session.userType});
 		return;
 	} else {
+		let programs = await userdb.collection('programs').find({}).toArray();
+
 		if(user.logo != ''){
 			user.logo = cloudinary.url(user.logo);
 		}
@@ -701,7 +703,14 @@ app.get('/profile', sessionValidation, async(req, res) => {
 			trainer.trainerPic = cloudinary.url(trainer.trainerPic);
 		}
 
-		res.render('businessProfile', {loggedIn: isValidSession(req), business: user, trainer: trainer, userType: req.session.userType});
+		if(req.query.tab == 'trainer'){
+			res.render('businessProfile', {loggedIn: isValidSession(req), business: user, trainer: trainer, programs: programs, businessTab: '', trainerTab: 'checked', programsTab: '', userType: req.session.userType});
+		} else if(req.query.tab == 'program'){
+			res.render('businessProfile', {loggedIn: isValidSession(req), business: user, trainer: trainer, programs: programs, businessTab: '', trainerTab: '', programsTab: 'checked', userType: req.session.userType});
+		} else {
+			res.render('businessProfile', {loggedIn: isValidSession(req), business: user, trainer: trainer, programs: programs, businessTab: 'checked', trainerTab: '', programsTab: '', userType: req.session.userType});
+		}
+		
 	}
 
 });
@@ -737,7 +746,7 @@ app.post('/profile/edit/:editType', sessionValidation, upload.array('accountUplo
 		}
 
 		await userdb.collection('info').updateOne({companyName: req.session.name}, {$set: req.body});
-		res.redirect('/profile');
+		res.redirect('/profile?tab=business');
 	} else if(editType == 'trainer'){
 		let trainer = await userdb.collection('trainer').find({companyName: req.session.name}).project({trainerPic: 1}).toArray();
 
@@ -749,9 +758,57 @@ app.post('/profile/edit/:editType', sessionValidation, upload.array('accountUplo
 		}
 
 		await userdb.collection('trainer').updateOne({companyName: req.session.name}, {$set: req.body});
-		res.redirect('/profile');
+		res.redirect('/profile?tab=trainer');
+	} else if(editType == 'addProgram'){
+		program = {
+			name: req.body.name,
+			pricing: {
+				priceType: req.body.priceType,
+				price: req.body.price
+			},
+			discount: req.body.discounts,
+			hours: req.body.hours,
+			description: req.body.description
+		}
+
+		await userdb.collection('programs').insertOne(program);
+		res.redirect('/profile?tab=program');
 	}
 
+});
+
+app.get('/program/:programId', async(req, res) => {
+	//bandaid fix so its easier to test (delete later)
+	setUserDatabase(req);
+
+	let programId =  ObjectId.createFromHexString(req.params.programId);
+	let program = await userdb.collection('programs').find({_id: programId}).toArray();
+	res.render('programDetails', {loggedIn: isValidSession(req), userType: req.session.userType, program: program[0]});
+});
+
+app.post('/program/:programId/edit', async(req, res) => {
+	//bandaid fix so its easier to test (delete later)
+	setUserDatabase(req);
+	
+
+	let programId =  ObjectId.createFromHexString(req.params.programId);
+
+	program = {
+		name: req.body.name,
+		pricing: {
+			priceType: req.body.priceType,
+			price: req.body.price
+		},
+		discount: req.body.discounts,
+		hours: req.body.hours,
+		description: req.body.description
+	}
+
+	console.log(program);
+
+	await userdb.collection('programs').updateOne({_id: programId}, {$set: program});
+
+	res.redirect('/program/' + req.params.programId);
 });
 
 //Form for adding a new dog

@@ -1,0 +1,88 @@
+<%- include("templates/header") %>
+<p><%=program.name%></p>
+<form id="newProgramForm" method="post">
+    <div class="form-group row">
+        <label class="col-2" for="programName">Program Name:</label>
+        <input class="col-4 programInfo" type="text" id="programName" value="<%=program.name%>" name="name" required disabled>
+    </div>
+    
+    <div class="form-group">
+
+        <% if(program.pricing.priceType == 'Hourly Rate'){ %>
+            <div>
+                <label for="hourlyToggle">Hourly Rate</label>
+                <input type="radio" id="hourlyToggle" name="priceType" class="pricingChoice programInfo" value="Hourly Rate" checked disabled>
+            </div>
+            
+            <div>
+                <label for="setToggle">Set Price</label>
+                <input type="radio" id="setToggle" name="priceType" class="pricingChoice programInfo" value="Set Price" disabled>
+            </div>
+        <% } else { %>
+            <div>
+                <label for="hourlyToggle">Hourly Rate</label>
+                <input type="radio" id="hourlyToggle" name="priceType" class="pricingChoice programInfo" value="Hourly Rate" disabled>
+            </div>
+            
+            <div>
+                <label for="setToggle">Set Price</label>
+                <input type="radio" id="setToggle" name="priceType" class="pricingChoice programInfo" value="Set Price" checked disabled>
+            </div>
+        <% } %>
+        
+    </div>
+
+    <div class="form-group row">
+        <label class="col-2" id="priceLabel" for="price">Hourly Rate:</label>
+        <input class="col-4 programInfo" type="number" id="price" name="price" value="<%=program.pricing.price%>" min="0" step="0.01" required disabled/>
+    </div>
+
+    <div class="form-group row">
+        <label class="col-2" for="programDiscounts">Discounts:</label>
+        <textarea class="col-4 form-control programInfo" style="width:80%" id="programDiscounts" name="discounts" rows="2" disabled><%=program.discount%></textarea>
+    </div>
+
+    <div class="form-group row">
+        <label class="col-2" for="hours">Total Hours:</label>
+        <input class="col-4 programInfo" type="number" id="hours" name="hours" value="<%=program.hours%>" min="0" step="0.01" required disabled/>
+    </div>
+
+    <div class="form-group row">
+        <label class="col-2" for="programDescription">Program Description:</label>
+        <textarea class="col-4 form-control programInfo" style="width:80%" id="programDescription" name="description" rows="3" required disabled><%=program.description%></textarea>
+    </div>
+
+    <%- include('templates/button', {action:'',xClasses:'editButton',xAttributes:'id=programEditButton type=button',content:'Edit'}) %>
+	<%- include('templates/button', {action: '/program/' + program._id + '/edit',xClasses:'saveButton',xAttributes:'id=programSaveButton style=display:none',content:'Save'}) %>
+</form>
+
+<script>
+    let editButton = document.getElementById('programEditButton');
+    let saveButton = document.getElementById('programSaveButton');
+
+    editButton.addEventListener('click', () => {
+        saveButton.style = 'display:block';
+        editButton.style = 'display:none';
+
+        let inputs = document.querySelectorAll('.programInfo');
+        inputs.forEach((input) => {
+            input.disabled = false;
+        });
+    });
+
+    let priceLabel = document.getElementById('priceLabel');
+	let pricingToggles = document.querySelectorAll('.pricingChoice');
+	pricingToggles.forEach((toggle) => {
+		toggle.addEventListener('change', () => {
+			console.log('aaaa');
+			if(toggle.checked){
+				priceLabel.innerHTML = toggle.value + ":";
+			}
+
+
+		});
+	});
+
+
+</script>
+<%- include("templates/footerCopyright") %>
