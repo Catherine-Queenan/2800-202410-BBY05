@@ -526,7 +526,7 @@ function sendResetMail(emailAddress, resetToken) {
 // This function sets up the reminder emails to be sent. Sets up sending an email an hour before, and 24 hours before the appointment.
 async function sendReminderEmails() {
     const now = new Date();
-    
+
     const events = await userdb.collection('eventSource').find({
         $or: [
             { start: { $lte: new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString(), $gt: now.toISOString() } },
@@ -538,15 +538,17 @@ async function sendReminderEmails() {
         const user = await appUserCollection.findOne({ email: event.userEmail });
         const eventTime = new Date(event.start);
         const oneDayBefore = new Date(eventTime.getTime() - 24 * 60 * 60 * 1000);
-        const oneHourBefore = new Date(eventTime.getTime() - 60 * 60 * 1000);
+        //const oneHourBefore = new Date(eventTime.getTime() - 60 * 60 * 1000);
 
         if (now >= oneDayBefore && now < oneDayBefore + 60 * 1000) {
-            await sendEmail(user.email, 'Appointment Reminder', `You have an appointment scheduled for tomorrow at ${event.start}.`);
+            await scheduleEmail(user.email, 'Appointment Reminder', `You have an appointment scheduled for tomorrow at ${event.start}.`, 0);
         } else if (now >= oneHourBefore && now < oneHourBefore + 60 * 1000) {
-            await sendEmail(user.email, 'Appointment Reminder', `You have an appointment scheduled in one hour at ${event.start}.`);
+            await scheduleEmail(user.email, 'Appointment Reminder', `You have an appointment scheduled in one hour at ${event.start}.`, 0);
         }
     }
 }
+
+setInterval(sendReminderEmails, 15 * 60 * 1000);
 
 // This function sends other types of emails. Right now I'm adding it so that you can send appointment information. (but you can parse anything you want, really.)
 async function sendEmail(to, subject, text) {
@@ -559,31 +561,55 @@ async function sendEmail(to, subject, text) {
 
     try {
         await transporter.sendMail(mailOptions);
-        console.log(`Email sent to ${to}`); // Make sure this spits out the right email address.
+        console.log(`Email sent to ${to}`);
     } catch (error) {
-        console.error(`Error sending email to ${to}:`, error);
+        console.error(`Error sending email to ${to}:`, error); 
+        throw error;
     }
 }
 
 // Sets up a queue so that emails can be sent even if the app is closed
-const emailQueue = new Queue('emailQueue', {
+let emailQueue = new Queue('emailQueue', {
     redis: {
         host: '127.0.0.1',
-        port: 6379
+        port: 6379,
+        maxRetriesPerRequest: 10000,
+    },
+    defaultJobOptions: {
+        attempts: 10000,
+        backoff: {
+            type: 'exponential',
+            delay: 60 * 1000,
+        },
+    },
+});
+
+
+emailQueue.process(async (job) => {
+    console.log("We're in the email queue");
+    const { to, subject, text } = job.data;
+    try {
+        sendEmail(to, subject, text); //Removed an await
+        console.log(`Email sent successfully to ${to}`);
+    } catch (error) {
+        console.error(`Failed to send email to ${to}, will retry...`, error);
+        throw error;
     }
 });
 
-emailQueue.process(async (job) => {
-    const { to, subject, text } = job.data;
-    await sendEmail(to, subject, text);
-});
-
 async function scheduleEmail(to, subject, text, delay) {
-    await emailQueue.add(
-        { to, subject, text },
-        { delay }
-    );
+    console.log("Do we even get here 😭");
+    try {
+        emailQueue.add(
+            { to, subject, text },
+            { delay }
+        );
+        console.log(`Scheduled email to ${to} with subject "${subject}" and delay of ${delay}ms`);
+    } catch (error) {
+        console.error(`Error scheduling email to ${to}:`, error);
+    }
 }
+
 
 // This routing is the main page for forgetting your password.
 app.get('/forgotPassword', (req, res) => {
@@ -1015,35 +1041,35 @@ app.get('/events', async (req, res) => {
 
 app.post('/addEvent', async (req, res) => {
     var date = req.body.calModDate;
-    var startDateStr = date + "T" + req.body.calModStartHH + ":" + req.body.calModStartMM + ":00";
-    var endDateStr = date + "T" + req.body.calModEndHH + ":" + req.body.calModEndMM + ":00";
+	var startDateStr = date + "T" + req.body.calModStartHH + ":" + req.body.calModStartMM + ":00";
+	var endDateStr = date + "T" + req.body.calModEndHH + ":" + req.body.calModEndMM + ":00";
 
     var startDate = new Date(startDateStr);
     var endDate = new Date(endDateStr);
 
     var event = {
         title: req.body.calModTitle,
-        start: startDate,
-        end: endDate,
+        start: startDateStr,
+        end: endDateStr,
         userEmail: req.session.email
     };
 
     // I made this look a bit nicer.
-    await userdb.collection('eventSource').insertOne(event);
+    //await userdb.collection('eventSource').insertOne(event);
     // Old code, just in case you want to use it. (For security purposes, you might want full control over what's being stored in the database; you might not want to have the email in there.)
-//    await userdb.collection('eventSource').insertOne({
-//		title: event.title,
-//		start: event.start,
-//		end: event.end
-//	});
+    await userdb.collection('eventSource').insertOne({
+		title: event.title,
+		start: event.start,
+		end: event.end
+	});
 
     const user = await appUserCollection.findOne({ email: event.userEmail });
     const oneDayBefore = startDate.getTime() - 24 * 60 * 60 * 1000;
     const oneHourBefore = startDate.getTime() - 60 * 60 * 1000;
     
     await sendEmail(req.session.email, 'New Appointment', `You have a new appointment scheduled for ${event.start}.`);
-    await scheduleEmail(req.session.email, 'Appointment Reminder', `You have an appointment scheduled for tomorrow at ${event.start}.`, oneDayBefore - Date.now());
-    await scheduleEmail(req.session.email, 'Appointment Reminder', `You have an appointment scheduled in one hour at ${event.start}.`, oneHourBefore - Date.now());
+    scheduleEmail(req.session.email, 'Appointment Reminder', `You have an appointment scheduled for tomorrow at ${event.start}.`, oneDayBefore - Date.now());
+    scheduleEmail(req.session.email, 'Appointment Reminder', `You have an appointment scheduled in one hour at ${event.start}.`, oneHourBefore - Date.now());
 
     res.redirect('/calendar');
 });
