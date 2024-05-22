@@ -225,7 +225,7 @@ async function uploadImage (fileObject, folder){
 async function deleteUploadedImage(id){
 	//Pre: id must be empty or a valid public_id from cloudinary
 	//Post: image is deleted from cloudinary
-	if(id != ''){
+	if(id != '' && id != null){
 		cloudinary.uploader.destroy(id, (error) => {
 			console.error(error);
 		});
@@ -393,7 +393,14 @@ app.post('/submitSignup/:type', async (req, res) => {
 		//This currently only functions for the single checkbox and would need to be adjusted for multiple service options
 		user.services = [];
 		if (Boolean(req.body.services)) {
-			user.services.push(req.body.services);
+			if(Array.isArray(req.body.services)){
+				for(let i = 0; i < req.body.services.length; i++){
+					user.services.push(req.body.services[i]);
+				}
+			} else {
+				user.services.push(req.body.services);
+			}
+			
 		}
 
 		await appUserCollection.insertOne({
@@ -423,6 +430,13 @@ app.post('/submitSignup/:type', async (req, res) => {
 			firstName: user.firstName,
 			lastName: user.lastName,
 			companyWebsite: user.companyWebsite
+		});
+
+		//Store business owner information in client collection
+		await userdb.collection('trainer').insertOne({
+			companyName: user.companyName,
+			firstName: user.firstName,
+			lastName: user.lastName
 		});
 	}
 
@@ -677,59 +691,66 @@ app.get('/profile', sessionValidation, async(req, res) => {
 			}
 		}
 
-		res.render('clientProfile', {loggedIn: isValidSession(req), user: user, editting: false, dogs: dogs, userName: req.session.name, userType: req.session.userType});
+		res.render('clientProfile', {loggedIn: isValidSession(req), user: user, dogs: dogs, userName: req.session.name, userType: req.session.userType});
 		return;
 	} else {
-		res.redirect('/');
+		if(user.logo != ''){
+			user.logo = cloudinary.url(user.logo);
+		}
+		let trainer = await userdb.collection('trainer').findOne();
+
+		res.render('businessProfile', {loggedIn: isValidSession(req), business: user, trainer: trainer, userType: req.session.userType});
 	}
 
 });
 
 //Client user profile edit
-app.get('/profile/edit', sessionValidation,  async(req, res) => {
+app.post('/profile/edit/:editType', sessionValidation, upload.array('accountUpload', 1), async(req, res) => {
 	//bandaid fix so its easier to test (delete later)
 	setUserDatabase(req);
 
-	//upload the info of the user
-	let user = await userdb.collection('info').findOne({email: req.session.email});
-	let dogs = await userdb.collection('dogs').find({}).toArray();
-	//currently no profile page available for the business side
-	if(req.session.userType == 'client'){
-		if(user.profilePic != ''){
-			user.profilePic = cloudinary.url(user.profilePic);
+	let editType = req.params.editType;
+
+	if(editType == 'clientProfile'){
+		//grab current image id
+		let user = await userdb.collection('info').find({email: req.session.email}).project({profilePic: 1}).toArray();	
+		//update database
+		if(req.files.length != 0){
+			await deleteUploadedImage(user[0].profilePic);
+			req.body.profilePic = await uploadImage(req.files[0], "clientAccountAvatars");
+		} else {
+			req.body.profilePic = user[0].profilePic;
 		}
 
-		for(let i = 0; i < dogs.length; i++){
-			let pic = dogs[i].dogPic;
-			if(pic != ''){
-				dogs[i].dogPic = cloudinary.url(pic);
-			}
+		await userdb.collection('info').updateOne({email: req.session.email}, {$set: req.body});
+		res.redirect('/profile');
+	} else if (editType == 'businessDetails'){
+		let business = await userdb.collection('info').find({companyName: req.session.name}).project({logo: 1}).toArray();
+
+		if(req.files.length != 0){
+			await deleteUploadedImage(business[0].logo);
+			req.body.logo = await uploadImage(req.files[0], "businessLogos");
+		} else {
+			req.body.logo - business[0].logo;
 		}
 
-		//render client profile page but with editting set up
-		res.render('clientProfile', {loggedIn: isValidSession(req), user: user, editting: true, dogs: dogs, userName: req.session.name, userType: req.session.userType});
-		return;
-	} else {
-		res.redirect('/');
+		console.log(req.body);
+
+		await userdb.collection('info').updateOne({companyName: req.session.name}, {$set: req.body});
+		res.redirect('/profile');
+	} else if(editType == 'trainer'){
+		let trainer = await userdb.collection('trainer').find({companyName: req.session.name}).project({trainerPic: 1}).toArray();
+
+		if(req.files.length != 0){
+			await deleteUploadedImage(trainer[0].trainerPic);
+			req.body.trainerPic = await uploadImage(req.files[0], "businessLogos");
+		} else {
+			req.body.trainerPic - trainer[0].trainerPic;
+		}
+
+		await userdb.collection('info').updateOne({companyName: req.session.name}, {$set: req.body});
+		res.redirect('/profile');
 	}
-
-})
-
-//Post for editting the profile
-app.post('/profile/editting', upload.single('profilePic'), async(req, res) => {
-
-	//grab current image id
-	let user = await userdb.collection('info').find({email: req.session.email}).project({profilePic: 1}).toArray();	
-	//update database
-	if(req.file){
-		await deleteUploadedImage(user[0].profilePic);
-		req.body.profilePic = await uploadImage(req.file, "clientAccountAvatars");
-	} else {
-		req.body.profilePic = user[0].profilePic;
-	}
-
-	await userdb.collection('info').updateOne({email: req.session.email}, {$set: req.body});
-	res.redirect('/profile');
 
 });
 

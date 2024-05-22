@@ -3,7 +3,10 @@
 <%- include('templates/backLinkButton', {page: '/profile'}) %>
 <div class=" my-2 mt-3 d-flex flex-row justify-content-between">
 	<span class="h5"><%=dog.dogName%></span> 
-	<%- include('templates/button', {action: '',xClasses:'',xAttributes:'id=viewVaccines type=button',content:'View Vaccination Records'}) %>
+	<span>
+		<%- include('templates/tab', {xClasses:'toggleButton',xAttributes:'id=basicToggle type=button value=basic disabled',content:'View Dog Profile'}) %>
+		<%- include('templates/tab', {xClasses:'toggleButton',xAttributes:'id=vaccineToggle type=button value=vaccine',content:'View Vaccination Records'}) %>
+	</span>
 </div>
 	<%- include('templates/defaultingPic', {pic: dog.dogPic, picId: 'dogPic'})%>
 	<form class="my-3" id="basicInfo" method="post" enctype="multipart/form-data">
@@ -67,7 +70,7 @@
 		</div>
 		</form>
 		
-		<form  class="my-3" id="vaccinationRecords" method="post"  enctype="multipart/form-data" style="display:none">
+		<form  class="my-3" id="vaccineInfo" method="post"  enctype="multipart/form-data" style="display:none">
 			<div class="my-3 py-2">
 				<h5>Rabies</h5>
 				<%- include('templates/dateInput', {divId: 'rabiesDateDiv', xDivAttributes:'', dateId: 'rabiesDate',dateClass:'vaccineInput', dateName:'rabiesDate', label:'Expiration Date', xDateAttributes:'disabled value=' + dog.rabies.expirationDate}) %>
@@ -124,7 +127,7 @@
 			//Basic Form displays and edits all basic information
 			//Vaccine Form displays and edits all vaccine related information
 			let basicForm = document.getElementById('basicInfo');
-			let vaccineForm = document.getElementById('vaccinationRecords');
+			let vaccineForm = document.getElementById('vaccineInfo');
 
 			//Collect the buttons used on the page
 			//delete dog button
@@ -207,29 +210,23 @@
 			});
 
 			//Switch which form is displayed
-			toggleButton.addEventListener('click', ()=>{
-				//Change to vaccine form
-				if(page == 'basic'){
-					//Hide basic form and show the vaccine form
-					basicForm.style = "display:none;";
-					vaccineForm.style = "display:block;";
+			let toggleButtons = document.querySelectorAll('.toggleButton');
+			toggleButtons.forEach((button) => {
+				button.addEventListener('click', () =>{
+					let currForm = document.getElementById(page + 'Info');
+					currForm.style = 'display: none';
 
-					//Change toggle button to say it takes you to the basic form
-					toggleButton.innerHTML = "View Profile";
+					let newForm = document.getElementById(button.value + 'Info');
+					newForm.style = 'display: block';
 
-					//Change the variable reflect the current form
-					page = 'vaccines';
-				} else {
-					//Hide vaccine form and show the basic form
-					vaccineForm.style = "display:none;"
-					basicForm.style = "display:block;"
+					let currButton = document.getElementById(page + 'Toggle');
+					currButton.disabled = false;
 
-					//Change toggle button to say it takes you to the vaccine form
-					toggleButton.innerHTML = "View Vaccination Records";
+					button.disabled = true;
 
-					//Change the variable reflect the current form
-					page = 'basic';
-				}
+					page = button.value;
+
+					});
 			});
 
 			//Allow the vaccine records to be editted
