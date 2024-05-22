@@ -257,6 +257,7 @@ async function deleteUploadedImage(id){
 
 app.get('/', (req, res) => {
 	setUserDatabase(req);
+	setTrainerDatabase(req);
 	res.render('index', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType});
 });
 
@@ -682,7 +683,8 @@ app.get('/emailSent', (req, res) => {
 app.get('/logout', (req, res) => {
 	req.session.destroy();
 	setUserDatabase(req);
-	res.render('logout', {loggedIn: false, userType: null});
+	// res.render('logout', {loggedIn: false, userType: null});
+	res.redirect('/');
 });
 
 //Async function for uploading an immage
@@ -1063,12 +1065,15 @@ app.get('/accountDeletion', (req, res) => {
 app.post('/deleteAccount', async (req, res) => {
 
 	// Store the email
-	var email = req.session.email;
+	let email = req.session.email;
 
 	// Logic for business accounts and clients (safe coding)
 	if (req.session.userType == 'client') {
+		await trainerdb.collection('clients').deleteOne({email: email});
 		await appUserCollection.deleteMany({email: email, userType: 'client'});
 	} else if (req.session.userType == 'business') {
+		let companyName = req.session.name;
+		await appUserCollection.updateMany({companyName: companyName}, {set:{companyName: null}});
 		await appUserCollection.deleteMany({email: email, userType: 'business'});
 	}
 	await userdb.dropDatabase();
