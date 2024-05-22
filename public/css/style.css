@@ -86,6 +86,79 @@ h1 {
     box-shadow: 0 0 3px 3px #20133549;
 }
 
+/* Custom navbar-toggler-icon */
+/* Custom navbar-toggler-icon */
+.custom-toggler .navbar-toggler-icon {
+  width: 35px;
+  height: 3px;
+  position: relative;
+  display: inline-block;
+  background-color: transparent;
+  border-radius: 5px;
+}
+
+.custom-toggler .navbar-toggler-icon::before,
+.custom-toggler .navbar-toggler-icon::after,
+.custom-toggler .navbar-toggler-icon span {
+  content: '';
+  width: 35px;
+  height: 3px;
+  position: absolute;
+  left: 0;
+  background-color: #201335;
+  border: none;
+  border-radius: 2px;
+}
+
+.custom-toggler .navbar-toggler-icon::before {
+  top: -12px;
+}
+
+.custom-toggler .navbar-toggler-icon::after {
+  top: 12px;
+}
+
+.custom-toggler .navbar-toggler-icon span {
+  top: 0;
+}
+
+/* Remove outline and box-shadow on focus */
+.navbar-toggler:focus {
+  outline: none;
+  box-shadow: 0 0 0 0;
+}
+
+button:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.navbar-toggler {
+  border: none;
+}
+
+/* Hover and active state */
+.navbar-toggler:hover .navbar-toggler-icon::before,
+.navbar-toggler:active .navbar-toggler-icon::before,
+.navbar-toggler:hover .navbar-toggler-icon::after,
+.navbar-toggler:active .navbar-toggler-icon::after,
+.navbar-toggler:hover .navbar-toggler-icon span,
+.navbar-toggler:active .navbar-toggler-icon span {
+  height: 4px;
+}
+
+/* Custom width for offcanvas */
+.offcanvas-custom {
+  width: 200px !important;
+  height: 500px;
+}
+
+@media (min-width: 576px) {
+  .offcanvas-custom {
+    max-width: 200px !important; /* Ensure it doesn't exceed the specified width */
+  }
+}
+/* End of Bootstrap Modifications */
+
 /* Buttons */
     .btn-main {
         background-color: rgba(32, 19, 53, 0.8);
@@ -127,6 +200,37 @@ h1 {
         color:#5E53A2;
         font-weight:800;
     }
+
+  /* Style the close button in offcanvas */
+.btn-close {
+  position: relative;
+  width: 30px;
+  height: 30px;
+  background-color: transparent;
+  border: none;
+}
+
+.btn-close:focus {
+  background-color: transparent;
+  box-shadow: none; /* Remove default focus shadow */
+}
+
+.btn-close:before, .btn-close:after {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  content: ' ';
+  height: 16px;
+  width: 2px;
+}
+
+.btn-close:before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.btn-close:after {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
 /* End of Buttons */
 
 
