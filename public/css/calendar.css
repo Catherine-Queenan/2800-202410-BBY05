@@ -6,6 +6,27 @@
 	height: 100%;
 } */
 
+/* Active button */
+.fc .fc-button-primary:not(:disabled).fc-button-active, .fc .fc-button-primary:not(:disabled):active {
+	background-color: rgba(32, 19, 53, 0.8);
+	color: #FEF6C3;
+	border: none;
+}
+
+/* Non active button */
+.fc .fc-button-primary {
+	background-color: rgba(94, 83, 162, 0.8);
+	color: #201335;
+	border: none;
+}
+
+/* Disabled button */
+.fc .fc-button-primary:disabled {
+	background-color: rgba(94, 83, 162, 0.5);
+	color: #201335;
+	border: none;
+}
+
 @media (min-width: 100px) and (max-width: 380px) {
 
 	.fc-toolbar-chunk{
@@ -14,6 +35,10 @@
 	
 	.fc-toolbar-chunk .fc-toolbar-title {
 		font-size: 8px;
+	}
+
+	.fc table {
+		font-size: 0.5em;
 	}
 
 }
@@ -26,6 +51,10 @@
 	
 	.fc-toolbar-chunk .fc-toolbar-title {
 		font-size: 12px;
+	}
+
+	.fc table {
+		font-size: 0.8em;
 	}
 }
   
