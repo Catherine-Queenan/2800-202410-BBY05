@@ -1,0 +1,17 @@
+<%- include("templates/header") %>
+
+<div>
+    
+        <% let i=0; %>
+        <%for (i = 0; i < clientArray.length; i++) { %>
+            <ul>
+                <%= clientArray[i].firstName %> <br>
+                <%= clientArray[i].lastName %> <br>
+                <%= clientArray[i].email %>
+            </ul>
+        <% } %>
+    
+    
+</div>
+
+<%- include("templates/footerCopyright") %>

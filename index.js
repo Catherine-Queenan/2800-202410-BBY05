@@ -1013,6 +1013,13 @@ app.post('/removeEvent', async (req, res) => {
 	res.redirect('/calendar');
 });
 
+app.get('/clientList', async (req, res) => {
+	// console.log(req.session.name);
+	clientList = await appUserCollection.find({companyName: null, userType: 'client'}).project({email: 1, firstName: 1, lastName: 1}).toArray();
+	console.log(clientList.length);
+	res.render('clientList', {clientArray: clientList, loggedIn: isValidSession(req), userType: req.session.userType});
+});
+
 app.use(express.static(__dirname + "/public"));
 
 app.get('*', (req, res) => {
