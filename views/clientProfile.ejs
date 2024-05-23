@@ -9,6 +9,7 @@
         <input name="email" type="email" class="col-6" value="<%= user.email %>" disabled><br><br>
         <input name="phone" type="tel" class="profileInfo col-6" value="<%= user.phone %>" disabled>
 
+        <%- include('templates/button', {action:'',xClasses:'cancelButton',xAttributes:'id=cancelEdit type=button style=display:none',content:'Cancel'}) %>
         <%- include('templates/button', {action:'/profile/edit/clientProfile',xClasses:'',xAttributes:'id=saveButton style=display:none',content:'Save'}) %>
         <%- include('templates/button', {action:'',xClasses:'',xAttributes:'type=button id=editButton',content:'Edit'})%>
     </form> 
