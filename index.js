@@ -383,7 +383,6 @@ app.post('/submitSignup/:type', async (req, res) => {
 				businessPhone: Joi.string().pattern(/^[0-9\s]*$/).length(10).required(),
 				firstName: Joi.string().pattern(/^[a-zA-Z\s]*$/).max(20).required(),
 				lastName: Joi.string().pattern(/^[a-zA-Z\s]*$/).max(20).required(),
-				companyWebsite: Joi.string().pattern(/^(https?:\/\/)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/),
 				password: Joi.string().max(20).min(2).required()
 			}
 		);
@@ -395,7 +394,6 @@ app.post('/submitSignup/:type', async (req, res) => {
 			businessPhone: req.body.businessPhone,
 			firstName: req.body.firstName,
 			lastName: req.body.lastName,
-			companyWebsite: req.body.companyWebsite,
 			password: req.body.password
 		};
 
@@ -408,6 +406,8 @@ app.post('/submitSignup/:type', async (req, res) => {
 			res.send(doc);
 			return;
 		}
+
+		user.companyWebsite = req.body.companyWebsite;
 
 		//hashes password for storing
 		user.password  = await bcrypt.hash(user.password, saltRounds);
