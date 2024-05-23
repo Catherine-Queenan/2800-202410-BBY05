@@ -1,4 +1,5 @@
 <%- include("templates/header") %>
+<link href="/css/calendar.css" rel="stylesheet">
 <div>
 	<% if (!loggedIn) { %>
 		<%- include('templates/hero', {content: 'Canine-Centered Connections... Where pet professionals and pet owners come together'}) %>
@@ -206,9 +207,9 @@
 					}) %>
 				</div>
 			</div>
-		</section> 
+		</section>
+		<script src="/scripts/calendarBusinessHome.js"></script>
 		<form method="get">
-			<%- include('templates/button', {action:'/calendar',xClasses:'',xAttributes:'',content:'Check out the Calendar'}) %>
 			<%- include('templates/button', {action:'/logout',xClasses:'',xAttributes:'',content:'Logout'}) %>
 			<!-- <button formaction="/logout">Get me out of here</button> -->
 		</form>
@@ -220,5 +221,4 @@
 	integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
 	crossorigin="anonymous"></script>
 <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
-<script src="/scripts/calendarBusinessHome.js"></script>
 <%- include("templates/footerCopyright") %>
