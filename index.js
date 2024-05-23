@@ -1457,6 +1457,32 @@ app.post('/removeEvent', async (req, res) => {
 
 // ----------------- CALENDAR SECTION ENDS HERE -------------------
 
+// ----------------- MESSAGING SECTION STARTS HERE -------------------
+
+app.get('/chat', (req, res) => {
+	setUserDatabase(req);
+	setTrainerDatabase(req);
+
+	res.render('chat');
+});
+
+app.get('/messages', async (req, res) => {
+	const senderMessagesList = await userdb.collection('messages').find().sort({ createdAt: 1 }).limit(25).toArray();
+	const receiverMessagesList = await trainerdb.collection('messages').find().sort({ createdAt: 1 }).limit(25).toArray();
+	res.json({ senderMessages: senderMessagesList, receiverMessages: receiverMessagesList });
+});
+
+app.post('/messages', async (req, res) => {
+	const { text } = req.body;
+	const sender = req.session.email;
+	const receiver = await appUserCollection.find({email: sender}).project({companyName:1}).toArray();
+	const newMessage = { text, sender: sender, receiver: receiver[0].companyName, createdAt: new Date() };
+
+	await userdb.collection('messages').insertOne(newMessage);
+	// await trainerdb.collection('messages').insertOne(newMessage);
+	res.status(201).json(newMessage);
+});
+
 app.use(express.static(__dirname + "/public"));
 
 app.get('*', (req, res) => {
