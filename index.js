@@ -1109,12 +1109,13 @@ app.post('/addTrainer/:trainer', async (req, res) => {
 async function getUserEvents(req) {
 	let userEvents;
 	if (req.session.userType == 'business') {
-		userEvents = await userdb.collection('eventSource').find().project({ _id: 1, title: 1, client: 1, start: 1, end: 1, info: 1}).toArray();
+		userEvents = await userdb.collection('eventSource').find().project({ title: 1, start: 1, end: 1 }).toArray();
 	} else if (req.session.userType == 'client') {
 		if (trainerdb == null || trainerdb == '' || trainerdb == undefined) {
 			userEvents = null;
 		} else {
-			userEvents = await trainerdb.collection('eventSource').find().project({ _id: 1, title: 1, client: 1, start: 1, end: 1, info: 1}).toArray();
+			let email = req.session.email;
+			userEvents = await trainerdb.collection('eventSource').find({client: email}).project({ title: 1, start: 1, end: 1 }).toArray();
 		}
 	}
 	return userEvents;
@@ -1138,13 +1139,25 @@ app.get('/events', async (req, res) => {
 	res.json(events);
 });
 
+app.post('/filteredEvents', async (req, res) => {
+	const clientEmail = req.body.data;
+	const filteredEvents = await userdb.collection('eventSource').find({client: clientEmail}).project({ title: 1, start: 1, end: 1 }).toArray();
+	res.json(filteredEvents);
+})
+
 app.post('/getThisEvent', async (req, res) => {
 	let event = {
 		title: req.body.title,
 		start: req.body.start,
 		end: req.body.end
 	}
-	let result = await userdb.collection('eventSource').find(event).project({_id: 1, client: 1, info: 1}).toArray();
+	let result;
+	if (isBusiness(req)) {
+		result = await userdb.collection('eventSource').find(event).project({_id: 1, client: 1, info: 1}).toArray();
+	} else if (isClient(req)) {
+		result = await trainerdb.collection('eventSource').find(event).project({_id: 1, trainer: 1, info: 1}).toArray();
+	}
+	
 	res.json(result);
 });
 
@@ -1158,12 +1171,14 @@ app.post('/addEvent', async (req, res) => {
 	let date = req.body.calModDate;
 	let startDate = date + "T" + req.body.calModStartHH + ":" + req.body.calModStartMM + ":00";
 	let endDate = date + "T" + req.body.calModEndHH + ":" + req.body.calModEndMM + ":00";
+	let trainerName = req.session.name;
 	let clientEmail = req.body.calModClient;
 	let eventInfo = req.body.calModInfo;
 	let event = {
 		title: req.body.calModTitle,
 		start: startDate,
 		end: endDate,
+		trainer: trainerName,
 		client: clientEmail,
 		info: eventInfo
 	};
