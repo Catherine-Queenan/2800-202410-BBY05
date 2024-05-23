@@ -67,6 +67,14 @@
                 font-style: normal;
             }
 
+            .karla-bigger {
+                font-family: "Karla", sans-serif;
+                font-size: 18px;
+                font-optical-sizing: auto;
+                font-weight: 400;
+                font-style: normal;
+            }
+
             .karla-heavy {
                 font-family: "Karla", sans-serif;
                 font-optical-sizing: auto;
@@ -127,22 +135,18 @@
                 padding-right: 10px;
             }
             /*End of HTML stuff*/
-
         </style>
     </head> 
     <body>
         <div class="container">
             <img class="logo" src="https://i.imgur.com/nBorDC4.png" alt="Pawfolio Logo">
-            <h1>Appointment Reminder</h1>
-            <p class="karla-regular">This is a reminder for your upcoming appointment:</p>
-            <br>
-            <p><strong>Event:</strong> <%= eventTitle %></p>
-            <p><strong>Date:</strong> <%= eventDate %></p>
-            <p><strong>Start Time:</strong> <%= eventStartTime %></p>
-            <p><strong>End Time:</strong> <%= eventEndTime %></p>
-            <br>
-            <br>
-            <p class="karla-light">If you didn't mean to reset your password, you can ignore this email :)</p>
+            <h1>Appointment Reminder!</h1>
+            <p class="karla-heavy">You're all set up with an appointment with your furry friend! Make sure to take note of the im-paw-tent information below:</p>
+            <p class="karla-bigger"><b>Event:</b> <%= eventTitle %></p>
+            <p class="karla-bigger"><b>Date:</b> <%= eventDate %></p>
+            <p class="karla-bigger"><b>Start Time:</b> <%= eventStartTime %></p>
+            <p class="karla-bigger"><b>End Time:</b> <%= eventEndTime %></p>
+            <p class="karla-light">If you need to change your appointment, please contact your trainer/groomer :)</p>
         </div>
     </body>
 </html>
