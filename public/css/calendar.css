@@ -20,10 +20,12 @@
 }
 
 /* Active button */
-.fc .fc-button-primary:not(:disabled).fc-button-active, .fc .fc-button-primary:not(:disabled):active {
+.fc .fc-button-primary:not(:disabled).fc-button-active, 
+.fc .fc-button-primary:not(:disabled):active {
 	background-color: rgba(32, 19, 53, 0.8);
 	color: #FEF6C3;
 	border: none;
+	box-shadow: 0 0 0 0.2rem #201335bc;
 }
 
 /* Non active button */
@@ -39,6 +41,14 @@
 	color: #201335;
 	border: none;
 }
+
+/* Button with focus */
+.fc .fc-button-primary:focus,
+.fc .fc-button-primary:focus-visible {
+    box-shadow: 0 0 0 0.2rem #201335bc; /* Add box shadow */
+    background-color: #201335; /* Set background color */
+	color:#F0F1FA;
+  }
 
 .fc-toolbar-chunk .fc-toolbar-title {
 	color: #201335;

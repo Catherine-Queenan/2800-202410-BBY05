@@ -94,10 +94,98 @@
   }
 
   .smallShadow {
-    box-shadow: 3px 4px 1.5px 0px #20133557;
-    box-shadow: -3px -4px 1.5px 0px #2013353f;
-    box-shadow: 0 0 3px 3px #20133549;
+    box-shadow: 3px 4px 0px 0px #201335;
+    box-shadow: -3px -4px 0px 0px #201335;
+    box-shadow: 0 0 0px 3px #201335;
   }
+
+  .modal textarea {
+      width: 100%; /* Make the select element full width */
+      padding: 8px; /* Add padding */
+      border: 1px solid #2013353b; /* Add border */
+      border-radius: 5px; /* Add border radius */
+      font-size: 16px; /* Set font size */
+      color:#201335;
+      font-weight: 500;
+      background-color: #20133532; /* Set background color */
+      cursor: pointer; /* Add cursor pointer */
+  }
+
+  .modal textarea:focus {
+    outline: none; /* Remove default outline */
+    border-color: #20133589; /* Set border color */
+    box-shadow: 0 0 0 0.2rem #201335bc; /* Add box shadow */
+    background-color: #20133532; /* Set background color */
+    font-weight:bold;
+    color:#201335;
+  }
+
+  .modal input {
+      width: 100%; /* Make the select element full width */
+      padding: 8px; /* Add padding */
+      border: 1px solid #2013353b; /* Add border */
+      border-radius: 5px; /* Add border radius */
+      font-size: 16px; /* Set font size */
+      background-color: #20133532; /* Set background color */
+      cursor: pointer; /* Add cursor pointer */
+      color:#201335;
+      font-weight: 500;
+  }
+
+  .modal input:focus {
+    outline: none; /* Remove default outline */
+    border-color: #20133589; /* Set border color */
+    box-shadow: 0 0 0 0.2rem #201335bc; /* Add box shadow */
+    background-color: #20133532; /* Set background color */
+    font-weight: bold;
+    color:#201335;
+  }
+
+  /* Selection Dropdown */
+    label {
+      display: block; /* Make the label a block element for proper alignment */
+      font-weight: bold; /* Make the label bold */
+      margin-bottom: 5px; /* Add some bottom margin for spacing */
+    }
+    
+    .form-select {
+      width: 100%; /* Make the select element full width */
+      padding: 8px; /* Add padding */
+      border: 1px solid #2013353b; /* Add border */
+      border-radius: 5px; /* Add border radius */
+      font-size: 16px; /* Set font size */
+      background-color: #20133532; /* Set background color */
+      cursor: pointer; /* Add cursor pointer */
+    }
+    
+    /* Override default browser styling */
+    .form-select:focus {
+      outline: none; /* Remove default outline */
+      border-color: #20133589; /* Set border color */
+      box-shadow: 0 0 0 0.2rem #201335bc; /* Add box shadow */
+    }
+
+    /* Style the dropdown options when select element is clicked */
+    .form-select:focus option:checked {
+      background-color: #201335; /* Change background color of checked option */
+      color: #F0F1FA; /* Change text color of checked option */
+    }
+
+    /* Add box shadow to select element when dropdown is open */
+    .form-select:focus-within {
+      box-shadow: 0 0 0 0.2rem #2013359f; /* Add box shadow */
+    }
+
+    /* Change background color of dropdown when it's open */
+    .form-select:focus option {
+      background-color: #F0F1FA !important; /* Change background color of options */
+    }
+
+    /* Change text color of dropdown options when it's open */
+    .form-select:focus option {
+      color: #201335 !important; /* Change text color of options */
+    }
+  /* End of Selection Dropdown */
 
   /* Custom navbar-toggler-icon */
   .custom-toggler .navbar-toggler-icon {
@@ -650,27 +738,3 @@
     font-style: normal;
   }
 /* End of Fonts */
-
-.nav-link {
-	text-align: center;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-
-	/*Ensure that all of the navbar buttons are the same size.*/
-	width: 75px;
-	height: 75px;
-}
-
-/*Bootstrap Icons*/
-.bi {
-	margin-bottom: -8px;
-	/*Make the text nice and snug with the icons.*/
-	font-size: 40px;
-}
-
-/* Slide into view */
-/* .menu-visible {
-    transform: translateX(0); 
-} */
