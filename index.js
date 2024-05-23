@@ -1082,35 +1082,90 @@ app.post('/deleteAccount', async (req, res) => {
 });
 
 
-app.get('/trainers', async(req, res) => {
+app.get('/findTrainer', async(req, res) => {
+	//Grab all business users
 	let businesses = await appUserCollection.find({userType: 'business'}).project({companyName: 1}).toArray();
+
+	//Arrays that will hold all business details and trainers
 	let businessDetails = [];
 	let businessTrainers = [];
 	
+	//Fetch the business details and trainers for every business user
 	for(let i = 0; i < businesses.length; i++){
+		//Key is the business name
 		let name = businesses[i].companyName;
-		db = mongodb_businessdb + '-' + name.replace(/\s/g, "");
+
+		//Establish connection the user database
+		let db = mongodb_businessdb + '-' + name.replace(/\s/g, "");
 		let userdbAccess = new MongoClient(`mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/${db}?retryWrites=true`);
 		let tempUser = userdbAccess.db(db);
 
+		//Query for the info and trainer
 		let info = await tempUser.collection('info').find({companyName: name}).toArray();
 		let trainer = await tempUser.collection('trainer').find({companyName: name}).toArray();
 
-		if(info[0].logo != ''){
+		//convert the logo picture id to a link if a logo has been uploaded
+		if(info[0].logo != '' && info[0].logo != null){
 			info[0].logo = cloudinary.url(info[0].logo);
 		}
 
+		//Create a keyword string containing the trainer's name, company name and all the services
+		info[0].searchString = info[0].companyName + '/' + trainer[0].firstName +'/' + trainer[0].lastName;
+		for(let i=0; i < info[0].services.length; ++i){
+			info[0].searchString += info[0].services[i] + '/';
+		}
+
+		//Convert the search string to lowercase to avoid case sensitivity
+		info[0].searchString = info[0].searchString.replace(' ','').toLowerCase();
+
+		//Add the information to each array
 		businessDetails.push(info[0]);
 		businessTrainers.push(trainer[0]);
 	}
-	console.log(businessDetails);
-	console.log(businessTrainers);
 
 	res.render('viewTrainers', {loggedIn: isValidSession(req), userType: req.session.userType, businesses: businessDetails, trainers: businessTrainers});
 });
-app.get('/findTrainer', async (req, res) => {
+
+//Temporary code from calendar testing; changed address to just /trainer
+app.get('/trainer', async (req, res) => {
 	const trainers = await appUserCollection.find({ userType: 'business' }).project({ _id: 1, companyName: 1 }).toArray();
 	res.render('findTrainer', {loggedIn: isValidSession(req), userType: req.session.userType, trainers: trainers});
+});
+
+//View indivdual business
+app.get('/viewBusiness/:company', async(req, res) => {
+	//Connect to the specific business' database
+	let db = mongodb_businessdb + '-' + req.params.company.replace(/\s/g, "");
+	let userdbAccess = new MongoClient(`mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/${db}?retryWrites=true`);
+	let tempUser = userdbAccess.db(db);
+
+	//Business is a object with three other objects
+	let business = await (async () => {
+		//Promise concurrently queries the database for the three collections
+		let [info, trainer, programs] = await Promise.all([
+			tempUser.collection('info').find({}).toArray(),
+			tempUser.collection('trainer').find({}).toArray(),
+			tempUser.collection('programs').find({}).toArray()
+		]);
+		//Returns the query result
+		return {
+			info: info[0],
+			trainer: trainer[0],
+			programs: programs
+		};
+	})();
+
+	//If there is a logo, grab its link
+	if(business.info.logo != '' && business.info.logo != null){
+		business.info.logo = cloudinary.url(business.info.logo);
+	}
+
+	//If there is a profile pic for the trainer, grab its link
+	if(business.trainer.trainerPic != '' && business.trainer.trainerPic  != null){
+		business.trainer.trainerPic  = cloudinary.url(business.trainer.trainerPic );
+	}
+	
+	res.render('clientViewTrainer', {loggedIn: isValidSession(req), userType: req.session.userType, business: business.info, trainer: business.trainer, programs: business.programs});
 });
 
 // Temporary add Trainer button for this Branch
