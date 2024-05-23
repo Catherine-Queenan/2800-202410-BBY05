@@ -2,9 +2,11 @@
   "dependencies": {
     "@google-cloud/local-auth": "^2.1.0",
     "@google-cloud/storage": "^7.11.0",
+    "axios": "^1.7.2",
     "bcrypt": "^5.1.1",
     "bootstrap": "^5.3.3",
     "bootstrap-icons": "^1.11.3",
+    "bull": "^4.12.7",
     "cloudinary": "^2.2.0",
     "connect-mongo": "^5.1.0",
     "dotenv": "^16.4.5",
@@ -13,8 +15,13 @@
     "express-session": "^1.18.0",
     "fullcalendar": "^6.1.11",
     "googleapis": "^105.0.0",
+    "ioredis": "^5.4.1",
     "joi": "^17.13.1",
+    "jquery": "^3.7.1",
     "multer": "^1.4.5-lts.1",
+    "nodemailer": "^6.9.13",
+    "sweetalert2": "^11.11.0",
+    "node-cron": "^3.0.3",
     "nodemailer": "^6.9.13"
   }
 }

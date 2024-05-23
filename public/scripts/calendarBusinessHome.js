@@ -12,7 +12,8 @@ document.addEventListener('DOMContentLoaded', function () {
 			left: 'title',
 			right: 'prev,next today'
 		},
-		events: '/events'
+		events: '/events',
+		eventColor: '#FFA05C'
 
 	});
 	calendar.render();

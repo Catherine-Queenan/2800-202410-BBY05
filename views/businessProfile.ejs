@@ -1,0 +1,362 @@
+<%- include("templates/header") %>
+	<div class="container"> <!--Added container div to center content on page-->
+		<p class="h5"><%=business.companyName%></p>  <!--Page title-->
+        
+    	<!--TODO: Catherine links tabs.ejs here-->
+        <div class="resource-wrap">
+            <div class="resource-html">
+                <input id="tabR-1" type="radio" name="tab" class="tabR-one btn-check" <%=businessTab%>>
+                <label for="tabR-1" class="tabR">Business Details</label>
+
+                <input id="tabR-2" type="radio" name="tab" class="tabR-two btn-check" <%=trainerTab%>>
+                <label for="tabR-2" class="tabR">Trainer Profile</label>
+
+                <input id="tabR-3" type="radio" name="tab" class="tabR-three btn-check" <%=programsTab%>>
+                <label for="tabR-3" class="tabR">Programs</label>
+
+                <div class="resource-form">
+                    <div class="tabR-one-htm">
+                        <form class="my-3" id="businessInfo" method="post" enctype="multipart/form-data">
+							<%- include('templates/defaultingPic', {pic: business.logo, picId: 'logoShow'})%>
+							<%- include('templates/uploadFile', {divId:'businessUpload', xDivAttributes:'style=display:none', fileId:'logo',fileName:'accountUpload', label:'Upload your Logo:', xfileAttributes:'accept=.png,.jpg'}) %>
+						
+								<div class="form-group row">
+									<label for="companyEmail">Company Email:</label>
+									<input class="businessInfo col-4" type="email" id="companyEmail" name="email" value="<%=business.email%>" required disabled>
+								</div>
+						
+								<div class="form-group row">
+									<label for="companyPhone">Company Phone Number:</label>
+									<input class="businessInfo col-4" type="tel" id="companyPhone" name="phone" value="<%=business.phone%>" required disabled>
+								</div>
+						
+								
+								<br>
+								<div  class="card" style="width: 18rem;">
+									<ul id="serviceList" class="list-group list-group-flush">
+										<% for(let i = 0; i < business.services.length; i++){ %>
+											<%- include('templates/businessServiceBox', {serviceName: business.services[i]}) %>
+										<%}%>
+									</ul>
+								</div>
+								<%- include('templates/button', {action:'',xClasses:'',xAttributes:'id=addService type=button value=business style=display:none',content:'Add Service'}) %>
+						
+								<div id="addServiceInputDiv" style="display:none">
+									<input class="col-4" type="text" id="toAddService">
+									<%- include('templates/button', {action:'',xClasses:'',xAttributes:'id=submitService type=button value=business ',content:'Save Service'}) %>
+								</div>
+								<br>
+						
+								<div class="form-group row">
+									<label for="companySite">Company Website:</label>
+									<input class="businessInfo col-4" type="text" id="companySite" name="companyWebsite" value="<%=business.companyWebsite%>" required disabled>
+								</div>
+									
+								<div class="form-group">
+									<label for="businessDescrtiption">Business Description:</label>
+									<textarea class="form-control businessInfo" id="businessDescrtiption" name="description" rows="4" disabled><%=business.description%></textarea>
+								</div>
+						
+								<div class="row my-3">
+								
+								<%- include('templates/button', {action:'',xClasses:'editButton col-2',xAttributes:'id=businessEditButton type=button value=business',content:'Edit'}) %>
+								<%- include('templates/button', {action:'',xClasses:'cancelButton col-2',xAttributes:'id=businessCancelButton type=button value=business style=display:none',content:'Cancel'}) %>
+								<%- include('templates/button', {action: '/profile/edit/businessDetails',xClasses:'saveButton col-2',xAttributes:'id=businessSaveButton style=display:none',content:'Save'}) %>
+								
+							</div>
+							</form>
+                    </div>
+                </div>
+                <div class="resource-form">
+                    <div id="tab2" class="tabR-two-htm">
+                        <form  class="my-3 tabR-two-htm" id="trainerInfo" method="post"  enctype="multipart/form-data">
+							<%- include('templates/defaultingPic', {pic: trainer.trainerPic, picId: 'trainerPicShow'})%>
+							<%- include('templates/uploadFile', {divId:'trainerUpload', xDivAttributes:'style=display:none', fileId:'trainerPic',fileName:'accountUpload', label:'Upload your Photo:', xfileAttributes:'accept=.png,.jpg'}) %>
+							
+							<div class="form-group">
+								<label for="trainerFirstName">First Name:</label>
+								<input class="trainerInfo" type="text" id="trainerFirstName" name="firstName" value="<%=trainer.firstName%>" required disabled>
+							</div>
+					
+							<div class="form-group">
+								<label for="trainerLastName">Last Name:</label>
+								<input class="trainerInfo" type="text" id="trainerLastName" name="lastName" value="<%=trainer.lastName%>" required disabled>
+							</div>
+
+							<div class="form-group">
+								<label for="trainerCert">Certifications:</label>
+								<textarea class="form-control trainerInfo" id="trainerCert" name="certifications" rows="2" disabled><%=trainer.certifications%></textarea>
+							</div>
+					
+							<div class="form-group">
+								<label for="trainerIntro">Trainer Introduction:</label>
+								<textarea class="form-control trainerInfo" id="trainerIntro" name="intro" rows="3" disabled><%=trainer.intro%></textarea>
+							</div>
+					
+							<div class="row my-3">
+								<%- include('templates/button', {action:'',xClasses:'editButton col-2',xAttributes:'id=trainerEditButton type=button value=trainer',content:'Edit'}) %>
+								<%- include('templates/button', {action:'',xClasses:'cancelButton col-2',xAttributes:'id=trainerCancelButton type=button value=trainer style=display:none',content:'Cancel'}) %>
+								<%- include('templates/button', {action: '/profile/edit/trainer',xClasses:'saveButton col-2',xAttributes:'id=trainerSaveButton style=display:none',content:'Save'}) %>
+							</div>
+
+						</form>
+                    </div>
+                </div>
+                <div class="resource-form">
+                    <div class="tabR-three-htm">
+						<% if(programs.length > 0){ %>
+							<% for(let i = 0; i < programs.length; i++){ %>
+								<%- include('templates/programProfileView', {program: programs[i]}) %>
+							<% } %>
+						<% } else { %>
+							<p>You haven't created any programs</p>
+						<% } %>
+
+						<%- include('templates/button', {action:'',xClasses:'',xAttributes:'type=button id=addProgramButton',content:'Add Program'}) %>
+						<!--
+							Discounts
+							Hourly rate
+							Program hours
+							Program Name
+							Description
+						-->
+						<br>
+						<div class="border p-2" id="newProgramForm" style="display:none">
+						<form class="container"  method="post">
+							<div class="form-group my-2">
+								<label for="programName">Program Name:</label>
+								<input class="newProgramInfo" type="text" id="programName" name="name" required>
+							</div>
+							
+							<div class="form-group my-2">
+								<div>
+									<label for="hourlyToggle">Hourly Rate</label>
+									<input type="radio" id="hourlyToggle" name="priceType" class="pricingChoice" value="Hourly Rate" checked>
+								</div>
+								
+								<div>
+									<label for="setToggle">Set Price</label>
+									<input type="radio" id="setToggle" name="priceType" class="pricingChoice" value="Set Price">
+								</div>
+							</div>
+
+							<div class="form-group my-2">
+								<label id="priceLabel" for="price">Hourly Rate:</label>
+								<input class="newProgramInfo" type="number" id="price" name="price" min="0" step="0.01" required/>
+							</div>
+
+							<div class="form-group my-2">
+								<label for="programDiscounts">Discounts:</label>
+								<textarea class="form-control newProgramInfo" style="width:80%" id="programDiscounts" name="discounts" rows="2"></textarea>
+							</div>
+
+							<div class="form-group my-2">
+								<label for="hours">Total Hours:</label>
+								<input class="newProgramInfo" type="number" id="hours" name="hours" min="0" step="0.01" required/>
+							</div>
+
+							<div class="form-group my-2">
+								<label for="programDescription">Program Description:</label>
+								<textarea class="form-control newProgramInfo" style="width:80%" id="programDescription" name="description" rows="3" required></textarea>
+							</div>
+
+							<div class="my-2">
+								<%- include('templates/button', {action:'/profile/edit/addProgram',xClasses:'',xAttributes:'id=submitNewProgram',content:'Add'}) %>
+								<%- include('templates/button', {action:'',xClasses:'',xAttributes:'id=cancelNewProgram type=button',content:'Cancel'}) %>
+							</div>
+						</form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div> <!--End container div-->
+
+
+	<template id="serviceTemplate">
+		<%- include('templates/businessServiceBox', {serviceName:'', displayButton: 'display'}) %>
+	</template>
+<script>
+	//Find the profile image upload element
+	let picUploads = document.querySelectorAll('[name=accountUpload]');
+
+	//Change the image upload if a file was inputted
+	picUploads.forEach((upload) => {
+		upload.addEventListener('input', (event) => {
+			//get the image, its url and the element to display it in
+			let imageFile = event.target.files[0]
+			let path = URL.createObjectURL(imageFile);
+			let showPic = document.getElementById(upload.id + 'Show');
+
+			//update the image display
+			showPic.src = path;
+		});
+	});
+
+	//Buttons on page
+	let serviceButtons = document.querySelectorAll('.serviceDelete');
+	let editButtons = document.querySelectorAll('.editButton');
+	let cancelButtons = document.querySelectorAll('.cancelButton');
+	let addProgramButton = document.getElementById('addProgramButton');
+	let cancelAddProgramButton = document.getElementById('cancelNewProgram');
+
+	//Form for adding a new program on the programs page
+	let programForm = document.getElementById('newProgramForm');
+
+	//Toggle for pricing type and price label
+	let priceLabel = document.getElementById('priceLabel');
+	let pricingToggles = document.querySelectorAll('.pricingChoice');
+
+	//Delete each listed service
+	serviceButtons.forEach((button) => {
+		button.addEventListener('click', () => {
+			document.getElementById(button.value + 'Item').remove();
+		});
+	});
+
+	//Edit event
+	editButtons.forEach((button) => {
+		button.addEventListener('click', () => {
+
+			//Hide the edit button
+			button.style = 'display: none';
+
+			//Select and enable all input fields
+			let fields = document.querySelectorAll('.' + button.value + 'Info');
+			fields.forEach((field) => {
+				field.disabled = false;
+			});
+
+			//Show the logo or profile pic upload
+			let upload = document.getElementById(button.value + 'Upload');
+			upload.style = 'display: block';
+
+			//Show the save and cancel buttons
+			let saveButton = document.getElementById(button.value + 'SaveButton');
+			let cancelButton = document.getElementById(button.value + 'CancelButton');
+			saveButton.style = 'display: block';
+			cancelButton.style = 'display:block';
+
+			if(button.value = 'business'){
+				//Show the delete service buttons
+				serviceButtons.forEach((button) => {
+					button.style = 'display: inline';
+				});
+			
+				//Display the add service button
+				let addServiceButton = document.getElementById('addService');
+				addServiceButton.style = 'display: block';
+
+				//Add service event
+				addServiceButton.addEventListener('click', () => {
+					//Hide the add service button
+					addServiceButton.style = 'display: none';
+
+					//Show the add service form and submit service button
+					let addServiceInput = document.getElementById('addServiceInputDiv');
+					addServiceInput.style = 'display: block';
+
+					//Collect save service buttons and service name input
+					let saveServiceButton = document.getElementById('submitService');
+					let serviceInput = document.getElementById('toAddService');
+
+					//Clone service list template
+					let newService = document.getElementById("serviceTemplate").content.cloneNode(true);
+
+					//Save service event
+					saveServiceButton.addEventListener('click', () => {
+						//Convert to string for easy manipulation
+						let service = String(serviceInput.value);
+
+						//Populate template
+						newService.querySelector('li').id = service.replace(' ', '') + 'Item';
+						newService.querySelector('span').innerHTML = service;
+						newService.querySelector('.serviceField').value = service;
+						
+						//Show service delete and add the delete event
+						let deleteButton = newService.querySelector('button');
+						deleteButton.style = 'display:inline';
+						deleteButton.value = service.replace(' ', '');
+						deleteButton.addEventListener('click', ()=> {
+							document.getElementById(deleteButton.value + 'Item').remove();
+						});
+
+						//Add the new service to the page and reset the input
+						document.getElementById('serviceList').appendChild(newService);
+						document.getElementById('toAddService').value = '';
+
+						//Show the add service button and hide the service input
+						addServiceButton.style = 'display: block';
+						addServiceInput.style = 'display: none';
+					});
+				});
+			}
+			
+
+		});
+	});
+
+	cancelButtons.forEach((button) => {
+		button.addEventListener('click', () => {
+			button.style = "display:none";
+
+			//Show edit button, hide save button
+			let saveButton = document.getElementById(button.value + 'SaveButton');
+			let editButton = document.getElementById(button.value + 'EditButton');
+			editButton.style = 'display:block';
+			saveButton.style = 'display:none';
+
+			//Hide the logo or profile pic upload
+			let upload = document.getElementById(button.value + 'Upload');
+			upload.style = 'display: none';
+
+
+			//Select and enable all input fields
+			let fields = document.querySelectorAll('.' + button.value + 'Info');
+			fields.forEach((field) => {
+				field.disabled = true;
+			});
+
+			if(button.value = 'business'){
+				//Hide the delete service buttons
+				serviceButtons.forEach((button) => {
+					button.style = 'display: none';
+				});
+
+				//Hide the add service button
+				let addServiceButton = document.getElementById('addService');
+				addServiceButton.style = 'display: none';
+			}
+
+    	});  
+	});
+	
+
+	//Add program event shows the new program form and hides the add program button
+	addProgramButton.addEventListener('click', () => {
+		programForm.style = 'display:block';
+		addProgramButton.style = 'display:none';
+	});
+
+	cancelAddProgramButton.addEventListener('click', () => {
+		programForm.style = 'display:none';
+		addProgramButton.style = 'display:block';
+
+		let inputs = document.querySelectorAll('.newProgramInfo');
+		inputs.forEach((input) => {
+			input.value = '';
+		});
+	});
+	
+	//Change the label for the price input in the program form according to the selected pricing type
+	pricingToggles.forEach((toggle) => {
+		toggle.addEventListener('change', () => {
+			if(toggle.checked){
+				priceLabel.innerHTML = toggle.value + ":";
+			}
+		});
+	});
+	
+
+</script>
+
+<%- include("templates/footerCopyright") %>
