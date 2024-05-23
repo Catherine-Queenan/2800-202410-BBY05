@@ -13,9 +13,8 @@ const stream = require("stream");
 const cloudinary = require('cloudinary').v2;
 
 const Swal = require('sweetalert2');
-
+const Queue = require('bull');
 const saltRounds = 10;
-
 
 //GOOGLE CLOUD STORAGE
 
@@ -107,7 +106,6 @@ cloudinary.config({
 	api_key: cloud_api_key,
 	api_secret: cloud_api_secret
 });
-
 
 //File uploader
 const storage = multer.memoryStorage();
@@ -537,8 +535,8 @@ app.get('/loggedIn', (req, res) => {
 // forget password (link it after) -> enter email -> get email (in progress) -> make a password -> 
 // This is the reset password landing page where the user can enter their email for a reset
 
-// This function is solely for sending emails. It will need an ejs file for the email templating later
-function sendMail(emailAddress, resetToken) {
+// This function is solely for sending password reset emails. It will need an ejs file for the email templating later
+function sendResetMail(emailAddress, resetToken) {
 	ejs.renderFile('./views/email.ejs', { resetToken: resetToken }, (err, str) => {
 		if (err) {
 			console.error('Error rendering email template', err);
@@ -563,6 +561,107 @@ function sendMail(emailAddress, resetToken) {
 		});
 	});
 }
+
+// This function sets up the reminder emails to be sent. Sets up sending an email an hour before, and 24 hours before the appointment.
+async function sendReminderEmails() {
+    const now = new Date();
+
+    const events = await userdb.collection('eventSource').find({
+        $or: [
+            { start: { $lte: new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString(), $gt: now.toISOString() } },
+            { start: { $lte: new Date(now.getTime() + 60 * 60 * 1000).toISOString(), $gt: now.toISOString() } }
+        ]
+    }).toArray();
+
+    for (const event of events) {
+        const user = await appUserCollection.findOne({ email: event.userEmail });
+        const eventTime = new Date(event.start);
+        //const oneDayBefore = new Date(eventTime.getTime() - 24 * 60 * 60 * 1000);
+        //const oneHourBefore = new Date(eventTime.getTime() - 60 * 60 * 1000);
+
+//        if (now >= oneDayBefore && now < oneDayBefore + 60 * 1000) {
+//            await scheduleEmail(user.email, 'Appointment Reminder', `You have an appointment scheduled for tomorrow at ${event.start}.`, 0);
+//        } else if (now >= oneHourBefore && now < oneHourBefore + 60 * 1000) {
+//            await scheduleEmail(user.email, 'Appointment Reminder', `You have an appointment scheduled in one hour at ${event.start}.`, 0);
+//        }
+    }
+}
+
+//setInterval(sendReminderEmails, 15 * 60 * 1000);
+
+// This function sends other types of emails. Right now I'm adding it so that you can send appointment information. (but you can parse anything you want, really.)
+async function sendEmail(to, subject, eventTitle, eventDate, eventStartTime, eventEndTime) {
+    ejs.renderFile('./views/reminderEmail.ejs', { 
+        eventTitle: eventTitle,
+        eventDate: eventDate,
+        eventStartTime: eventStartTime,
+        eventEndTime: eventEndTime
+    }, (err, str) => {
+        if (err) {
+            console.error('Error rendering email template', err);
+            return;
+        }
+        
+        const mailOptions = {
+            from: autoreply_email,
+            to: to,
+            subject: subject,
+            html: str
+        };
+
+        try {
+            transporter.sendMail(mailOptions);
+            console.log(`Email sent to ${to}`);
+        } catch (error) {
+            console.error(`Error sending email to ${to}:`, error); 
+            throw error;
+        }
+    });
+}
+
+// Sets up a queue so that emails can be sent even if the app is closed
+// This doesn't work :(
+//let emailQueue = new Queue('emailQueue', {
+//    redis: {
+//        host: '127.0.0.1',
+//        port: 6379,
+//        maxRetriesPerRequest: 10000,
+//    },
+//    defaultJobOptions: {
+//        attempts: 10000,
+//        backoff: {
+//            type: 'exponential',
+//            delay: 60 * 1000,
+//        },
+//    },
+//});
+//
+//
+//emailQueue.process(async (job) => {
+//    console.log("We're in the email queue");
+//    const { to, subject, text } = job.data;
+//    try {
+//        sendEmail(to, subject, text); //Removed an await
+//        console.log(`Email sent successfully to ${to}`);
+//    } catch (error) {
+//        console.error(`Failed to send email to ${to}, will retry...`, error);
+//        throw error;
+//    }
+//});
+//
+//async function scheduleEmail(to, subject, text, delay) {
+//    console.log("Do we even get here 😭");
+//    try {
+//        emailQueue.add(
+//            { to, subject, text },
+//            { delay }
+//        );
+//        console.log(`Scheduled email to ${to} with subject "${subject}" and delay of ${delay}ms`);
+//    } catch (error) {
+//        console.error(`Error scheduling email to ${to}:`, error);
+//    }
+//}
+
 
 // This routing is the main page for forgetting your password.
 app.get('/forgotPassword', (req, res) => {
@@ -603,7 +702,7 @@ app.post('/emailConfirmation', async (req, res) => {
 		});
 
 		// send the email with the unique token link
-		sendMail(email, token);
+		sendResetMail(email, token);
 
 		// Redirect to an email sent page
 		res.redirect('/emailSent');
@@ -1169,15 +1268,17 @@ app.post('/getClients', async (req, res) => {
 
 app.post('/addEvent', async (req, res) => {
 	let date = req.body.calModDate;
-	let startDate = date + "T" + req.body.calModStartHH + ":" + req.body.calModStartMM + ":00";
-	let endDate = date + "T" + req.body.calModEndHH + ":" + req.body.calModEndMM + ":00";
+	let startDateStr = date + "T" + req.body.calModStartHH + ":" + req.body.calModStartMM + ":00";
+	let endDateStr = date + "T" + req.body.calModEndHH + ":" + req.body.calModEndMM + ":00";
+	let startDate = new Date(startDateStr);
+	let endDate = new Date(endDateStr);
 	let trainerName = req.session.name;
 	let clientEmail = req.body.calModClient;
 	let eventInfo = req.body.calModInfo;
 	let event = {
 		title: req.body.calModTitle,
-		start: startDate,
-		end: endDate,
+		start: startDateStr,
+		end: endDateStr,
 		trainer: trainerName,
 		client: clientEmail,
 		info: eventInfo
@@ -1196,8 +1297,17 @@ app.post('/addEvent', async (req, res) => {
 	} else {
 		await userdb.collection('eventSource').insertOne(event);
 	}
+    // Schedule the email to be sent immediately after the event is added
+    await sendEmail(
+        req.session.email,
+        'New Appointment - Pawfolio',
+        event.title,
+        startDate.toDateString(),
+        startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        endDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    );
 
-	res.redirect('/calendar');
+    res.redirect('/calendar');
 });
 
 app.post('/updateEvent', async (req, res) => {
