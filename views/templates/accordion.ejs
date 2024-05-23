@@ -1,0 +1,32 @@
+<div class="accordion accordion-flush" id="<%= AName %>">
+    <div class="accordion-item">
+      <h2 class="accordion-header">
+        <button class="accordion-button collapsed purple fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#<%= dropOne %>" aria-expanded="false" aria-controls="<%= dropOne %>">
+            <p style="padding-right:10px; margin:0;"><%= ATitle1 %></p>
+        </button>
+      </h2>
+      <div id="<%= dropOne %>" class="accordion-collapse collapse" data-bs-parent="#<%= AName %>">
+        <div class="accordion-body purple"><%= ABody1 %></div>
+      </div>
+    </div>
+    <div class="accordion-item">
+      <h2 class="accordion-header">
+        <button class="accordion-button collapsed purple fw-bold justify-content-between" type="button" data-bs-toggle="collapse" data-bs-target="#<%= dropTwo %>" aria-expanded="false" aria-controls="<%= dropTwo %>">
+            <p style="padding-right:10px; margin:0;"><%= ATitle2 %></p>
+        </button>
+      </h2>
+      <div id="<%= dropTwo %>" class="accordion-collapse collapse" data-bs-parent="#<%= AName %>">
+        <div class="accordion-body purple"><%= ABody2 %></div>
+      </div>
+    </div>
+    <div class="accordion-item">
+      <h2 class="accordion-header">
+        <button class="accordion-button collapsed purple fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#<%= dropThree %>" aria-expanded="false" aria-controls="<%= dropThree %>">
+            <p style="padding-right:10px; margin:0;"><%= ATitle3 %></p>
+        </button>
+      </h2>
+      <div id="<%= dropThree %>" class="accordion-collapse collapse" data-bs-parent="#<%= AName %>">
+        <div class="accordion-body purple"><%= ABody3 %></div>
+      </div>
+    </div>
+</div>

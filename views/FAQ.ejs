@@ -1,14 +1,125 @@
 <!--Frequently Asked Questions Page-->
 <%- include("templates/header") %>
 
-<div class="container"> <!--Added container div to center content on page-->
+<div class="container pb-3"> <!--Added container div to center content on page-->
     <h1 class="text-center">Frequently Asked Questions</h1> <!--Page title-->
-
-    <!--If statement to optionally load the login footer based on authentication-->
-    <% if (!loggedIn) { %>
-        <%- include("templates/footerLogin") %>
-    <% } %>
-
-</div> <!--End wrapper div-->
+    <div class="resource-wrap d-flex justify-content-center">
+        <div class="resource-html text-center">
+            <input id="tabR-1" type="radio" name="tab" class="tabR-one btn-check" checked>
+            <label for="tabR-1" class="tabR">General</label>
+            <input id="tabR-2" type="radio" name="tab" class="tabR-two btn-check">
+            <label for="tabR-2" class="tabR">Client</label>
+            <input id="tabR-3" type="radio" name="tab" class="tabR-three btn-check">
+            <label for="tabR-3" class="tabR">Business</label>
+            <div class="resource-form">
+                <div class="tabR-one-htm">
+                    <h4 class="text-center yeseva-one underline-header">About Our Trainers</h4>
+                    <%- include('templates/accordion', {
+                        AName: 'Trainers',
+                        dropOne: 'TrainersOne',
+                        ATitle1: 'Why do you require a background check for trainers?',
+                        ABody1: 'There is no existing regulation in North America for someone to advertise themself as a dog trainer. This means that anyone can call themselves a dog trainer, regardless of their experience or qualifications. We require a background check to ensure that our trainers are who they say they are and that they have the experience they claim to have. This is to protect our clients and their pets from potential harm.',
+                        dropTwo: 'TrainersTwo',
+                        ATitle2: 'What are the requirements for a trainer to join Pawfolio?',
+                        ABody2: 'All of our trainers must have a certification from a recognized and respected dog training organization. They must also provide proof of continued education in the field of animal behaviour and training within the past two years. Finally, they must adhere to the LIMA (Least Invasive, Minimally Aversive) training philosophy.',
+                        dropThree: 'TrainersThree',
+                        ATitle3: 'What type of certifications do your trainers have?',
+                        ABody3: 'Our trainers can have a variety of certifications, but they must all be from a recognized and respected dog training organization. Some of the most common certifications our trainers have include CPDT-KA (Certified Professional Dog Trainer - Knowledge Assessed), KPA-CTP (Karen Pryor Academy Certified Training Partner), and Certified Family Dog Mediator (L.E.G.S. Applied Ethology Family Dog Mediation). Many of our trainers have also completed their Canine First Aid certification.'
+                    }) %>
+                    <h4 class="text-center yeseva-one pt-3 underline-header">About our Resources</h4>
+                    <%- include('templates/accordion', {
+                        AName: 'Resources',
+                        dropOne: 'ResourcesOne',
+                        ATitle1: 'Why can\'t I just look up the information I need on Google?',
+                        ABody1: 'Unfortunately, the animal industry is rife with inaccurate information peddled by backyard breeders and unreliable sources. Our list of resources is curated to avoid misinformation. We have vetted each resource to ensure that the information is accurate and up-to-date. ',
+                        dropTwo: 'ResourcesTwo',
+                        ATitle2: 'I didn\'t find the information I wanted in any resources. What should I do?',
+                        ABody2: 'If you couldn\'t find the information you were looking for, contact your trainer directly. They will be able to help you find the information you need, provide you with supplemental resources, or answer your question directly.',
+                        dropThree: 'ResourcesThree',
+                        ATitle3: 'I know of a really good resource that isn\'t listed here. How can I add it?',
+                        ABody3: 'Any user with an account can contact us to suggest a resource. To do so, open the foldout menu on the top right of your screen and select "Support".'
+                    }) %>
+                    <h4 class="text-center yeseva-one pt-3 underline-header">About Us</h4>
+                    <%- include('templates/accordion', {
+                        AName: 'AboutUs',
+                        dropOne: 'AboutUsOne',
+                        ATitle1: 'Who is the team behind Pawfolio?',
+                        ABody1: 'The team behind Pawfolio is Proper Subset, a group of software developers with a passion for animals. One of our own members is a certified dog trainer, who has worked in dog grooming, daycare, and boarding. We know firsthand how challenging it can be to find a reliable platform in this industry. We created Pawfolio to fill that gap.',
+                        dropTwo: 'AboutUsTwo',
+                        ATitle2: 'Why did we create Pawfolio?',
+                        ABody2: 'As animal professionals and dog owners, we saw a need for a platform that avoided the issues of existing services. We wanted to create a platform that specializes in connecting dog trainers with clients, and that offers a wide range of resources to help both parties succeed.',
+                        dropThree: 'AboutUsThree',
+                        ATitle3: 'What sets Pawfolio apart from other dog training platforms?',
+                        ABody3: 'Simply put, there really aren\'t any other dog training platforms like Pawfolio. While platforms exist for veterinary care, grooming, and daycares, there is no other platform that offers the same level of service and care for dog training. Our trainers are all certified and experienced, and we offer a wide range of resources to help you and your pet succeed. Our team has personal experience from both sides of the industry, and we have used that experience to create a platform that is truly unique.'
+                    }) %>
+                </div>
+            </div>
+            <div class="resource-form">
+                <div class="tabR-two-htm">
+                    <h4 class="text-center yeseva-one pt-3 underline-header">About our Resources</h4>
+                    <%- include('templates/accordion', {
+                        AName: 'Trainers',
+                        dropOne: 'TrainersOne',
+                        ATitle1: 'Accordion Item #1',
+                        ABody1: 'This is the first item\'s accordion body.',
+                        dropTwo: 'TrainersTwo',
+                        ATitle2: 'Accordion Item #2',
+                        ABody2: 'This is the second item\'s accordion body.',
+                        dropThree: 'TrainersThree',
+                        ATitle3: 'Accordion Item #3',
+                        ABody3: 'This is the third item\'s accordion body.'
+                    }) %>
+                    <h4 class="text-center yeseva-one pt-3 underline-header">About our Resources</h4>
+                    <%- include('templates/accordion', {
+                        AName: 'AboutUs',
+                        dropOne: 'AboutUsOne',
+                        ATitle1: 'Accordion Item #1',
+                        ABody1: 'This is the first item\'s accordion body.',
+                        dropTwo: 'AboutUsTwo',
+                        ATitle2: 'Accordion Item #2',
+                        ABody2: 'This is the second item\'s accordion body.',
+                        dropThree: 'AboutUsThree',
+                        ATitle3: 'Accordion Item #3',
+                        ABody3: 'This is the third item\'s accordion body.'
+                    }) %>
+                </div>
+            </div>
+            <div class="resource-form">
+                <div class="tabR-three-htm">
+                    <h4 class="text-center yeseva-one pt-3 underline-header">About our Resources</h4>
+                    <%- include('templates/accordion', {
+                        AName: 'Trainers',
+                        dropOne: 'TrainersOne',
+                        ATitle1: 'Accordion Item #1',
+                        ABody1: 'This is the first item\'s accordion body.',
+                        dropTwo: 'TrainersTwo',
+                        ATitle2: 'Accordion Item #2',
+                        ABody2: 'This is the second item\'s accordion body.',
+                        dropThree: 'TrainersThree',
+                        ATitle3: 'Accordion Item #3',
+                        ABody3: 'This is the third item\'s accordion body.'
+                    }) %>
+                    <h4 class="text-center yeseva-one pt-3 underline-header">About our Resources</h4>
+                    <%- include('templates/accordion', {
+                        AName: 'AboutUs',
+                        dropOne: 'AboutUsOne',
+                        ATitle1: 'Accordion Item #1',
+                        ABody1: 'This is the first item\'s accordion body.',
+                        dropTwo: 'AboutUsTwo',
+                        ATitle2: 'Accordion Item #2',
+                        ABody2: 'This is the second item\'s accordion body.',
+                        dropThree: 'AboutUsThree',
+                        ATitle3: 'Accordion Item #3',
+                        ABody3: 'This is the third item\'s accordion body.'
+                    }) %>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> <!--End container div-->
+<!--If statement to optionally load the login footer based on authentication-->
+<% if (!loggedIn) { %>
+<%- include("templates/footerLogin") %>
+<% } %>
 
 <%- include("templates/footerCopyright") %>
