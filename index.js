@@ -1081,7 +1081,6 @@ app.post('/deleteAccount', async (req, res) => {
 	res.redirect('/logout');
 });
 
-
 app.get('/findTrainer', async(req, res) => {
 	//Grab all business users
 	let businesses = await appUserCollection.find({userType: 'business'}).project({companyName: 1}).toArray();
