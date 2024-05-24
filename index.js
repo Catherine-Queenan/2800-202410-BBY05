@@ -1271,14 +1271,40 @@ app.get('/clientProfile/:id', async (req, res) => {
 	// loop through clients and find the target client to load the page with
 	for (let i = 0; i < clients.length; i++) {
 		if (ids[i] === req.params.id) {
-			console.log('match found');
 			targetClient = clients[i]
 		}
 	}
 
-	console.log(targetClient);
+	// used for locating the pfpUrl directory
+	const email = targetClient.email;
 
-	res.render('viewingClientProfile', {targetClient: targetClient, loggedIn: isValidSession(req), userType: req.session.userType});
+	// parse the email to be a dbname
+	const emailParsed = targetClient.email.split('.').join('');
+	const dbName = mongodb_clientdb + '-' + emailParsed;
+
+	// set the database
+	clientdb = appdb.db(dbName).collection('info');
+
+	//grab the array version of the pfp url
+	pfpUrlProcessing = await clientdb.find({email}).project({profilePic: 1}).toArray();
+	
+	//store the url to be passed into render
+	pfpUrl = pfpUrlProcessing[0].profilePic;
+
+	if(pfpUrl != '') {
+		pfpUrl = cloudinary.url(pfpUrl);
+	}
+
+	//Gather dogs and their images if they have one
+	let dogs = await userdb.collection('dogs').find({}).toArray();
+	for(let i = 0; i < dogs.length; i++){
+		let pic = dogs[i].dogPic;
+		if(pic != ''){
+			dogs[i].dogPic = cloudinary.url(pic);
+		}
+	}
+
+	res.render('viewingClientProfile', {targetClient: targetClient, pfpUrl: pfpUrl, dogs: dogs, loggedIn: isValidSession(req), userType: req.session.userType});
 });
 
 app.use(express.static(__dirname + "/public"));

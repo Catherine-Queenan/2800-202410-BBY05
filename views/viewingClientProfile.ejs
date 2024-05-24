@@ -1,10 +1,18 @@
 <%- include("templates/header") %>
+<!-- pfp -->
+<div><%- include('templates/defaultingPic', {pic: pfpUrl, picId:'profilePic'})%></div> <br>
 <!-- name (first last) -->
-<%= targetClient.firstName %> <%= targetClient.lastName %>
+<div><%= targetClient.firstName %> <%= targetClient.lastName %></div> <br>
 <!-- phone number -->
-<%= targetClient.phone %>
+<div><%= targetClient.phone %></div> <br>
 <!-- email -->
-<%= targetClient.email %>
+<div><%= targetClient.email %></div> <br>
 <!-- dogs -->
+<div id="dogSection">
+    <h3><%= targetClient.firstName %>'s Dogs:</h3>
+    <% for(let i = 0; i < dogs.length; i++){ %>
+        <%- include('templates/dog', {dog: dogs[i]}) %>
+    <%} %>
+</div>
 <!-- other buttons -->
 <%- include("templates/footerCopyright") %>
