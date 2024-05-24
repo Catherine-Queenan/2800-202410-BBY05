@@ -2,7 +2,7 @@
 <div class="m-3">
 <%- include('templates/defaultingPic', {pic: user.profilePic, picId:'profilePic'})%>
     <form method="post" enctype="multipart/form-data">
-        <%- include('templates/uploadFile', {divId:'newProfilePic', xDivAttributes:'style=display:none', fileId:'profilePicInput',fileName:'accountUpload', label:'Upload a New Photo:', xfileAttributes:''}) %>
+        <%- include('templates/uploadFile', {divId:'newProfilePic', xDivAttributes:'style=display:none', fileId:'profilePicInput',fileName:'accountUpload', label:'Upload a New Photo:', xfileAttributes:'accept=.png,.jpg, .jpeg'}) %>
             
         <input name="firstName" type="text" class="profileInfo col-3" value="<%= user.firstName %>" disabled>
         <input name="lastName" type="text" class="profileInfo col-3" value="<%= user.lastName %>" disabled> <br><br>
