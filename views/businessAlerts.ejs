@@ -1,10 +1,62 @@
 <%- include("templates/header") %>
 <div class="container">
     <p class="h3 yeseva-one">Alerts</p>
-    <% for(let i=0; i < alerts.length; i++){ %>
-        <% if(alerts[i].alertType == 'hireRequest'){ %>
-            <%- include('templates/alertHireRequest', {alert: alerts[i]})%>
+    <div>
+    <div class="form-group">
+        <label for="hiringRequests">Hiring Requests</label>
+        <input class="alertFilter" type="checkbox" id="hiringRequests" value="hireRequest">
+    </div>
+    <div class="form-group">
+        <label for="cancellations">Cancellations</label>
+        <input class="alertFilter" type="checkbox" id="cancellations" value="cancellation">
+    </div>
+    <div class="form-group">
+        <label for="paymentsRecieved">Payments Recieved</label>
+        <input class="alertFilter" type="checkbox" id="paymentsRecieved" value="payment">
+    </div>
+</div>
+<div>
+    <% if(alerts.length < 1) {%>
+        <p>You have no alerts</p>
+    <% } else {%>
+        <% for(let i=0; i < alerts.length; i++){ %>
+            <% if(alerts[i].alertType == 'hireRequest'){ %>
+                <%- include('templates/alertHireRequest', {alert: alerts[i]})%>
+            <% } %>
         <% } %>
     <% } %>
 </div>
+</div>
+
+<script>
+    let filter = [];
+    let filterChecks = document.querySelectorAll('.alertFilter');
+    let alerts = document.querySelectorAll('.alertCard');
+
+    filterChecks.forEach((check)=>{
+        check.addEventListener('change', function(){
+            if(this.checked){
+                filter.push(this.value);
+                alerts.forEach((alertCard) => {
+                    let alertType = alertCard.classList[0];
+                    if(!filter.includes(alertType)){
+                        alertCard.style = 'display:none';
+                    }
+                });
+            } else {
+                let index = filter.indexOf(this.value);
+                if (index > -1) {
+                    filter.splice(index, 1);
+                }
+
+                alerts.forEach((alertCard) => {
+                    let alertType = alertCard.classList[0];
+                    if(!filter.includes(alertType)){
+                        alertCard.style = 'display:block';
+                    }
+                });
+            }
+        });
+    });
+</script>
 <%- include("templates/footerCopyright") %>
