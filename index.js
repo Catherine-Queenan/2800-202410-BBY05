@@ -1319,7 +1319,7 @@ app.get('/viewBusiness/:company', async(req, res) => {
 });
 
 app.get('/viewBusiness/:company/register/:program', async(req, res) => {
-	setUserDatabase(req); //bandaid for testing
+	const userdb = await getdb(req.session.userdb);
 
 	//Connect to the specific business' database
 	let db = mongodb_businessdb + '-' + req.params.company.replace(/\s/g, "");
@@ -1357,7 +1357,7 @@ app.get('/viewBusiness/:company/register/:program', async(req, res) => {
 
 
 app.post('/viewBusiness/:company/register/:program/submitRegister', async(req, res) => {
-	setUserDatabase(req); //bandaid for testing
+	const userdb = await getdb(req.session.userdb);
 
 	let db = mongodb_businessdb + '-' + req.params.company.replace(/\s/g, "");
 	let businessdbAccess = new MongoClient(`mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/${db}?retryWrites=true`);
@@ -1389,12 +1389,15 @@ app.post('/viewBusiness/:company/register/:program/submitRegister', async(req, r
 		appUserCollection.updateOne({email: companyEmail, userType:'business'}, {$inc:{unreadAlerts: 1}})
 	]);
 	
-	res.redirect('/findTrainer');
+	// CHANGE LATER TEMPORARY CODE TO AUTO HIRE THE TRAINER FOR NOW
+	const companyName = await tempBusiness.collection('info').find().project({companyName: 1}).toArray();
+	res.redirect('/addTrainer/' + companyName[0].companyName);
+	// res.redirect('/findTrainer');
 });
 
 
 // Temporary add Trainer button for this Branch
-app.post('/addTrainer/:trainer', async (req, res) => {
+app.get('/addTrainer/:trainer', async (req, res) => {
 	let trainer = req.params.trainer;
 	await appUserCollection.updateOne({email: req.session.email}, {$set: { companyName: trainer}});
 	await setTrainerDatabase(req);
@@ -1690,7 +1693,7 @@ app.post('/messagesBusiness/:client', async (req, res) => {
 // ----------------- ALERTS SECTION STARTS HERE -------------------
 
 app.get('/alerts', async(req, res)=>{
-	setUserDatabase(req); //bandaid for testing
+	const userdb = await getdb(req.session.userdb);
 	if(req.session.userType == 'business'){
 
 		let [alerts] = await Promise.all([
@@ -1706,7 +1709,7 @@ app.get('/alerts', async(req, res)=>{
 });
 
 app.get('/alerts/view/:alert', async(req, res) => {
-	setUserDatabase(req); //bandaid for testing
+	const userdb = await getdb(req.session.userdb);
 	if(req.session.userType == 'business'){
 		appUserCollection.updateOne({email: req.session.email}, {$set:{unreadAlerts: 0}});
 		let alertId = ObjectId.createFromHexString(req.params.alert);
