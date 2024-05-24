@@ -9,8 +9,9 @@
         <input name="email" type="email" class="col-6" value="<%= user.email %>" disabled><br><br>
         <input name="phone" type="tel" class="profileInfo col-6" value="<%= user.phone %>" disabled>
 
-        <%- include('templates/button', {action:'/profile/edit/clientProfile',xClasses:'',xAttributes:'id=saveButton style=display:none',content:'Save'}) %>
-        <%- include('templates/button', {action:'',xClasses:'',xAttributes:'type=button id=editButton',content:'Edit'})%>
+        <%- include('templates/button', {action:'',xClasses:'cancelButton btn-danger col-3 me-4',xAttributes:'id=cancelEdit type=button style=display:none',content:'Cancel'}) %>
+        <%- include('templates/button', {action:'/profile/edit/clientProfile',xClasses:'col-3',xAttributes:'id=saveButton style=display:none',content:'Save'}) %>
+        <%- include('templates/button', {action:'',xClasses:'col-3',xAttributes:'type=button id=editButton',content:'Edit'})%>
     </form> 
 
    <br><br>
@@ -22,13 +23,13 @@
         <br>
 
     <form>
-        <%- include('templates/button', {action:'/addDog',xClasses:'',xAttributes:'',content:'Add New Dog'}) %>
+        <%- include('templates/button', {action:'/addDog',xClasses:'col-3',xAttributes:'',content:'Add New Dog'}) %>
     </form>
     
     <form method="get">
-        <%- include('templates/button', {action:'/accountDeletion',xClasses:'',xAttributes:'',content:'Delete Account'}) %>
+        <%- include('templates/button', {action:'/accountDeletion',xClasses:'col-3',xAttributes:'',content:'Delete Account'}) %>
     </form>
-	</div>	
+	</div>
     </div>
 
    

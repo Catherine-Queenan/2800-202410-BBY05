@@ -11,14 +11,14 @@ body {
 /* End of Navbar */
 </style>
 
-<nav class="navbar fixed-top whiteBackground border-bottom border-body">
+<nav class="navbar fixed-top whiteBackground border-bottom border-body" style="width:100%;">
     <div class="container-fluid">
       <a class="navbar-brand">
         <form method="get">
           <%- include('icon', {iconPath: '/icons/Logo.png', altText: 'Logo', action: '/', theClass: '', theAttributes: 'style= width:50px; height:50px;'}) %>
         </form>
       </a>
-      <form method="get" class="col-md-4 d-flex">
+      <form method="get" class="col-md-4 d-flex justify-content-center">
         <ul class="nav nav-pills align-items-center">
         <li class="nav-item pe-3">
           <div class="d-flex flex-column align-items-center">
@@ -35,6 +35,10 @@ body {
         <li class="nav-item">
           <div class="d-flex flex-column align-items-center">
             <%- include('icon', {iconPath: '/icons/Bell.png', altText: 'Bell', action: '/', theClass: '', theAttributes: 'style= width:30px; height:30px;'}) %>
+            <span class="position-absolute top-30 start-90 badge rounded-pill orangeBackground purple" style="transform:translate(55%,-50%) !important; font-weight:800; cursor:pointer;">
+              9
+              <span class="visually-hidden">unread alerts</span>
+            </span>
             <a href="/"><span class="yeseva-one">Alerts</span></a>
           </div>
         </li>
@@ -52,7 +56,7 @@ body {
 		  									url('/images/PawBack.png') center no-repeat;">
           <form method="get" class="col-md-4 d-flex">
           <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
-            <li class="nav-item py-3">
+            <li class="nav-item pb-3">
               <div class="d-flex align-items-center">
                 <%- include('icon', {iconPath: '/icons/Profile.png', altText: 'Account', action: '/profile', theClass: '', theAttributes: 'style= width:30px; height:30px;'}) %>
                 <a href="/profile" class="ps-3"><span class="yeseva-one">Account</span></a>
@@ -76,6 +80,11 @@ body {
                 <a href="/" class="ps-3"><span class="yeseva-one">Support</span></a>
               </div>
             </li>
+            <li class="nav-item pt-3">
+              <div class="d-flex align-items-center">
+                <%- include('button', {action:'/logout',xClasses:'',xAttributes:'',content:'Logout'}) %>
+              </div>
+            </li>	
           </ul>
         </form>
         </div>
