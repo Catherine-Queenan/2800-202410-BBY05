@@ -109,6 +109,68 @@
   }
 
   /* Forms */
+    /* Styling for the radio buttons */
+    .form-check-input {
+      /* Hide the default radio button */
+      display: none;
+    }
+
+    /* Styling for the custom radio button */
+    .radio-buttons .form-check-input + .form-check-label:before {
+      content: "";
+      display: inline-block;
+      width: 20px; /* Adjust size as needed */
+      height: 20px; /* Adjust size as needed */
+      border: 2px solid #201335; /* Border color */
+      border-radius: 50%; /* Make it round */
+      margin-right: 10px; /* Spacing between the custom radio button and label text */
+      vertical-align: middle;
+    }
+
+    /* Styling for the custom radio button when checked */
+    .radio-buttons .form-check-input:checked + .form-check-label:before {
+      background-color: #5E53A2; /* Color when checked */
+    }
+
+    /* Styling for the label text */
+    .radio-buttons .form-check-label {
+      cursor: pointer; /* Show pointer cursor on hover */
+      vertical-align:middle;
+    }
+
+    /* Styling for the custom check button */
+.check-buttons .form-check-input + .form-check-label:before {
+  content: "";
+  display: inline-block;
+  width: 20px; /* Adjust size as needed */
+  height: 20px; /* Adjust size as needed */
+  border: 2px solid #201335; /* Border color */
+  position: relative; /* Positioning for the checkmark */
+  margin-right: 10px; /* Spacing between the custom button and label text */
+  vertical-align: middle; /* Align vertically with the text */
+}
+
+/* Styling for the custom button when checked */
+.check-buttons .form-check-input:checked + .form-check-label:before {
+  background-color: #201335; /* Background color when checked */
+  content: "\2713"; /* Unicode for checkmark symbol */
+  text-align: center; /* Center the checkmark */
+  position: relative;
+  font-size: 12px; /* Adjust size of the checkmark */
+  color: #FEF6C3; /* Color of the checkmark */
+}
+
+/* Styling for the label text */
+.check-buttons .form-check-label {
+  cursor: pointer; /* Show pointer cursor on hover */
+  vertical-align: middle; /* Align vertically with the check button */
+}
+
+/* Optional: Add some spacing between button groups */
+.check-buttons .form-check {
+  margin-bottom: 12px; /* Adjust spacing as needed */
+}
+
   .form-group {
     margin-top: 1rem;
   }
@@ -449,6 +511,7 @@
       letter-spacing: 1px;
       cursor: pointer;
       vertical-align:0;
+      min-width: 150px;
     }
 
     .btn-main:hover {
@@ -568,6 +631,39 @@
     }
 
     .btn-danger:disabled {
+      color:#F0F1FA;
+      background-color: rgba(255, 160, 92, 0.5);
+    }
+
+    .btn-no {
+      background-color: rgba(255, 160, 92, 1);
+      color: #201335;
+      border: none;
+      border-radius: 5px;
+      padding: 8px 25px;
+      font-size: 18px;
+      font-weight: 500;
+      letter-spacing: 1px;
+      cursor: pointer;
+      min-width:10px !important;
+    }
+
+    .btn-no:hover {
+      color:#201335;
+      background-color: rgba(255, 160, 92, 0.5);
+    }
+
+    .btn-no:active {
+      color:#201335;
+      background-color: rgba(255, 160, 92, 1);
+    }
+
+    .btn-no:active:hover {
+      color:#201335;
+      background-color: rgba(255, 160, 92, 1);
+    }
+
+    .btn-no:disabled {
       color:#F0F1FA;
       background-color: rgba(255, 160, 92, 0.5);
     }
