@@ -1,0 +1,11 @@
+<li>
+    <div class="card" style="width: 18rem;">
+        <div class="card-body">
+            <h5 class="card-title"><%= client.firstName %> <%= client.lastName %></h5>
+            <p class="card-text"><%= client.email %></p>
+            <form method="get">
+                <%- include('templates/button', {action:'/',xClasses:'btn btn-primary',xAttributes:'',content:'View Profile'}) %>
+            </form>
+        </div>
+    </div>
+</li>

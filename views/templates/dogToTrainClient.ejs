@@ -1,0 +1,10 @@
+<div class="card" id="<%=dog._id%>Card" name="">
+    <div>
+        <%- include('defaultingPic', {picId:'', pic:dog.dogPic})%>
+        <span class="h4"><%=dog.dogName%></span>
+    </div>
+    
+    <div class="buttons">
+    <%- include('button', {action:'',xClasses:'selectDogButton',xAttributes:'type=button id=select' + dog._id + ' value=' + dog._id, content:'Select'}) %>
+    </div>
+</div>

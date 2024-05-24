@@ -1,0 +1,39 @@
+#chatRoom {
+	width: 400px;
+	height: 665px;
+	padding-top: 10px;
+	padding-bottom: 10px;
+	margin-top: 20px;
+}
+
+#messages {
+	flex: 1;
+	overflow-y: scroll;
+}
+
+.message {
+	max-width: 60%;
+	padding: 5px 10px 5px 10px;
+	margin: 5px 0;
+	border-radius: 20px;
+	word-wrap: break-word;
+	color: rgba(32, 19, 53, 1);
+}
+
+.message.sent {
+	/* justify-content: flex-end; */
+	align-self: flex-end;
+	background-color: rgba(94, 83, 162, 0.8);
+	border-top-right-radius: 0;
+}
+
+.message.received {
+	/* justify-content: flex-start; */
+	align-self: flex-start;
+	background-color: rgba(255, 160, 92, 0.8);
+	border-top-left-radius: 0;
+}
+
+.msgText {
+	color: rgba(32, 19, 53, 1);
+}

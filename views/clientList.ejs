@@ -1,0 +1,15 @@
+<%- include("templates/header") %>
+
+
+
+<div>
+    <ul>
+        <% let i=0; %>
+        <%for (i = 0; i < clientArray.length; i++) { %>
+            <%- include('clientCards', {client: clientArray[i]} ) %>
+        <% } %>
+    </ul>
+    
+</div>
+
+<%- include("templates/footerCopyright") %>

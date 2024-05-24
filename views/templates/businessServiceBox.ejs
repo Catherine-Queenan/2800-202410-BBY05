@@ -1,0 +1,6 @@
+<li class="list-group-item d-flex flex-row justify-content-between align-items-center" id="<%=serviceName.replace(' ', '')%>Item">
+	<span class="karla-heavy"><%=serviceName%></span>
+	<%- include('button', {action: '', xClasses: 'serviceDelete btn-no py-0 px-2', xAttributes: 'type=button style=display:none;font-size:10px; value=' + serviceName.replace(' ', ''), content: 'X' }) %>
+	<input class="serviceField" name="services" type="hidden" value="<%=serviceName%>" required>
+	
+</li>
