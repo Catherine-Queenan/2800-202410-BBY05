@@ -1,35 +1,66 @@
 <%- include("templates/header") %>
 <div class="m-3">
-<%- include('templates/defaultingPic', {pic: user.profilePic, picId:'profilePic'})%>
-    <form method="post" enctype="multipart/form-data">
-        <%- include('templates/uploadFile', {divId:'newProfilePic', xDivAttributes:'style=display:none', fileId:'profilePicInput',fileName:'accountUpload', label:'Upload a New Photo:', xfileAttributes:''}) %>
-            
-        <input name="firstName" type="text" class="profileInfo col-3" value="<%= user.firstName %>" disabled>
-        <input name="lastName" type="text" class="profileInfo col-3" value="<%= user.lastName %>" disabled> <br><br>
-        <input name="email" type="email" class="col-6" value="<%= user.email %>" disabled><br><br>
-        <input name="phone" type="tel" class="profileInfo col-6" value="<%= user.phone %>" disabled>
+    <span class="h2 yeseva-one underline-header"><%=user.firstName%> <%=user.lastName%></span>
+    <div class="resource-wrap">
+        <div class="resource-html">
+            <input id="tabR-1" type="radio" name="tab" class="tabR-one btn-check" checked>
+            <label for="tabR-1" class="tabR">Profile</label>
 
-        <%- include('templates/button', {action:'',xClasses:'cancelButton',xAttributes:'id=cancelEdit type=button style=display:none',content:'Cancel'}) %>
-        <%- include('templates/button', {action:'/profile/edit/clientProfile',xClasses:'',xAttributes:'id=saveButton style=display:none',content:'Save'}) %>
-        <%- include('templates/button', {action:'',xClasses:'',xAttributes:'type=button id=editButton',content:'Edit'})%>
-    </form> 
+            <input id="tabR-2" type="radio" name="tab" class="tabR-two btn-check">
+            <label for="tabR-2" class="tabR">Dogs</label>
 
-   <br><br>
-	<div id="dogSection">
-        <h3><%=userName%>'s Dogs:</h3>
-        <% for(let i = 0; i < dogs.length; i++){ %>
-            <%- include('templates/dog', {dog: dogs[i]}) %>
-        <%} %>
-        <br>
+            <div class="resource-form">
+                <div class="tabR-one-htm">
+                        <form method="post" enctype="multipart/form-data">
+                            <%- include('templates/defaultingPic', {pic: user.profilePic, picId:'profilePic'})%>
+                            <%- include('templates/uploadFile', {divId:'newProfilePic', xDivAttributes:'style=display:none', fileId:'profilePicInput',fileName:'accountUpload', label:'Upload a New Photo:', xfileAttributes:''}) %>
+                                
+                        <div class="form-group">
+                            <label for="firstName">First Name:</label>
+                            <input name="firstName" id="firstName" type="text" class="profileInfo col-3" value="<%= user.firstName %>" disabled>
+                        </div>
 
-    <form>
-        <%- include('templates/button', {action:'/addDog',xClasses:'',xAttributes:'',content:'Add New Dog'}) %>
-    </form>
-    
+                        <div class="form-group">
+                            <label for="lastName">Last Name:</label>
+                            <input name="lastName" type="text" id="lastName" class="profileInfo col-3" value="<%= user.lastName %>" disabled>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="email">Email:</label>
+                            <input name="email" type="email" id="email" class="col-6" value="<%= user.email %>" disabled>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="phone">Phone:</label>
+                            <input name="phone" type="tel" id="phone" class="profileInfo col-6" value="<%= user.phone %>" disabled>
+                        </div>
+
+                            <%- include('templates/button', {action:'',xClasses:'cancelButton',xAttributes:'id=cancelEdit type=button style=display:none',content:'Cancel'}) %>
+                            <%- include('templates/button', {action:'/profile/edit/clientProfile',xClasses:'',xAttributes:'id=saveButton style=display:none',content:'Save'}) %>
+                            <%- include('templates/button', {action:'',xClasses:'',xAttributes:'type=button id=editButton',content:'Edit'})%>
+                        </form> 
+                </div>
+            </div>
+
+            <div class="resource-form">
+                <div id="tab2" class="tabR-two-htm">
+                    <div id="dogSection">
+                        <h3><%=userName%>'s Dogs:</h3>
+                        <% for(let i = 0; i < dogs.length; i++){ %>
+                            <%- include('templates/dog', {dog: dogs[i]}) %>
+                        <%} %>
+                        <br>
+
+                    <form>
+                        <%- include('templates/button', {action:'/addDog',xClasses:'',xAttributes:'',content:'Add New Dog'}) %>
+                    </form>
+            	</div>	
+            </div>
+        </div>
+    </div>
     <form method="get">
         <%- include('templates/button', {action:'/accountDeletion',xClasses:'',xAttributes:'',content:'Delete Account'}) %>
     </form>
-	</div>	
     </div>
 
    
