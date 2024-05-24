@@ -234,10 +234,13 @@
 			//Show the save and cancel buttons
 			let saveButton = document.getElementById(button.value + 'SaveButton');
 			let cancelButton = document.getElementById(button.value + 'CancelButton');
+
 			saveButton.style = 'display: block';
 			cancelButton.style = 'display:block';
 
-			if(button.value = 'business'){
+			console.log(button.parentElement);
+
+			if(button.value == 'business'){
 				//Show the delete service buttons
 				serviceButtons.forEach((button) => {
 					button.style = 'display: inline';
@@ -331,7 +334,7 @@
 				field.disabled = true;
 			});
 
-			if(button.value = 'business'){
+			if(button.value == 'business'){
 				//Hide the delete service buttons
 				serviceButtons.forEach((button) => {
 					button.style = 'display: none';
