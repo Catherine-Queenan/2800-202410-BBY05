@@ -47,7 +47,7 @@ const ejs = require('ejs');
 const { content_v2_1 } = require("googleapis");
 
 // 1 hour
-const expireTime = 60 * 60 * 1000;
+const expireTime = 2 * 60 * 60 * 1000;
 
 /* secret information section */
 const mongodb_host = process.env.MONGODB_HOST;
@@ -125,6 +125,22 @@ app.use(session({
 	resave: true
 }));
 
+// Use the updateUnreadAlerts middleware for all routes
+//middleWare
+async function updateUnreadAlerts(req, res, next) {
+    if (req.session && req.session.email) {
+        try {
+            let alerts = await appUserCollection.find({ email: req.session.email }).project({ unreadAlerts: 1 }).toArray();
+            let unreadAlerts = alerts.length > 0 ? alerts[0].unreadAlerts : 0;
+            req.session.unreadAlerts = unreadAlerts;
+        } catch (error) {
+            console.error('Error updating unread alerts:', error);
+        }
+    }
+    next(); // Pass control to the next middleware function
+}
+app.use(updateUnreadAlerts);
+
 function isClient(req) {
 	if (req.session.userType == 'client') {
 		return true;
@@ -172,6 +188,18 @@ function adminAuthorization(req, res, next) {
 	} else {
 		next();
 	}
+}
+//Function to call
+async function updateUnreadAlertsMidCode(req) {
+    if (req.session && req.session.email) {
+        try {
+            let alerts = await appUserCollection.find({ email: req.session.email }).project({ unreadAlerts: 1 }).toArray();
+            let unreadAlerts = alerts.length > 0 ? alerts[0].unreadAlerts : 0;
+            req.session.unreadAlerts = unreadAlerts;
+        } catch (error) {
+            console.error('Error updating unread alerts:', error);
+        }
+    }
 }
 
 // Sets the database for current user
@@ -268,27 +296,27 @@ async function deleteUploadedImage(id){
 // status to determine what footer and navbar to display
 
 app.get('/', (req, res) => {
-	res.render('index', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType});
+	res.render('index', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
 });
 
-app.get('/about', (req, res) => {
-	res.render('about', {loggedIn: isValidSession(req), userType: req.session.userType});
+app.get('/about',  (req, res) => {
+	res.render('about', {loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
 });
 
 app.get('/test', (req, res) => {
-	res.render('test', {loggedIn: true, name: 'Test User', userType: 'business'});
+	res.render('test', {loggedIn: true, name: 'Test User', userType: 'business', unreadAlerts: 0});
 });
 
 app.get('/FAQ', (req, res) => {
-	res.render('FAQ', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType});
+	res.render('FAQ', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
 });
 
 app.get('/clientResources', (req, res) => {
-	res.render('clientResources', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType});
+	res.render('clientResources', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
 });
 
 app.get('/login/:loginType', (req, res) => {
-	res.render(req.params.loginType, {loggedIn: isValidSession(req), loginType: req.params.loginType});
+	res.render(req.params.loginType, {loggedIn: isValidSession(req), loginType: req.params.loginType, unreadAlerts: 0});
 })
 
 // I think this does nothing so I'll comment out, but delete later.
@@ -300,16 +328,16 @@ app.get('/login/:loginType', (req, res) => {
 
 //Page to choose what account to sign up for (business or client)
 app.get('/signup', (req, res) => {
-	res.render('signupChoice', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType});
+	res.render('signupChoice', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
 });
 
 //Renders form for business or client sign up
 app.get('/signup/:form', (req, res) => {
 	let form = req.params.form;
 	if (form == "business") {
-		res.render('signUpBusiness.ejs', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType});
+		res.render('signUpBusiness.ejs', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
 	} else if (form == "client") {
-		res.render('signUpClient.ejs', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType});
+		res.render('signUpClient.ejs', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
 	}
 });
 
@@ -360,7 +388,8 @@ app.post('/submitSignup/:type', async (req, res) => {
 			lastName: user.lastName,
 			phone: user.phone,
 			password: hashPass,
-			userType: 'client'
+			userType: 'client',
+			unreadAlerts: 0
 		});
 
 		//Update the session for the now logged in user
@@ -369,6 +398,7 @@ app.post('/submitSignup/:type', async (req, res) => {
 		req.session.name = user.firstName + ' ' + user.lastName;
 		req.session.userType = 'client';
 		req.session.cookie.maxAge = expireTime;
+		req.session.unreadAlerts = 0;
 
 		await setUserDatabase(req);
 		const userdb = await getdb(req.session.userdb);
@@ -443,7 +473,8 @@ app.post('/submitSignup/:type', async (req, res) => {
 			lastName: user.lastName,
 			phone: user.businessPhone,
 			password: user.password,
-			userType: 'business'
+			userType: 'business',
+			unreadAlerts: 0
 		});
 
 		//Update the session for the now logged in user
@@ -452,6 +483,7 @@ app.post('/submitSignup/:type', async (req, res) => {
 		req.session.name = user.companyName;
 		req.session.userType = 'business';
 		req.session.cookie.maxAge = expireTime;
+		req.session.unreadAlerts = 0;
 
 		await setUserDatabase(req);
 		const userdb = await getdb(req.session.userdb);
@@ -502,7 +534,7 @@ app.post('/submitLogin', async (req, res) => {
 	}
 
 	// find a result for the client accounts first
-	var result = await appUserCollection.find({ email: email }).project({ email: 1, companyName: 1, firstName: 1, lastName: 1, password: 1, userType: 1, _id: 1 }).toArray();
+	var result = await appUserCollection.find({ email: email }).project({ email: 1, companyName: 1, firstName: 1, lastName: 1, password: 1, userType: 1, _id: 1, unreadAlerts: 1}).toArray();
 
 	// // if there are no clients, search through the admin accounts
 	// if (result.length == 0) {
@@ -519,6 +551,7 @@ app.post('/submitLogin', async (req, res) => {
 		req.session.authenticated = true;
 		req.session.email = email;
 		req.session.userType = result[0].userType;
+		req.session.unreadAlerts = result[0].unreadAlerts;
 
 		// Set session name to first+last if client, companyname if business
 		if (req.session.userType == 'client') {
@@ -536,7 +569,7 @@ app.post('/submitLogin', async (req, res) => {
 	} else {
 
 		// if the password is incorrect, say so
-		res.render('errorMessage', {loggedIn: isValidSession(req), userType: req.session.userType, error: 'Password is incorrect' });
+		res.render('errorMessage', {loggedIn: isValidSession(req), userType: req.session.userType, error: 'Password is incorrect' , unreadAlerts: req.session.unreadAlerts});
 	}
 });
 
@@ -568,7 +601,7 @@ function sendResetMail(emailAddress, resetToken) {
 
 			// Error handling
 			if (error) {
-				res.render('errorMessge', { error: 'Email couldn\'t be sent', loggedIn: false, userType: null })
+				res.render('errorMessge', { error: 'Email couldn\'t be sent', loggedIn: false, userType: null , unreadAlerts: 0})
 			}
 		});
 	});
@@ -681,7 +714,7 @@ app.get('/forgotPassword', (req, res) => {
 
 	// If the email is invalid, the query will have an error message. Otherwise, we want it blank so it doesn't always show
 	const errorMessage = req.query.errorMessage || '';
-	res.render('forgotPassword', { errorMessage: errorMessage, loggedIn: false, userType: null});
+	res.render('forgotPassword', { errorMessage: errorMessage, loggedIn: false, userType: null, unreadAlerts: 0});
 });
 
 // This handles the submitted email for the /forgotpassword routing
@@ -740,7 +773,7 @@ app.get('/resetPassword/:token', async (req, res) => {
 
 	// This detects if we couldn't find the token in any user
 	if (clientUser == null) {
-		res.render('errorMessage', { error: 'Token expired or invalid.', loggedIn: false, userType: null })
+		res.render('errorMessage', { error: 'Token expired or invalid.', loggedIn: false, userType: null, unreadAlerts: 0})
 		return;
 	}
 
@@ -756,7 +789,7 @@ app.get('/resetPasswordForm/:token', (req, res) => {
 
 	// store the token
 	token = req.params;
-	res.render('resetPasswordForm', { token: token.token, loggedIn: false, userType: null });
+	res.render('resetPasswordForm', { token: token.token, loggedIn: false, userType: null , unreadAlerts: 0});
 });
 
 // Handles the new password submission
@@ -789,11 +822,11 @@ app.post('/resettingPassword/:token', async (req, res) => {
 
 // This is a page for when your password is successfully changed
 app.get('/passwordChangedSuccessfully', (req, res) => {
-	res.render('passwordChangedSuccessfully', {loggedIn: isValidSession(req), userType: req.session.userType});
+	res.render('passwordChangedSuccessfully', {loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
 });
 
 app.get('/emailSent', (req, res) => {
-	res.render('checkInbox', {loggedIn: isValidSession(req), userType: req.session.userType});
+	res.render('checkInbox', {loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
 });
 
 app.get('/logout', (req, res) => {
@@ -823,13 +856,13 @@ app.get('/profile', sessionValidation, async(req, res) => {
 		let dogs = await userdb.collection('dogs').find({}).toArray();
 		for(let i = 0; i < dogs.length; i++){
 			let pic = dogs[i].dogPic;
-			if(pic != ''){
+			if(pic != '' && pic != null){
 				dogs[i].dogPic = cloudinary.url(pic);
 			}
 		}
 
 		//Render client profile page
-		res.render('clientProfile', {loggedIn: isValidSession(req), user: user, dogs: dogs, userName: req.session.name, userType: req.session.userType});
+		res.render('clientProfile', {loggedIn: isValidSession(req), user: user, dogs: dogs, userName: req.session.name, userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
 		return;
 
 	//Business user profile
@@ -850,11 +883,11 @@ app.get('/profile', sessionValidation, async(req, res) => {
 
 		//Start on different tabs depending on the req.query
 		if(req.query.tab == 'trainer'){
-			res.render('businessProfile', {loggedIn: isValidSession(req), business: user, trainer: trainer, programs: programs, businessTab: '', trainerTab: 'checked', programsTab: '', userType: req.session.userType});
+			res.render('businessProfile', {loggedIn: isValidSession(req), business: user, trainer: trainer, programs: programs, businessTab: '', trainerTab: 'checked', programsTab: '', userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
 		} else if(req.query.tab == 'program'){
-			res.render('businessProfile', {loggedIn: isValidSession(req), business: user, trainer: trainer, programs: programs, businessTab: '', trainerTab: '', programsTab: 'checked', userType: req.session.userType});
+			res.render('businessProfile', {loggedIn: isValidSession(req), business: user, trainer: trainer, programs: programs, businessTab: '', trainerTab: '', programsTab: 'checked', userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
 		} else {
-			res.render('businessProfile', {loggedIn: isValidSession(req), business: user, trainer: trainer, programs: programs, businessTab: 'checked', trainerTab: '', programsTab: '', userType: req.session.userType});
+			res.render('businessProfile', {loggedIn: isValidSession(req), business: user, trainer: trainer, programs: programs, businessTab: 'checked', trainerTab: '', programsTab: '', userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
 		}
 	}
 });
@@ -956,7 +989,7 @@ app.get('/program/:programId', async(req, res) => {
 	let program = await userdb.collection('programs').find({_id: programId}).toArray();
 
 	//Render program page with the specific program details
-	res.render('programDetails', {loggedIn: isValidSession(req), userType: req.session.userType, program: program[0]});
+	res.render('programDetails', {loggedIn: isValidSession(req), userType: req.session.userType, program: program[0], unreadAlerts: req.session.unreadAlerts});
 });
 
 //Edit specific program
@@ -985,7 +1018,7 @@ app.post('/program/:programId/edit', async(req, res) => {
 
 //Form for adding a new dog
 app.get('/addDog', (req, res) => {
-	res.render('addDog', {loggedIn: isValidSession(req), userType: req.session.userType});
+	res.render('addDog', {loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
 });
 
 //Adds the dog to the database
@@ -1122,7 +1155,7 @@ app.get('/dog/:dogId', async(req, res) => {
 	}
 
 	//Render the dog's profile
-	res.render('dogProfile', {loggedIn: isValidSession(req), userType: req.session.userType, dog: dogRecord[0]});
+	res.render('dogProfile', {loggedIn: isValidSession(req), userType: req.session.userType, dog: dogRecord[0], unreadAlerts: req.session.unreadAlerts});
 });
 
 //Edit specific dog
@@ -1174,7 +1207,7 @@ app.post('/dog/:dogId/delete',upload.single('dogUpload'), async(req, res) => {
 });
 
 app.get('/accountDeletion', (req, res) => {
-	res.render('accountDeletion', {loggedIn: isValidSession(req), name: req.session.name , userType: req.session.userType});
+	res.render('accountDeletion', {loggedIn: isValidSession(req), name: req.session.name , userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
 });
 
 app.post('/deleteAccount', async (req, res) => {
@@ -1215,11 +1248,11 @@ app.get('/findTrainer', async(req, res) => {
 		//Establish connection the user database
 		let db = mongodb_businessdb + '-' + name.replace(/\s/g, "");
 		let userdbAccess = new MongoClient(`mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/${db}?retryWrites=true`);
-		let tempUser = userdbAccess.db(db);
+		let tempBusiness = userdbAccess.db(db);
 
 		//Query for the info and trainer
-		let info = await tempUser.collection('info').find({companyName: name}).toArray();
-		let trainer = await tempUser.collection('trainer').find({companyName: name}).toArray();
+		let info = await tempBusiness.collection('info').find({companyName: name}).toArray();
+		let trainer = await tempBusiness.collection('trainer').find({companyName: name}).toArray();
 
 		//convert the logo picture id to a link if a logo has been uploaded
 		if(info[0].logo != '' && info[0].logo != null){
@@ -1240,13 +1273,13 @@ app.get('/findTrainer', async(req, res) => {
 		businessTrainers.push(trainer[0]);
 	}
 
-	res.render('viewTrainers', {loggedIn: isValidSession(req), userType: req.session.userType, businesses: businessDetails, trainers: businessTrainers});
+	res.render('viewTrainers', {loggedIn: isValidSession(req), userType: req.session.userType, businesses: businessDetails, trainers: businessTrainers, unreadAlerts: req.session.unreadAlerts});
 });
 
 //Temporary code from calendar testing; changed address to just /trainer
 app.get('/trainer', async (req, res) => {
 	const trainers = await appUserCollection.find({ userType: 'business' }).project({ _id: 1, companyName: 1 }).toArray();
-	res.render('findTrainer', {loggedIn: isValidSession(req), userType: req.session.userType, trainers: trainers});
+	res.render('findTrainer', {loggedIn: isValidSession(req), userType: req.session.userType, trainers: trainers, unreadAlerts: req.session.unreadAlerts});
 });
 
 //View indivdual business
@@ -1254,15 +1287,15 @@ app.get('/viewBusiness/:company', async(req, res) => {
 	//Connect to the specific business' database
 	let db = mongodb_businessdb + '-' + req.params.company.replace(/\s/g, "");
 	let userdbAccess = new MongoClient(`mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/${db}?retryWrites=true`);
-	let tempUser = userdbAccess.db(db);
+	let tempBusiness = userdbAccess.db(db);
 
 	//Business is a object with three other objects
 	let business = await (async () => {
 		//Promise concurrently queries the database for the three collections
 		let [info, trainer, programs] = await Promise.all([
-			tempUser.collection('info').find({}).toArray(),
-			tempUser.collection('trainer').find({}).toArray(),
-			tempUser.collection('programs').find({}).toArray()
+			tempBusiness.collection('info').find({}).toArray(),
+			tempBusiness.collection('trainer').find({}).toArray(),
+			tempBusiness.collection('programs').find({}).toArray()
 		]);
 		//Returns the query result
 		return {
@@ -1282,8 +1315,83 @@ app.get('/viewBusiness/:company', async(req, res) => {
 		business.trainer.trainerPic  = cloudinary.url(business.trainer.trainerPic );
 	}
 	
-	res.render('clientViewTrainer', {loggedIn: isValidSession(req), userType: req.session.userType, business: business.info, trainer: business.trainer, programs: business.programs});
+	res.render('clientViewTrainer', {loggedIn: isValidSession(req), userType: req.session.userType, business: business.info, trainer: business.trainer, programs: business.programs, unreadAlerts: req.session.unreadAlerts});
 });
+
+app.get('/viewBusiness/:company/register/:program', async(req, res) => {
+	setUserDatabase(req); //bandaid for testing
+
+	//Connect to the specific business' database
+	let db = mongodb_businessdb + '-' + req.params.company.replace(/\s/g, "");
+	let userdbAccess = new MongoClient(`mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/${db}?retryWrites=true`);
+	let tempBusiness = userdbAccess.db(db);
+
+	let programId = ObjectId.createFromHexString(req.params.program);
+
+	let business = await (async () => {
+		//Promise concurrently queries the database for the three collections
+		let [info, trainer, programs] = await Promise.all([
+			tempBusiness.collection('info').find({}).toArray(),
+			tempBusiness.collection('trainer').find({}).toArray(),
+			tempBusiness.collection('programs').find({}).toArray()
+		]);
+		//Returns the query result
+		return {
+			info: info[0],
+			trainer: trainer[0],
+			programs: programs
+		};
+	})();
+
+	let program = await tempBusiness.collection('programs').find({_id: programId}).toArray();
+	let dogs = await userdb.collection('dogs').find({}).toArray();
+	for(let i = 0; i < dogs.length; i++){
+		let pic = dogs[i].dogPic;
+		if(pic != '' && pic != null){
+			dogs[i].dogPic = cloudinary.url(pic);
+		}
+	}
+
+	res.render('hireTrainer', {loggedIn: isValidSession(req), userType: req.session.userType, program: program[0], dogs: dogs, unreadAlerts: req.session.unreadAlerts});
+});
+
+
+app.post('/viewBusiness/:company/register/:program/submitRegister', async(req, res) => {
+	setUserDatabase(req); //bandaid for testing
+
+	let db = mongodb_businessdb + '-' + req.params.company.replace(/\s/g, "");
+	let businessdbAccess = new MongoClient(`mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/${db}?retryWrites=true`);
+	let tempBusiness = businessdbAccess.db(db);
+	
+	let dogId = ObjectId.createFromHexString(req.body.selectedDog);
+	let programId = ObjectId.createFromHexString(req.params.program);
+
+
+	let [program, dog, companyEmail] = await Promise.all([
+		tempBusiness.collection('programs').find({_id: programId}).project({name: 1}).toArray(),
+		userdb.collection('dogs').find({_id: dogId}).project({dogName: 1}).toArray(),
+		tempBusiness.collection('info').find({}).project({email: 1}).toArray()
+	]);
+
+	let request = {
+		alertType: 'hireRequest',
+		dog: dog[0]._id,
+		dogName: dog[0].dogName,
+		program: program[0]._id,
+		programName: program[0].name,
+		clientEmail: req.session.email,
+		clientName: req.session.name
+	}
+
+	companyEmail = companyEmail[0].email;
+	await Promise.all([
+		tempBusiness.collection('alerts').insertOne(request),
+		appUserCollection.updateOne({email: companyEmail, userType:'business'}, {$inc:{unreadAlerts: 1}})
+	]);
+	
+	res.redirect('/findTrainer');
+});
+
 
 // Temporary add Trainer button for this Branch
 app.post('/addTrainer/:trainer', async (req, res) => {
@@ -1300,6 +1408,8 @@ app.post('/addTrainer/:trainer', async (req, res) => {
 
 	res.redirect('/');
 });
+
+
 // ----------------- CALENDAR STUFF GOES HERE -------------------
 async function getUserEvents(req) {
 	let userEvents;
@@ -1320,10 +1430,10 @@ async function getUserEvents(req) {
 
 app.get('/calendar', async (req, res) => {
 	if (req.session.userType == 'business') {
-		res.render('calendarBusiness', {loggedIn: isValidSession(req), userType: req.session.userType});
+		res.render('calendarBusiness', {loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
 		return;
 	} else if (req.session.userType == 'client') {
-		res.render('calendarClient', {loggedIn: isValidSession(req), userType: req.session.userType});
+		res.render('calendarClient', {loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
 	}
 });
 
@@ -1478,8 +1588,6 @@ app.post('/removeEvent', async (req, res) => {
 	res.redirect('/calendar');
 });
 
-// ----------------- CALENDAR SECTION ENDS HERE -------------------
-
 // ----------------- MESSAGING SECTION STARTS HERE -------------------
 
 app.get('/chatSelectClient', async (req, res) => {
@@ -1489,7 +1597,7 @@ app.get('/chatSelectClient', async (req, res) => {
 		return;
 	} else if (isBusiness(req)) {
 		const clientList = await userdb.collection('clients').find().project({email: 1}).toArray();
-		res.render('chatSelectClient', {loggedIn: isValidSession(req), userType: req.session.userType, clients: clientList});
+		res.render('chatSelectClient', {loggedIn: isValidSession(req), userType: req.session.userType, clients: clientList, unreadAlerts: req.session.unreadAlerts});
 	}
 });
 
@@ -1497,13 +1605,13 @@ app.get('/chat/:type', async (req, res) => {
 	const type = req.params.type;
 	if (type == 'client') {
 		const receiver = await appUserCollection.find({email: req.session.email}).project({companyName: 1}).toArray();
-		res.render('chatClient', { loggedIn: isValidSession(req), userType: req.session.userType, receiver: receiver[0].companyName });
+		res.render('chatClient', { loggedIn: isValidSession(req), userType: req.session.userType, receiver: receiver[0].companyName, unreadAlerts: req.session.unreadAlerts });
 		return;
 	} else if (isBusiness(req)) {
 		setClientDatabase(req, type);
 		const clientdb = await getdb(req.session.clientdb);
 		const receiver = await clientdb.collection('info').find().project({email: 1}).toArray();
-		res.render('chatBusiness', { loggedIn: isValidSession(req), userType: req.session.userType, clientParam: type, receiver: receiver[0].email });
+		res.render('chatBusiness', { loggedIn: isValidSession(req), userType: req.session.userType, clientParam: type, receiver: receiver[0].email, unreadAlerts: req.session.unreadAlerts });
 	}
 });
 
@@ -1579,11 +1687,52 @@ app.post('/messagesBusiness/:client', async (req, res) => {
 // 	res.json({ senderMessages: senderMsgList, receiverMessages: receiverMsgList });
 // });
 
+// ----------------- ALERTS SECTION STARTS HERE -------------------
+
+app.get('/alerts', async(req, res)=>{
+	setUserDatabase(req); //bandaid for testing
+	if(req.session.userType == 'business'){
+
+		let [alerts] = await Promise.all([
+			userdb.collection('alerts').find({}).toArray(),
+			appUserCollection.updateOne({email: req.session.email}, {$set: {unreadAlerts: 0}})
+		]);
+		await updateUnreadAlertsMidCode(req);
+
+		res.render('businessAlerts', {loggedIn: isValidSession(req), userType: req.session.userType, alerts: alerts, unreadAlerts: req.session.unreadAlerts});
+	} else {
+		res.redirect('/');
+	}
+});
+
+app.get('/alerts/view/:alert', async(req, res) => {
+	setUserDatabase(req); //bandaid for testing
+	if(req.session.userType == 'business'){
+		appUserCollection.updateOne({email: req.session.email}, {$set:{unreadAlerts: 0}});
+		let alertId = ObjectId.createFromHexString(req.params.alert);
+		let alert = await userdb.collection('alerts').find({_id: alertId}).toArray();
+
+		let clientEmail = alert[0].clientEmail.split('.').join("");
+		let db = mongodb_clientdb + '-' + clientEmail;
+		let clientdbAccess = new MongoClient(`mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/${db}?retryWrites=true`);
+		let clientInfo = clientdbAccess.db(db);
+
+		let dog = await clientInfo.collection('dogs').find({_id: alert[0].dog}).toArray();
+		if(dog[0].dogPic != '' && dog[0].dogPic != null){
+			dog[0].dogPic = cloudinary.url(dog[0].dogPic);
+		}
+
+		res.render('hireAlertView', {loggedIn: isValidSession(req), userType: req.session.userType, alert: alert[0], dog: dog[0], unreadAlerts: req.session.unreadAlerts});
+	} else {
+		res.redirect('/');
+	}
+});
+
 app.use(express.static(__dirname + "/public"));
 
 app.get('*', (req, res) => {
 	res.status(404);
-	res.render('errorMessage', { error: 'Page not found - 404', loggedIn: isValidSession(req), userType: req.session.userType});
+	res.render('errorMessage', { error: 'Page not found - 404', loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
 })
 
 app.listen(port, () => {

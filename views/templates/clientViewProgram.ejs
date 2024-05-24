@@ -1,7 +1,8 @@
-<div class="card container p-3 my-2 programCard">
+
     <div class="card-title">
         <p class="h3"><%=program.name%></p>
-        <span><span class="karla-heavy"><%=program.pricing.priceType%>:</span> $<%=program.pricing.price%></span>
+        
+        <span class="karla-heavy"><%=program.pricing.priceType%>:</span><span>$<%=program.pricing.price%></span>
         <p><span class="karla-heavy">Hours:</span> <%=program.hours%></p>
         <p class="karla-heavy">Program Description</p>
     </div> 
@@ -14,6 +15,5 @@
                 <p><%=program.discount%></p>
             </div>
         <% } %>
-        
     </div>
-</div>
+   
