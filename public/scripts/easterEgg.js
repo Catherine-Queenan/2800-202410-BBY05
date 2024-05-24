@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     scoreBoard.classList.add('hidden');
     overlay.style.display = 'none';
     
-    // if(currentUrl !== '/' || loggedIn) { return; } // If we're NOT on the homepage, get outta here.
+    if(currentUrl !== '/') { return; } // If we're NOT on the homepage, get outta here.
 
     function updateScore() {
         scoreElement.textContent = score;
