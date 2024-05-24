@@ -1,10 +1,8 @@
 <%- include("templates/header") %>
-	<div class="container my-4"> <!--Added container div to center content on page-->
-		<h1 class="text-center mb-4 yeseva-one underline-header"><%=business.companyName%></h1>  <!--Page title-->
-        
-    	<!--TODO: Catherine links tabs.ejs here-->
-        <div class="resource-wrap">
-            <div class="resource-html">
+	<div class="profile-container my-4"> <!--Added container div to center content on page-->
+		<h1 class="text-center mb-4 yeseva-one"><%=business.companyName%></h1>  <!--Page title-->
+        <div class="resource-wrap d-flex justify-content-center">
+            <div class="resource-html justify-content-center">
                 <input id="tabR-1" type="radio" name="tab" class="tabR-one btn-check" <%=businessTab%>>
                 <label for="tabR-1" class="tabR">Business Details</label>
 
@@ -17,51 +15,50 @@
                 <div class="resource-form">
                     <div class="tabR-one-htm">
                         <form class="my-3" id="businessInfo" method="post" enctype="multipart/form-data">
-							<%- include('templates/defaultingPic', {pic: business.logo, picId: 'logoShow'})%>
+							<div class="d-flex justify-content-center">
+								<%- include('templates/defaultingPic', {pic: business.logo, picId: 'logoShow'})%>
+							</div>
 							<%- include('templates/uploadFile', {divId:'businessUpload', xDivAttributes:'style=display:none', fileId:'logo',fileName:'accountUpload', label:'Upload your Logo:', xfileAttributes:'accept=.png,.jpg'}) %>
-						
-								<div class="form-group row">
+								<div class="form-group">
 									<label for="companyEmail">Company Email:</label>
-									<input class="businessInfo col-4" type="email" id="companyEmail" name="email" value="<%=business.email%>" required disabled>
+									<input class="businessInfo" type="email" id="companyEmail" name="email" value="<%=business.email%>" required disabled>
 								</div>
 						
-								<div class="form-group row">
+								<div class="form-group">
 									<label for="companyPhone">Company Phone Number:</label>
-									<input class="businessInfo col-4" type="tel" id="companyPhone" name="phone" value="<%=business.phone%>" required disabled>
+									<input class="businessInfo" type="tel" id="companyPhone" name="phone" value="<%=business.phone%>" required disabled>
 								</div>
-						
 								
-								<br>
-								<div  class="card" style="width: 18rem;">
-									<ul id="serviceList" class="list-group list-group-flush">
+								<span class="form-group"><label style="margin-top:1rem;">Services:</label></span>
+								<div class="card" style="width: 18rem; background-color:transparent;">
+									<ul id="serviceList" class="list-group settingsList-group list-group-flush">
 										<% for(let i = 0; i < business.services.length; i++){ %>
 											<%- include('templates/businessServiceBox', {serviceName: business.services[i]}) %>
 										<%}%>
 									</ul>
 								</div>
-								<%- include('templates/button', {action:'',xClasses:'',xAttributes:'id=addService type=button value=business style=display:none',content:'Add Service'}) %>
+								<%- include('templates/button', {action:'',xClasses:'mt-3',xAttributes:'id=addService type=button value=business style=display:none',content:'Add Service'}) %>
 						
 								<div id="addServiceInputDiv" style="display:none">
 									<input class="col-4" type="text" id="toAddService">
-									<%- include('templates/button', {action:'',xClasses:'',xAttributes:'id=submitService type=button value=business ',content:'Save Service'}) %>
+									<%- include('templates/button', {action:'',xClasses:'',xAttributes:'id=submitService type=button value=business disabled',content:'Save Service'}) %>
 								</div>
-								<br>
 						
-								<div class="form-group row">
+								<div class="form-group">
 									<label for="companySite">Company Website:</label>
-									<input class="businessInfo col-4" type="text" id="companySite" name="companyWebsite" value="<%=business.companyWebsite%>" required disabled>
+									<input class="businessInfo" type="text" id="companySite" name="companyWebsite" value="<%=business.companyWebsite%>" required disabled>
 								</div>
 									
-								<div class="form-group row">
+								<div class="form-group">
 									<label for="businessDescrtiption">Business Description:</label>
 									<textarea class="form-control auto-resize businessInfo" id="businessDescrtiption" name="description" rows="4" disabled><%=business.description%></textarea>
 								</div>
 						
-								<div class="row my-3">
+								<div class="my-3 d-flex justify-content-between">
 								
-								<%- include('templates/button', {action:'',xClasses:'editButton col-2',xAttributes:'id=businessEditButton type=button value=business',content:'Edit'}) %>
-								<%- include('templates/button', {action:'',xClasses:'cancelButton col-2',xAttributes:'id=businessCancelButton type=button value=business style=display:none',content:'Cancel'}) %>
-								<%- include('templates/button', {action: '/profile/edit/businessDetails',xClasses:'saveButton col-2',xAttributes:'id=businessSaveButton style=display:none',content:'Save'}) %>
+								<%- include('templates/button', {action:'',xClasses:'editButton col-3',xAttributes:'id=businessEditButton type=button value=business',content:'Edit'}) %>
+								<%- include('templates/button', {action:'',xClasses:'cancelButton btn-danger col-3 me-4',xAttributes:'id=businessCancelButton type=button value=business style=display:none',content:'Cancel'}) %>
+								<%- include('templates/button', {action: '/profile/edit/businessDetails',xClasses:'saveButton col-3',xAttributes:'id=businessSaveButton style=display:none',content:'Save'}) %>
 								
 							</div>
 							</form>
@@ -70,7 +67,9 @@
                 <div class="resource-form">
                     <div id="tab2" class="tabR-two-htm">
                         <form  class="my-3 tabR-two-htm" id="trainerInfo" method="post"  enctype="multipart/form-data">
-							<%- include('templates/defaultingPic', {pic: trainer.trainerPic, picId: 'trainerPicShow'})%>
+							<div class="d-flex justify-content-center">
+								<%- include('templates/defaultingPic', {pic: trainer.trainerPic, picId: 'trainerPicShow'})%>
+							</div>
 							<%- include('templates/uploadFile', {divId:'trainerUpload', xDivAttributes:'style=display:none', fileId:'trainerPic',fileName:'accountUpload', label:'Upload your Photo:', xfileAttributes:'accept=.png,.jpg'}) %>
 							
 							<div class="form-group">
@@ -93,10 +92,10 @@
 								<textarea class="form-control trainerInfo" id="trainerIntro" name="intro" rows="3" disabled><%=trainer.intro%></textarea>
 							</div>
 					
-							<div class="row my-3">
-								<%- include('templates/button', {action:'',xClasses:'editButton col-2',xAttributes:'id=trainerEditButton type=button value=trainer',content:'Edit'}) %>
-								<%- include('templates/button', {action:'',xClasses:'cancelButton col-2',xAttributes:'id=trainerCancelButton type=button value=trainer style=display:none',content:'Cancel'}) %>
-								<%- include('templates/button', {action: '/profile/edit/trainer',xClasses:'saveButton col-2',xAttributes:'id=trainerSaveButton style=display:none',content:'Save'}) %>
+							<div class="my-3 d-flex justify-content-between">
+								<%- include('templates/button', {action:'',xClasses:'editButton col-3',xAttributes:'id=trainerEditButton type=button value=trainer',content:'Edit'}) %>
+								<%- include('templates/button', {action:'',xClasses:'cancelButton btn-danger col-3 me-4',xAttributes:'id=trainerCancelButton type=button value=trainer style=display:none',content:'Cancel'}) %>
+								<%- include('templates/button', {action: '/profile/edit/trainer',xClasses:'saveButton col-3',xAttributes:'id=trainerSaveButton style=display:none',content:'Save'}) %>
 							</div>
 
 						</form>
@@ -109,7 +108,7 @@
 								<%- include('templates/programProfileView', {program: programs[i]}) %>
 							<% } %>
 						<% } else { %>
-							<p>You haven't created any programs</p>
+							<p class="text-center">You haven't created any programs</p>
 						<% } %>
 
 						<%- include('templates/button', {action:'',xClasses:'',xAttributes:'type=button id=addProgramButton',content:'Add Program'}) %>
@@ -121,48 +120,50 @@
 							Description
 						-->
 						<br>
-						<div class="border p-2" id="newProgramForm" style="display:none">
+						<div class="p-2" id="newProgramForm" style="display:none">
 						<form class="container"  method="post">
-							<div class="form-group my-2">
+							<div class="form-group my-3">
 								<label for="programName">Program Name:</label>
 								<input class="newProgramInfo" type="text" id="programName" name="name" required>
 							</div>
 							
-							<div class="form-group my-2">
-								<div>
-									<label for="hourlyToggle">Hourly Rate</label>
-									<input type="radio" id="hourlyToggle" name="priceType" class="pricingChoice" value="Hourly Rate" checked>
-								</div>
+							<div style="font-size: 18px; font-weight:700;">
+								<div class="radio-buttons">
+									<div class="form-check" style="max-width:fit-content;">
+										<input type="radio" id="hourlyToggle" name="priceType" class="pricingChoice form-check-input" value="Hourly Rate" checked>
+										<label class="form-check-label" for="hourlyToggle">Hourly Rate</label>
+									</div>
 								
-								<div>
-									<label for="setToggle">Set Price</label>
-									<input type="radio" id="setToggle" name="priceType" class="pricingChoice" value="Set Price">
+									<div class="form-check" style="max-width:fit-content;">
+										<input type="radio" id="setToggle" name="priceType" class="pricingChoice form-check-input" value="Set Price">
+										<label class="form-check-label" for="setToggle">Set Price</label>
+									</div>
 								</div>
 							</div>
 
-							<div class="form-group my-2">
+							<div class="form-group">
 								<label id="priceLabel" for="price">Hourly Rate:</label>
 								<input class="newProgramInfo" type="number" id="price" name="price" min="0" step="0.01" required/>
 							</div>
 
-							<div class="form-group my-2">
+							<div class="form-group">
 								<label for="programDiscounts">Discounts:</label>
-								<textarea class="form-control auto-resize newProgramInfo" style="width:80%" id="programDiscounts" name="discounts" rows="2"></textarea>
+								<textarea class="form-control auto-resize newProgramInfo" id="programDiscounts" name="discounts" rows="2"></textarea>
 							</div>
 
-							<div class="form-group my-2">
+							<div class="form-group">
 								<label for="hours">Total Hours:</label>
 								<input class="newProgramInfo" type="number" id="hours" name="hours" min="0" step="0.01" required/>
 							</div>
 
-							<div class="form-group my-2">
+							<div class="form-group">
 								<label for="programDescription">Program Description:</label>
-								<textarea class="form-control auto-resize newProgramInfo" style="width:80%" id="programDescription" name="description" rows="3" required></textarea>
+								<textarea class="form-control auto-resize newProgramInfo" id="programDescription" name="description" rows="3" required></textarea>
 							</div>
 
-							<div class="my-2">
-								<%- include('templates/button', {action:'/profile/edit/addProgram',xClasses:'',xAttributes:'id=submitNewProgram',content:'Add'}) %>
-								<%- include('templates/button', {action:'',xClasses:'',xAttributes:'id=cancelNewProgram type=button',content:'Cancel'}) %>
+							<div class="my-3 d-flex justify-content-between">
+								<%- include('templates/button', {action:'',xClasses:'btn-danger col-3 me-4',xAttributes:'id=cancelNewProgram type=button',content:'Cancel'}) %>
+								<%- include('templates/button', {action:'/profile/edit/addProgram',xClasses:'col-3',xAttributes:'id=submitNewProgram',content:'Add'}) %>
 							</div>
 						</form>
                     </div>
@@ -234,10 +235,13 @@
 			//Show the save and cancel buttons
 			let saveButton = document.getElementById(button.value + 'SaveButton');
 			let cancelButton = document.getElementById(button.value + 'CancelButton');
+
 			saveButton.style = 'display: block';
 			cancelButton.style = 'display:block';
 
-			if(button.value = 'business'){
+			console.log(button.parentElement);
+
+			if(button.value == 'business'){
 				//Show the delete service buttons
 				serviceButtons.forEach((button) => {
 					button.style = 'display: inline';
@@ -260,6 +264,14 @@
 					let saveServiceButton = document.getElementById('submitService');
 					let serviceInput = document.getElementById('toAddService');
 
+					serviceInput.addEventListener('input', function(){
+						console.log('aaaaaaaaaaaa');
+						if(this.value == ''){
+							saveServiceButton.disabled = true;
+						} else {
+							saveServiceButton.disabled = false;
+						}
+					});	
 					//Clone service list template
 					let newService = document.getElementById("serviceTemplate").content.cloneNode(true);
 
@@ -267,27 +279,33 @@
 					saveServiceButton.addEventListener('click', () => {
 						//Convert to string for easy manipulation
 						let service = String(serviceInput.value);
+						if(service != ''){
+							//Populate template
+							newService.querySelector('li').id = service.replace(' ', '') + 'Item';
+							newService.querySelector('li').classList.add('addedService');
+							newService.querySelector('span').innerHTML = service;
+							newService.querySelector('.serviceField').value = service;
+							
+							//Show service delete and add the delete event
+							let deleteButton = newService.querySelector('button');
+							deleteButton.style = 'display:inline';
+							deleteButton.value = service.replace(' ', '');
+							deleteButton.addEventListener('click', ()=> {
+								document.getElementById(deleteButton.value + 'Item').remove();
+							});
 
-						//Populate template
-						newService.querySelector('li').id = service.replace(' ', '') + 'Item';
-						newService.querySelector('span').innerHTML = service;
-						newService.querySelector('.serviceField').value = service;
+							//Add the new service to the page and reset the input
+							document.getElementById('serviceList').appendChild(newService);
+							document.getElementById('toAddService').value = '';
+
+							//Show the add service button and hide the service input
+							addServiceButton.style = 'display: block';
+							addServiceInput.style = 'display: none';
+
+							saveServiceButton.disabled = true;
+						}
+
 						
-						//Show service delete and add the delete event
-						let deleteButton = newService.querySelector('button');
-						deleteButton.style = 'display:inline';
-						deleteButton.value = service.replace(' ', '');
-						deleteButton.addEventListener('click', ()=> {
-							document.getElementById(deleteButton.value + 'Item').remove();
-						});
-
-						//Add the new service to the page and reset the input
-						document.getElementById('serviceList').appendChild(newService);
-						document.getElementById('toAddService').value = '';
-
-						//Show the add service button and hide the service input
-						addServiceButton.style = 'display: block';
-						addServiceInput.style = 'display: none';
 					});
 				});
 			}
@@ -317,15 +335,27 @@
 				field.disabled = true;
 			});
 
-			if(button.value = 'business'){
+			if(button.value == 'business'){
 				//Hide the delete service buttons
 				serviceButtons.forEach((button) => {
 					button.style = 'display: none';
 				});
 
+				let serviceInput = document.getElementById('toAddService');
+				serviceInput.value = '';
 				//Hide the add service button
 				let addServiceButton = document.getElementById('addService');
 				addServiceButton.style = 'display: none';
+
+				let serviceInputDiv = document.getElementById('addServiceInputDiv');
+				serviceInputDiv.style = 'display:none';
+
+				//Delete added services
+				let addedServices = document.querySelectorAll('.addedService');
+				addedServices.forEach((service) => {
+					service.remove();
+				});
+
 			}
 
     	});  
