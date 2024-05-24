@@ -69,19 +69,10 @@ const autoreply_email_password = process.env.EMAIL_ADDRESS_PASSWORD;
 //Creating a MongoClient and using it to connect to a specified database
 const MongoClient = require("mongodb").MongoClient;
 // let atlasURI = `mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/${database}?retryWrites=true`;
-let appdb = new MongoClient(`mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/${mongodb_appdb}?retryWrites=true`);
-
-// This database is set when the user is logged in or signs up for the first time using setUserDatabase().
-let userdb = '';
-let trainerdb = '';
-let clientdb = '';
+const appdb = new MongoClient(`mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/${mongodb_appdb}?retryWrites=true`);
 
 // ----- Collections -----
 const appUserCollection = appdb.db(mongodb_appdb).collection('users');
-// const clientsCollection = database.db(mongodb_database).collection('clientUsers');
-// const adminsCollection = database.db(mongodb_database).collection('adminUsers');
-// const accountCollection = database.db(mongodb_database).collection(req.session.username);
-// This don't work ^
 
 app.set('view engine', 'ejs');
 
@@ -184,44 +175,55 @@ function adminAuthorization(req, res, next) {
 }
 
 // Sets the database for current user
-function setUserDatabase(req) {
-	if (!req.session) {
-		userdb = null;
-	} else {
-		let db = '';
-		if (isClient(req)) {
-			let clientEmail = req.session.email.split('.').join("");
-			db = mongodb_clientdb + '-' + clientEmail;
-		} else if (isBusiness(req)) {
-			db = mongodb_businessdb + '-' + req.session.name.replace(/\s/g, "");
-		}
-		const userdbAccess = new MongoClient(`mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/${db}?retryWrites=true`);
-		userdb = userdbAccess.db(db);
-	}
+async function setUserDatabase(req) {
+    let dbName = '';
+
+    if (!req.session) {
+        throw new Error('Session is not initialized');
+    }
+
+    if (isClient(req)) {
+        let clientEmail = req.session.email.split('.').join("");
+        dbName = `${mongodb_clientdb}-${clientEmail}`;
+    } else if (isBusiness(req)) {
+        dbName = `${mongodb_businessdb}-${req.session.name}`;
+    } else {
+        throw new Error('User type not recognized');
+    }
+
+    req.session.userdb = dbName;
+	console.log('userdb: ' + req.session.userdb);
 }
 
 // Allows access to the trainer's database when tied to a client
 async function setTrainerDatabase(req) {
 	if (!isClient(req)) {
-		trainerdb = null;
+		return;
 	} else {
 		const trainer = await appUserCollection.find({ email: req.session.email}).project({companyName: 1, _id: 1}).toArray();
 		// Checking for if the client currently has a hired trainer.
 		if (trainer[0].companyName == null || trainer[0].companyName == '' || trainer[0].companyName == undefined) {
-			trainerdb = null;
+			return;
 		} else {
-			const db = mongodb_businessdb + '-' + trainer[0].companyName.replace(/\s/g, "");
-			const trainerdbAccess = new MongoClient(`mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/${db}?retryWrites=true`);
-			trainerdb = trainerdbAccess.db(db);
+			const trainerName = mongodb_businessdb + '-' + trainer[0].companyName.replace(/\s/g, "");
+			req.session.trainerdb = trainerName;
+			console.log('trainerdb: ' + req.session.trainerdb);
 		}
 	}
 }
 
-async function setClientDatabase(client) {
+function setClientDatabase(req, client) {
 	const clientEmail = client.split('.').join('');
-	const db = mongodb_clientdb + '-' + clientEmail;
-	const clientdbAccess = new MongoClient(`mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/${db}?retryWrites=true`);
-	clientdb = clientdbAccess.db(db);
+	const dbName = mongodb_clientdb + '-' + clientEmail;
+	req.session.clientdb = dbName;
+	console.log('clientdb: ' + req.session.clientdb);
+}
+
+async function getdb(dbName) {
+	const uri = `mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/${dbName}?retryWrites=true`;
+	const type = new MongoClient(uri);
+	await type.connect();
+	return type.db(dbName);
 }
 
 //Upload files to Google Cloud
@@ -266,8 +268,6 @@ async function deleteUploadedImage(id){
 // status to determine what footer and navbar to display
 
 app.get('/', (req, res) => {
-	setUserDatabase(req);
-	setTrainerDatabase(req);
 	res.render('index', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType});
 });
 
@@ -370,7 +370,8 @@ app.post('/submitSignup/:type', async (req, res) => {
 		req.session.userType = 'client';
 		req.session.cookie.maxAge = expireTime;
 
-		setUserDatabase(req);
+		await setUserDatabase(req);
+		const userdb = await getdb(req.session.userdb);
 
 		//Store client information in client collection
 		await userdb.collection('info').insertOne({
@@ -452,7 +453,9 @@ app.post('/submitSignup/:type', async (req, res) => {
 		req.session.userType = 'business';
 		req.session.cookie.maxAge = expireTime;
 
-		setUserDatabase(req);
+		await setUserDatabase(req);
+		const userdb = await getdb(req.session.userdb);
+
 		//Store business information in client collection
 		await userdb.collection('info').insertOne({
 			companyName: user.companyName,
@@ -520,13 +523,13 @@ app.post('/submitLogin', async (req, res) => {
 		// Set session name to first+last if client, companyname if business
 		if (req.session.userType == 'client') {
 			req.session.name = result[0].firstName + ' ' + result[0].lastName;
+			await setTrainerDatabase(req);
 		} else if (req.session.userType == 'business') {
 			req.session.name = result[0].companyName;
 		}
 		req.session.cookie.maxAge = expireTime;
-		
 
-		setUserDatabase(req);
+		await setUserDatabase(req);
 
 		res.redirect('/loggedIn'); // redirect to home page
 		return;
@@ -794,7 +797,6 @@ app.get('/emailSent', (req, res) => {
 
 app.get('/logout', (req, res) => {
 	req.session.destroy();
-	setUserDatabase(req);
 	// res.render('logout', {loggedIn: false, userType: null});
 	res.redirect('/');
 });
@@ -803,8 +805,8 @@ app.get('/logout', (req, res) => {
 
 //Client user profile page
 app.get('/profile', sessionValidation, async(req, res) => {
-	//bandaid fix so its easier to test (delete later)
-	setUserDatabase(req);
+
+	const userdb = await getdb(req.session.userdb);
 
 	//upload the info of the user
 	let user = await userdb.collection('info').findOne();
@@ -858,8 +860,7 @@ app.get('/profile', sessionValidation, async(req, res) => {
 
 //Profile Editting (both client and business)
 app.post('/profile/edit/:editType', sessionValidation, upload.array('accountUpload', 1), async(req, res) => {
-	//bandaid fix so its easier to test (delete later)
-	setUserDatabase(req);
+	const userdb = await getdb(req.session.userdb);
 
 	//Edit client profile
 	if(req.params.editType == 'clientProfile'){
@@ -947,8 +948,7 @@ app.post('/profile/edit/:editType', sessionValidation, upload.array('accountUplo
 
 //Display specific program
 app.get('/program/:programId', async(req, res) => {
-	//bandaid fix so its easier to test (delete later)
-	setUserDatabase(req);
+	const userdb = await getdb(req.session.userdb);
 
 	//Use program id to access program
 	let programId =  ObjectId.createFromHexString(req.params.programId);
@@ -960,8 +960,7 @@ app.get('/program/:programId', async(req, res) => {
 
 //Edit specific program
 app.post('/program/:programId/edit', async(req, res) => {
-	//bandaid fix so its easier to test (delete later)
-	setUserDatabase(req);
+	const userdb = await getdb(req.session.userdb);
 
 	//Set up program with submitted info
 	let = program = {
@@ -990,7 +989,7 @@ app.get('/addDog', (req, res) => {
 
 //Adds the dog to the database
 app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
-    setUserDatabase(req); // bandaid for testing
+    const userdb = await getdb(req.session.userdb);
 
 	//validation schema
 	var schema = Joi.object(
@@ -1110,7 +1109,7 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
 
 //Show specific dog
 app.get('/dog/:dogId', async(req, res) => {
-	setUserDatabase(req); //bandaid for testing
+	const userdb = await getdb(req.session.userdb);
 
 	//Use the dog document id to find the specific dog
 	let dogId =  ObjectId.createFromHexString(req.params.dogId);
@@ -1127,6 +1126,7 @@ app.get('/dog/:dogId', async(req, res) => {
 
 //Edit specific dog
 app.post('/dog/:dogId/edit',upload.single('dogUpload'), async(req, res) => {
+	const userdb = await getdb(req.session.userdb);
 
 	//Create the Id object from the dog id
 	let dogId =  ObjectId.createFromHexString(req.params.dogId);
@@ -1152,6 +1152,8 @@ app.post('/dog/:dogId/edit',upload.single('dogUpload'), async(req, res) => {
 
 //Delete specific dog
 app.post('/dog/:dogId/delete',upload.single('dogUpload'), async(req, res) => {
+	const userdb = await getdb(req.session.userdb);
+
 	//Create the Id object from the dog id
 	let dogId =  ObjectId.createFromHexString(req.params.dogId);
 
@@ -1175,13 +1177,16 @@ app.get('/accountDeletion', (req, res) => {
 });
 
 app.post('/deleteAccount', async (req, res) => {
-
+	const userdb = await getdb(req.session.userdb);
 	// Store the email
 	let email = req.session.email;
 
 	// Logic for business accounts and clients (safe coding)
 	if (req.session.userType == 'client') {
-		await trainerdb.collection('clients').deleteOne({email: email});
+		if (req.session.trainerdb) {
+			const trainerdb = await getdb(req.session.trainerdb);
+			await trainerdb.collection('clients').deleteOne({email: email});
+		}
 		await appUserCollection.deleteMany({email: email, userType: 'client'});
 	} else if (req.session.userType == 'business') {
 		let companyName = req.session.name;
@@ -1283,8 +1288,10 @@ app.get('/viewBusiness/:company', async(req, res) => {
 app.post('/addTrainer/:trainer', async (req, res) => {
 	let trainer = req.params.trainer;
 	await appUserCollection.updateOne({email: req.session.email}, {$set: { companyName: trainer}});
-
 	await setTrainerDatabase(req);
+
+	const userdb = await getdb(req.session.userdb);
+	const trainerdb = await getdb(req.session.trainerdb);
 
 	let client = await userdb.collection('info').find().project({email: 1, firstName: 1, lastName: 1, phone: 1}).toArray();
 
@@ -1296,11 +1303,13 @@ app.post('/addTrainer/:trainer', async (req, res) => {
 async function getUserEvents(req) {
 	let userEvents;
 	if (req.session.userType == 'business') {
+		const userdb = await getdb(req.session.userdb);
 		userEvents = await userdb.collection('eventSource').find().project({ title: 1, start: 1, end: 1 }).toArray();
 	} else if (req.session.userType == 'client') {
-		if (trainerdb == null || trainerdb == '' || trainerdb == undefined) {
+		if (!req.session.trainerdb) {
 			userEvents = null;
 		} else {
+			const trainerdb = await getdb(req.session.trainerdb);
 			let email = req.session.email;
 			userEvents = await trainerdb.collection('eventSource').find({client: email}).project({ title: 1, start: 1, end: 1 }).toArray();
 		}
@@ -1309,15 +1318,12 @@ async function getUserEvents(req) {
 }
 
 app.get('/calendar', async (req, res) => {
-	setUserDatabase(req);
-	await setTrainerDatabase(req);
 	if (req.session.userType == 'business') {
 		res.render('calendarBusiness', {loggedIn: isValidSession(req), userType: req.session.userType});
 		return;
 	} else if (req.session.userType == 'client') {
 		res.render('calendarClient', {loggedIn: isValidSession(req), userType: req.session.userType});
 	}
-	
 });
 
 // Returns all events to the calendar
@@ -1328,6 +1334,7 @@ app.get('/events', async (req, res) => {
 
 app.post('/filteredEvents', async (req, res) => {
 	const clientEmail = req.body.data;
+	const userdb = await getdb(req.session.userdb);
 	const filteredEvents = await userdb.collection('eventSource').find({client: clientEmail}).project({ title: 1, start: 1, end: 1 }).toArray();
 	res.json(filteredEvents);
 })
@@ -1340,8 +1347,10 @@ app.post('/getThisEvent', async (req, res) => {
 	}
 	let result;
 	if (isBusiness(req)) {
+		const userdb = await getdb(req.session.userdb);
 		result = await userdb.collection('eventSource').find(event).project({_id: 1, client: 1, info: 1}).toArray();
 	} else if (isClient(req)) {
+		const trainerdb = await getdb(req.session.trainerdb);
 		result = await trainerdb.collection('eventSource').find(event).project({_id: 1, trainer: 1, info: 1}).toArray();
 	}
 	
@@ -1355,15 +1364,16 @@ app.post('/getClients', async (req, res) => {
 });
 
 app.post('/addEvent', async (req, res) => {
-	let date = req.body.calModDate;
-	let startDateStr = date + "T" + req.body.calModStartHH + ":" + req.body.calModStartMM + ":00";
-	let endDateStr = date + "T" + req.body.calModEndHH + ":" + req.body.calModEndMM + ":00";
-	let startDate = new Date(startDateStr);
-	let endDate = new Date(endDateStr);
-	let trainerName = req.session.name;
-	let clientEmail = req.body.calModClient;
-	let eventInfo = req.body.calModInfo;
-	let event = {
+	const userdb = await getdb(req.session.userdb);
+	const date = req.body.calModDate;
+	const startDateStr = date + "T" + req.body.calModStartHH + ":" + req.body.calModStartMM + ":00";
+	const endDateStr = date + "T" + req.body.calModEndHH + ":" + req.body.calModEndMM + ":00";
+	const startDate = new Date(startDateStr);
+	const endDate = new Date(endDateStr);
+	const trainerName = req.session.name;
+	const clientEmail = req.body.calModClient;
+	const eventInfo = req.body.calModInfo;
+	const event = {
 		title: req.body.calModTitle,
 		start: startDateStr,
 		end: endDateStr,
@@ -1399,10 +1409,11 @@ app.post('/addEvent', async (req, res) => {
 });
 
 app.post('/updateEvent', async (req, res) => {
-	let date = req.body.calModDate;
-	let startNew = date + "T" + req.body.calModStartHH + ":" + req.body.calModStartMM + ":00";
-	let endNew = date + "T" + req.body.calModEndHH + ":" + req.body.calModEndMM + ":00";
-	let eventOrig = {
+	const userdb = await getdb(req.session.userdb);
+	const date = req.body.calModDate;
+	const startNew = date + "T" + req.body.calModStartHH + ":" + req.body.calModStartMM + ":00";
+	const endNew = date + "T" + req.body.calModEndHH + ":" + req.body.calModEndMM + ":00";
+	const eventOrig = {
 		title: req.body.calModTitleOrig,
 		start: req.body.calModStartOrig,
 		end: req.body.calModEndOrig,
@@ -1410,7 +1421,7 @@ app.post('/updateEvent', async (req, res) => {
 		info: req.body.calModInfoOrig
 	}
 
-	let eventNew = {
+	const eventNew = {
 		title: req.body.calModTitle,
 		start: startNew,
 		end: endNew,
@@ -1443,16 +1454,17 @@ app.post('/updateEvent', async (req, res) => {
 });
 
 app.post('/removeEvent', async (req, res) => {
+	const userdb = await getdb(req.session.userdb);
 
 	// Delete by _id, but doesn't work
 	// let eventID = req.body.calModEventID;
 	// await userdb.collection('eventSource').deleteOne({ _id: eventID});
 
-	let calTitle = req.body.calModTitleOrig;
-	let calStart = req.body.calModStartOrig;
-	let calEnd = req.body.calModEndOrig;
-	let calEmail = req.body.calModEmailOrig;
-	let calInfo = req.body.calModInfoOrig;
+	const calTitle = req.body.calModTitleOrig;
+	const calStart = req.body.calModStartOrig;
+	const calEnd = req.body.calModEndOrig;
+	const calEmail = req.body.calModEmailOrig;
+	const calInfo = req.body.calModInfoOrig;
 
 	await userdb.collection('eventSource').deleteOne({
 		title: calTitle,
@@ -1469,11 +1481,11 @@ app.post('/removeEvent', async (req, res) => {
 // ----------------- MESSAGING SECTION STARTS HERE -------------------
 
 app.get('/chatSelectClient', async (req, res) => {
+	const userdb = await getdb(req.session.userdb);
 	if (isClient(req)) {
 		res.redirect('/chat/client');
 		return;
 	} else if (isBusiness(req)) {
-		setUserDatabase(req);
 		const clientList = await userdb.collection('clients').find().project({email: 1}).toArray();
 		res.render('chatSelectClient', {loggedIn: isValidSession(req), userType: req.session.userType, clients: clientList});
 	}
@@ -1481,30 +1493,28 @@ app.get('/chatSelectClient', async (req, res) => {
 
 app.get('/chat/:type', async (req, res) => {
 	const type = req.params.type;
-	setUserDatabase(req);
 	if (type == 'client') {
-		setTrainerDatabase(req);
 		const receiver = await appUserCollection.find({email: req.session.email}).project({companyName: 1}).toArray();
 		res.render('chatClient', { loggedIn: isValidSession(req), userType: req.session.userType, receiver: receiver[0].companyName });
 		return;
 	} else if (isBusiness(req)) {
-		setClientDatabase(type);
+		setClientDatabase(req, type);
+		const clientdb = await getdb(req.session.clientdb);
 		const receiver = await clientdb.collection('info').find().project({email: 1}).toArray();
 		res.render('chatBusiness', { loggedIn: isValidSession(req), userType: req.session.userType, clientParam: type, receiver: receiver[0].email });
 	}
 });
 
 app.get('/messagesClient', async (req, res) => {
-	// setUserDatabase(req);
-	// setTrainerDatabase(req);
+	const userdb = await getdb(req.session.userdb);
+	const trainerdb = await getdb(req.session.trainerdb);
 	const senderMsgList = await userdb.collection('messages').find().sort({ createdAt: 1 }).limit(25).toArray();
 	const receiverMsgList = await trainerdb.collection('messages').find().sort({ createdAt: 1 }).limit(25).toArray();
 	res.json({ senderMessages: senderMsgList, receiverMessages: receiverMsgList });
 });
 
 app.post('/messagesClient', async (req, res) => {
-	// setUserDatabase(req);
-	// setTrainerDatabase(req);
+	const userdb = await getdb(req.session.userdb);
 	const { text } = req.body;
 	const sender = req.session.email;
 	const trainer = await appUserCollection.find({ email: sender }).project({ companyName: 1 }).toArray();
@@ -1515,20 +1525,17 @@ app.post('/messagesClient', async (req, res) => {
 });
 
 app.get('/messagesBusiness/:client', async (req, res) => {
-	// setUserDatabase(req);
-	const client = req.params.client;
-	// setClientDatabase(client);
+	const userdb = await getdb(req.session.userdb);
+	const clientdb = await getdb(req.session.clientdb);
 	const senderMsgList = await userdb.collection('messages').find().sort({ createdAt: 1 }).limit(25).toArray();
 	const receiverMsgList = await clientdb.collection('messages').find().sort({ createdAt: 1 }).limit(25).toArray();
 	res.json({ senderMessages: senderMsgList, receiverMessages: receiverMsgList });
 });
 
 app.post('/messagesBusiness/:client', async (req, res) => {
-	// setUserDatabase(req);
-	const clientParam = req.params.client;
-	// setClientDatabase(clientParam);
+	const userdb = await getdb(req.session.userdb);
+	const clientdb = await getdb(req.session.clientdb);
 	const { text } = req.body;
-	const sender = req.session.name;
 	const client = await clientdb.collection('info').find().project({email: 1}).toArray();
 	const receiver = client[0].email;
 	const newMessage = { text, receiver: receiver, createdAt: new Date() };
