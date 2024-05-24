@@ -20,10 +20,21 @@
 }
 
 /* Active button */
-.fc .fc-button-primary:not(:disabled).fc-button-active, .fc .fc-button-primary:not(:disabled):active {
-	background-color: rgba(32, 19, 53, 0.8);
+.fc .fc-button-primary:not(:disabled).fc-button-active, 
+.fc .fc-button-primary:not(:disabled):active {
+	background-color: #201335;
 	color: #FEF6C3;
 	border: none;
+	box-shadow: 0 0 0 0.01rem #201335bc;
+}
+
+/* Active button */
+.fc .fc-button-primary:not(:disabled).fc-button-active:focus, 
+.fc .fc-button-primary:not(:disabled):active:focus {
+	background-color: #201335;
+	color: #FEF6C3;
+	border: none;
+	box-shadow: 0 0 0 0.01rem #201335bc;
 }
 
 /* Non active button */
@@ -39,6 +50,26 @@
 	color: #201335;
 	border: none;
 }
+
+/* Button with focus */
+.fc .fc-button-primary:active:focus,
+.fc .fc-button-primary:active:focus-visible {
+    box-shadow: 0 0 0 0.01rem #201335bc; /* Add box shadow */
+    background-color: #201335; /* Set background color */
+	color:#F0F1FA;
+  }
+  
+  	.fc .fc-button-primary:focus,
+	.fc .fc-button-primary:focus-visible {
+    box-shadow: 0 0 0 0.01rem #201335bc; /* Add box shadow */
+    background-color: #201335; /* Set background color */
+	color:#F0F1FA;
+  }
+
+  .fc .fc-button-primary:hover {
+	background-color:#201335;
+	color:#FEF6C3;
+  }
 
 .fc-toolbar-chunk .fc-toolbar-title {
 	color: #201335;
