@@ -219,7 +219,7 @@ async function setUserDatabase(req) {
         throw new Error('User type not recognized');
     }
 
-    req.session.userdb = dbName.replace(' ','');
+    req.session.userdb = dbName.replaceAll(' ','');
 	console.log('userdb: ' + req.session.userdb);
 }
 
@@ -233,7 +233,7 @@ async function setTrainerDatabase(req) {
 		if (trainer[0].companyName == null || trainer[0].companyName == '' || trainer[0].companyName == undefined) {
 			return;
 		} else {
-			const trainerName = mongodb_businessdb + '-' + trainer[0].companyName.replace(/\s/g, "");
+			const trainerName = mongodb_businessdb + '-' + trainer[0].companyName.replaceAll(/\s/g, "");
 			req.session.trainerdb = trainerName;
 			console.log('trainerdb: ' + req.session.trainerdb);
 		}
@@ -920,14 +920,14 @@ app.post('/profile/edit/:editType', sessionValidation, upload.array('accountUplo
 	} else if (req.params.editType == 'businessDetails'){
 
 		//Grab current logo id
-		let business = await userdb.collection('info').find({companyName: req.session.name}).project({logo: 1}).toArray();
+		let business = await userdb.collection('info').find({email: req.session.email}).project({logo: 1}).toArray();
 
 		//Logo id is updated with a newly upload logo or kept the same
 		if(req.files.length != 0){
 			await deleteUploadedImage(business[0].logo);
 			req.body.logo = await uploadImage(req.files[0], "businessLogos");
 		} else {
-			req.body.logo - business[0].logo;
+			req.body.logo = business[0].logo;
 		}
 
 		//update database
@@ -1244,11 +1244,13 @@ app.get('/findTrainer', async(req, res) => {
 	for(let i = 0; i < businesses.length; i++){
 		//Key is the business name
 		let name = businesses[i].companyName;
+		console.log(name);
 
 		//Establish connection the user database
-		let db = mongodb_businessdb + '-' + name.replace(/\s/g, "");
+		let db = mongodb_businessdb + '-' + name.replaceAll(/\s/g, "");
 		let userdbAccess = new MongoClient(`mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/${db}?retryWrites=true`);
 		let tempBusiness = userdbAccess.db(db);
+		console.log(tempBusiness);
 
 		//Query for the info and trainer
 		let info = await tempBusiness.collection('info').find({companyName: name}).toArray();
@@ -1266,7 +1268,7 @@ app.get('/findTrainer', async(req, res) => {
 		}
 
 		//Convert the search string to lowercase to avoid case sensitivity
-		info[0].searchString = info[0].searchString.replace(' ','').toLowerCase();
+		info[0].searchString = info[0].searchString.replaceAll(' ','').toLowerCase();
 
 		//Add the information to each array
 		businessDetails.push(info[0]);
@@ -1285,7 +1287,7 @@ app.get('/trainer', async (req, res) => {
 //View indivdual business
 app.get('/viewBusiness/:company', async(req, res) => {
 	//Connect to the specific business' database
-	let db = mongodb_businessdb + '-' + req.params.company.replace(/\s/g, "");
+	let db = mongodb_businessdb + '-' + req.params.company.replaceAll(/\s/g, "");
 	let userdbAccess = new MongoClient(`mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/${db}?retryWrites=true`);
 	let tempBusiness = userdbAccess.db(db);
 
@@ -1322,7 +1324,7 @@ app.get('/viewBusiness/:company/register/:program', async(req, res) => {
 	const userdb = await getdb(req.session.userdb);
 
 	//Connect to the specific business' database
-	let db = mongodb_businessdb + '-' + req.params.company.replace(/\s/g, "");
+	let db = mongodb_businessdb + '-' + req.params.company.replaceAll(/\s/g, "");
 	let userdbAccess = new MongoClient(`mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/${db}?retryWrites=true`);
 	let tempBusiness = userdbAccess.db(db);
 
@@ -1359,7 +1361,7 @@ app.get('/viewBusiness/:company/register/:program', async(req, res) => {
 app.post('/viewBusiness/:company/register/:program/submitRegister', async(req, res) => {
 	const userdb = await getdb(req.session.userdb);
 
-	let db = mongodb_businessdb + '-' + req.params.company.replace(/\s/g, "");
+	let db = mongodb_businessdb + '-' + req.params.company.replaceAll(/\s/g, "");
 	let businessdbAccess = new MongoClient(`mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/${db}?retryWrites=true`);
 	let tempBusiness = businessdbAccess.db(db);
 	
