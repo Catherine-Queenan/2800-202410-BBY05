@@ -1,0 +1,142 @@
+<%- include("templates/header") %>
+    <div class="container">
+        <%- include('templates/button', {action:'',xClasses:'',xAttributes:'id=registerDog type=button disabled', content:'Register Dog'}) %>
+        <%- include('templates/clientViewProgram', {program: program})%>
+
+        <p class="h2">Selected Dog:</p>
+        <div id="selectedDog">
+           <p>No Dog Selected</p>
+        </div>
+        <p class="h2">Select dog:</p>
+        <% for(let i=0; i < dogs.length; i++){ %>
+            <%- include('templates/dogToTrainClient', {dog: dogs[i]}) %>
+        <% } %>
+    </div>
+
+    <form id="selectDogForm" method="post" action="<%=currentUrl%>/submitRegister">
+        <input type="hidden" id="selectedDogSave">
+    </form>
+
+    <template id="deselectButton">
+        <%- include('templates/button', {action:'',xClasses:'',xAttributes:'id=deselectDogButton onclick=deselectDog(this) type=button', content:'Deselect'}) %>
+    </template>
+    
+    <div id="confirmationModal" class="modal fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <div class="modal-title ">
+                <span class="h2">Confirm Registration</span>
+              </div>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to register your dog for the following program?</p>
+                <p>Dog:</p>
+                <div id="dogConfirmation">
+
+                </div>
+                <p>Program:</p>
+                <div class="card">
+                <%- include('templates/clientViewProgram', {program: program})%>
+            </div>
+            </div>
+            <div class="modal-footer">
+                <%- include('templates/button', {action:'',xClasses:'',xAttributes:'type=button data-bs-dismiss=modal', content:'Cancel'}) %>
+                <%- include('templates/button', {action:'',xClasses:'',xAttributes:'id=confirmRegister type=button' , content:'Confrim'}) %>
+            </div>
+          </div>
+        </div>
+      </div>
+      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+		integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+		crossorigin="anonymous"></script>
+    <script>
+        let selectDogButtons = document.querySelectorAll('.selectDogButton');
+        let deselectDogButtonTemplate = document.getElementById('deselectButton');
+        let registerButton = document.getElementById('registerDog');
+
+        let selectDogForm = document.getElementById('selectDogForm');
+        let selectedDogDiv = document.getElementById('selectedDog');
+
+        let input = document.getElementById('selectedDogSave');
+
+        let modal = new bootstrap.Modal(document.getElementById('confirmationModal'));
+
+        let confrimButton = document.getElementById('confirmRegister');
+        confrimButton.addEventListener('click', ()=>{
+            selectDogForm.submit();
+        });
+
+        selectDogButtons.forEach((button) => {
+            button.addEventListener('click', () => {
+                if(selectedDogDiv.childNodes.length > 0 && selectedDogDiv.childNodes[0].hasChildNodes()){
+                    let hiddenDogId = selectedDogDiv.firstChild.id.replace('Copy', '');
+                    let hiddenDog = document.getElementById(hiddenDogId);
+                    hiddenDog.style = 'display:block';
+                }
+
+                input.value = button.value;
+
+                let card = document.getElementById(button.value + 'Card');
+                card.display = 'display: none';
+
+                let copyCard = card.cloneNode(true);
+
+                copyCard.id = button.value + 'CopyCard';
+                copyCard.querySelector('.selectDogButton').remove();
+
+                
+                let deselectDogButton = deselectDogButtonTemplate.content.cloneNode(true);
+
+                copyCard.querySelector('.buttons').appendChild(deselectDogButton);
+
+                selectedDogDiv.innerHTML = '';
+                selectedDogDiv.appendChild(copyCard);
+
+                button.parentElement.parentElement.style = 'display: none';
+                registerButton.disabled = false;
+            });
+        });
+
+        
+        registerButton.addEventListener('click', ()=>{
+            let modalContent = document.getElementById('dogConfirmation');
+            modalContent.innerHTML = '';
+        
+            let dog = selectedDogDiv.cloneNode(true);
+            dog.querySelector('.buttons').remove();
+            modalContent.append(dog.cloneNode(true));
+
+            modal.show();
+        });
+
+        function deselectDog(button){
+            input.value = '';
+            let selectedCard = button.parentElement.parentElement;
+            let card = document.getElementById(selectedCard.id.replace('Copy', ''));
+            card.style = 'display:block';
+
+            selectedCard.remove();   
+            registerButton.disabled = true;
+        }
+
+        // deselectDogButton.addEventListener('click', () => {
+        //             console.log('AAAAAAAAAAAAAAAA');
+
+        //             input.value = '';
+        //             let selectedCard = deselectedDogButtons.parentElement;
+        //             let card = document.getElementById(selectCard.value.replace('Copy', ''));
+        //             card.display = 'display:block';
+
+        //             selectCard.remove();    
+                    
+        //             button.style = 'display: none';
+        //             let selectButton = document.getElementById('select' + button.value);
+        //             selectButton.style = 'display: inline';
+        //         });
+       
+
+
+
+    </script>
+<%- include("templates/footerCopyright") %>

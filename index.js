@@ -47,7 +47,7 @@ const ejs = require('ejs');
 const { content_v2_1 } = require("googleapis");
 
 // 1 hour
-const expireTime = 60 * 60 * 1000;
+const expireTime = 24 * 60 * 60 * 1000;
 
 /* secret information section */
 const mongodb_host = process.env.MONGODB_HOST;
@@ -811,7 +811,7 @@ app.get('/profile', sessionValidation, async(req, res) => {
 		let dogs = await userdb.collection('dogs').find({}).toArray();
 		for(let i = 0; i < dogs.length; i++){
 			let pic = dogs[i].dogPic;
-			if(pic != ''){
+			if(pic != '' && pic != null){
 				dogs[i].dogPic = cloudinary.url(pic);
 			}
 		}
@@ -1200,11 +1200,11 @@ app.get('/findTrainer', async(req, res) => {
 		//Establish connection the user database
 		let db = mongodb_businessdb + '-' + name.replace(/\s/g, "");
 		let userdbAccess = new MongoClient(`mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/${db}?retryWrites=true`);
-		let tempUser = userdbAccess.db(db);
+		let tempBusiness = userdbAccess.db(db);
 
 		//Query for the info and trainer
-		let info = await tempUser.collection('info').find({companyName: name}).toArray();
-		let trainer = await tempUser.collection('trainer').find({companyName: name}).toArray();
+		let info = await tempBusiness.collection('info').find({companyName: name}).toArray();
+		let trainer = await tempBusiness.collection('trainer').find({companyName: name}).toArray();
 
 		//convert the logo picture id to a link if a logo has been uploaded
 		if(info[0].logo != '' && info[0].logo != null){
@@ -1239,15 +1239,15 @@ app.get('/viewBusiness/:company', async(req, res) => {
 	//Connect to the specific business' database
 	let db = mongodb_businessdb + '-' + req.params.company.replace(/\s/g, "");
 	let userdbAccess = new MongoClient(`mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/${db}?retryWrites=true`);
-	let tempUser = userdbAccess.db(db);
+	let tempBusiness = userdbAccess.db(db);
 
 	//Business is a object with three other objects
 	let business = await (async () => {
 		//Promise concurrently queries the database for the three collections
 		let [info, trainer, programs] = await Promise.all([
-			tempUser.collection('info').find({}).toArray(),
-			tempUser.collection('trainer').find({}).toArray(),
-			tempUser.collection('programs').find({}).toArray()
+			tempBusiness.collection('info').find({}).toArray(),
+			tempBusiness.collection('trainer').find({}).toArray(),
+			tempBusiness.collection('programs').find({}).toArray()
 		]);
 		//Returns the query result
 		return {
@@ -1270,6 +1270,29 @@ app.get('/viewBusiness/:company', async(req, res) => {
 	res.render('clientViewTrainer', {loggedIn: isValidSession(req), userType: req.session.userType, business: business.info, trainer: business.trainer, programs: business.programs});
 });
 
+app.get('/viewBusiness/:company/register/:program', async(req, res) => {
+	setUserDatabase(req); //bandaid for testing
+
+	//Connect to the specific business' database
+	let db = mongodb_businessdb + '-' + req.params.company.replace(/\s/g, "");
+	let userdbAccess = new MongoClient(`mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/${db}?retryWrites=true`);
+	let tempBusiness = userdbAccess.db(db);
+
+	let programId = ObjectId.createFromHexString(req.params.program);
+
+	let program = await tempBusiness.collection('programs').find({_id: programId}).toArray();
+	let dogs = await userdb.collection('dogs').find({}).toArray();
+	for(let i = 0; i < dogs.length; i++){
+		let pic = dogs[i].dogPic;
+		if(pic != '' && pic != null){
+			dogs[i].dogPic = cloudinary.url(pic);
+		}
+	}
+
+	res.render('hireTrainer', {loggedIn: isValidSession(req), userType: req.session.userType, program: program[0], dogs: dogs});
+});
+
+
 // Temporary add Trainer button for this Branch
 app.post('/addTrainer/:trainer', async (req, res) => {
 	let trainer = req.params.trainer;
@@ -1283,6 +1306,8 @@ app.post('/addTrainer/:trainer', async (req, res) => {
 
 	res.redirect('/');
 });
+
+
 // ----------------- CALENDAR STUFF GOES HERE -------------------
 async function getUserEvents(req) {
 	let userEvents;
