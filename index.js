@@ -1479,30 +1479,32 @@ app.get('/chatSelectClient', async (req, res) => {
 	}
 });
 
-app.get('/chat/:type', (req, res) => {
+app.get('/chat/:type', async (req, res) => {
 	const type = req.params.type;
 	setUserDatabase(req);
 	if (type == 'client') {
 		setTrainerDatabase(req);
-		res.render('chatClient', { loggedIn: isValidSession(req), userType: req.session.userType });
+		const receiver = await appUserCollection.find({email: req.session.email}).project({companyName: 1}).toArray();
+		res.render('chatClient', { loggedIn: isValidSession(req), userType: req.session.userType, receiver: receiver[0].companyName });
 		return;
 	} else if (isBusiness(req)) {
 		setClientDatabase(type);
+		const receiver = await clientdb.collection('info').find().project({email: 1}).toArray();
+		res.render('chatBusiness', { loggedIn: isValidSession(req), userType: req.session.userType, clientParam: type, receiver: receiver[0].email });
 	}
-	res.render('chatBusiness', { loggedIn: isValidSession(req), userType: req.session.userType, clientParam: type });
 });
 
 app.get('/messagesClient', async (req, res) => {
-	setUserDatabase(req);
-	setTrainerDatabase(req);
+	// setUserDatabase(req);
+	// setTrainerDatabase(req);
 	const senderMsgList = await userdb.collection('messages').find().sort({ createdAt: 1 }).limit(25).toArray();
 	const receiverMsgList = await trainerdb.collection('messages').find().sort({ createdAt: 1 }).limit(25).toArray();
 	res.json({ senderMessages: senderMsgList, receiverMessages: receiverMsgList });
 });
 
 app.post('/messagesClient', async (req, res) => {
-	setUserDatabase(req);
-	setTrainerDatabase(req);
+	// setUserDatabase(req);
+	// setTrainerDatabase(req);
 	const { text } = req.body;
 	const sender = req.session.email;
 	const trainer = await appUserCollection.find({ email: sender }).project({ companyName: 1 }).toArray();
@@ -1513,18 +1515,18 @@ app.post('/messagesClient', async (req, res) => {
 });
 
 app.get('/messagesBusiness/:client', async (req, res) => {
-	setUserDatabase(req);
+	// setUserDatabase(req);
 	const client = req.params.client;
-	setClientDatabase(client);
+	// setClientDatabase(client);
 	const senderMsgList = await userdb.collection('messages').find().sort({ createdAt: 1 }).limit(25).toArray();
 	const receiverMsgList = await clientdb.collection('messages').find().sort({ createdAt: 1 }).limit(25).toArray();
 	res.json({ senderMessages: senderMsgList, receiverMessages: receiverMsgList });
 });
 
 app.post('/messagesBusiness/:client', async (req, res) => {
-	setUserDatabase(req);
+	// setUserDatabase(req);
 	const clientParam = req.params.client;
-	setClientDatabase(clientParam);
+	// setClientDatabase(clientParam);
 	const { text } = req.body;
 	const sender = req.session.name;
 	const client = await clientdb.collection('info').find().project({email: 1}).toArray();

@@ -1,69 +1,39 @@
-/* Add your CSS styles here */
-body {
-	font-family: Arial, sans-serif;
-}
-
-header {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	padding: 10px;
-	background-color: #f5f5f5;
-}
-
-#chat-room {
-	display: flex;
-	flex-direction: column;
-	height: 80vh;
-	border: 1px solid #ddd;
-	padding: 10px;
+#chatRoom {
+	width: 400px;
+	height: 665px;
+	padding-top: 10px;
+	padding-bottom: 10px;
+	margin-top: 20px;
 }
 
 #messages {
 	flex: 1;
 	overflow-y: scroll;
-	border-bottom: 1px solid #ddd;
-	margin-bottom: 10px;
 }
 
 .message {
-	margin-bottom: 10px;
+	max-width: 60%;
+	padding: 5px 10px 5px 10px;
+	margin: 5px 0;
+	border-radius: 20px;
+	word-wrap: break-word;
+	color: rgba(32, 19, 53, 1);
 }
 
-.message img {
-	vertical-align: middle;
-	border-radius: 50%;
-	width: 30px;
-	height: 30px;
+.message.sent {
+	/* justify-content: flex-end; */
+	align-self: flex-end;
+	background-color: rgba(94, 83, 162, 0.8);
+	border-top-right-radius: 0;
 }
 
-.message p {
-	display: inline-block;
-	margin-left: 10px;
+.message.received {
+	/* justify-content: flex-start; */
+	align-self: flex-start;
+	background-color: rgba(255, 160, 92, 0.8);
+	border-top-left-radius: 0;
 }
 
-form {
-	display: flex;
-}
-
-form input {
-	flex: 1;
-	padding: 10px;
-	border: 1px solid #ddd;
-	border-radius: 5px 0 0 5px;
-}
-
-form button {
-	padding: 10px;
-	border: 1px solid #ddd;
-	border-left: 0;
-	background-color: #007bff;
-	color: white;
-	border-radius: 0 5px 5px 0;
-	cursor: pointer;
-}
-
-form button:disabled {
-	background-color: #ddd;
-	cursor: not-allowed;
+.msgText {
+	color: rgba(32, 19, 53, 1);
 }

@@ -16,14 +16,24 @@ async function fetchMessages() {
 		allMessages.forEach(msg => {
 			const messageElement = document.createElement('div');
 			messageElement.classList.add('message');
+
+			if (msg.receiver === receiverIdentifier) {
+				messageElement.classList.add('sent');
+			} else {
+				messageElement.classList.add('received');
+			}
+
 			messageElement.innerHTML = `
-				<p>${msg.text}</p>
+				<div class='msgText'>${msg.text}</div>
 			`;
 			messagesDiv.appendChild(messageElement);
 		});
 
 		// Update the timestamp of the latest message
 		lastMessageTimestamp = latestMessage.createdAt;
+
+		// Scroll to the bottom
+		messagesDiv.scrollTop = messagesDiv.scrollHeight;
 	}
 }
 
@@ -44,7 +54,7 @@ document.getElementById('messageForm').addEventListener('submit', async (e) => {
 	fetchMessages();
 });
 
-// Poll for new messages every 3 seconds
-setInterval(fetchMessages, 3000);
+// Poll for new messages every 5 seconds
+setInterval(fetchMessages, 5000);
 
 fetchMessages();
