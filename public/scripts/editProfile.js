@@ -1,20 +1,38 @@
 //If profile is being editted, allow all profile inputs to be editted
+let inputs = document.querySelectorAll(".profileInfo");
+let picInput = document.getElementById('newProfilePic');
+let saveButton = document.getElementById('saveButton');
+let dogs = document.getElementById('dogSection');
+let cancelButton = document.getElementById('cancelEdit');
+
 let editButton = document.getElementById('editButton');
 editButton.addEventListener('click', () => {
-    let inputs = document.querySelectorAll(".profileInfo");
     inputs.forEach((input) => {
         input.disabled = false;
     });
 
-    let picInput = document.getElementById('newProfilePic');
     picInput.style = 'display:block';
 
-    let saveButton = document.getElementById('saveButton');
     saveButton.style = 'display:inline';
     editButton.style = 'display:none';
+    cancelButton.style = 'display:inline';
 
-    let dogs = document.getElementById('dogSection');
     dogs.style = 'display:none';
+});
+
+cancelButton.addEventListener('click', () => {
+    cancelButton.style = 'display:none';
+    
+    inputs.forEach((input) => {
+        input.disabled = true;
+    });
+
+    picInput.style = 'display:none';
+
+    saveButton.style = 'display:none';
+    editButton.style = 'display:inline';
+
+    dogs.style = 'display:block';
 });
 
 

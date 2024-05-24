@@ -1,6 +1,6 @@
 <%- include("templates/header") %>
-	<div class="container"> <!--Added container div to center content on page-->
-		<p class="h5"><%=business.companyName%></p>  <!--Page title-->
+	<div class="container my-4"> <!--Added container div to center content on page-->
+		<h1 class="text-center mb-4 yeseva-one underline-header"><%=business.companyName%></h1>  <!--Page title-->
         
     	<!--TODO: Catherine links tabs.ejs here-->
         <div class="resource-wrap">
@@ -52,15 +52,16 @@
 									<input class="businessInfo col-4" type="text" id="companySite" name="companyWebsite" value="<%=business.companyWebsite%>" required disabled>
 								</div>
 									
-								<div class="form-group">
+								<div class="form-group row">
 									<label for="businessDescrtiption">Business Description:</label>
-									<textarea class="form-control businessInfo" id="businessDescrtiption" name="description" rows="4" disabled><%=business.description%></textarea>
+									<textarea class="form-control auto-resize businessInfo" id="businessDescrtiption" name="description" rows="4" disabled><%=business.description%></textarea>
 								</div>
 						
-								<div class="my-3">
+								<div class="row my-3">
 								
-								<%- include('templates/button', {action:'',xClasses:'editButton',xAttributes:'id=businessEditButton type=button value=business',content:'Edit'}) %>
-								<%- include('templates/button', {action: '/profile/edit/businessDetails',xClasses:'saveButton',xAttributes:'id=businessSaveButton style=display:none',content:'Save'}) %>
+								<%- include('templates/button', {action:'',xClasses:'editButton col-2',xAttributes:'id=businessEditButton type=button value=business',content:'Edit'}) %>
+								<%- include('templates/button', {action:'',xClasses:'cancelButton col-2',xAttributes:'id=businessCancelButton type=button value=business style=display:none',content:'Cancel'}) %>
+								<%- include('templates/button', {action: '/profile/edit/businessDetails',xClasses:'saveButton col-2',xAttributes:'id=businessSaveButton style=display:none',content:'Save'}) %>
 								
 							</div>
 							</form>
@@ -92,9 +93,10 @@
 								<textarea class="form-control trainerInfo" id="trainerIntro" name="intro" rows="3" disabled><%=trainer.intro%></textarea>
 							</div>
 					
-							<div class="my-3">
-								<%- include('templates/button', {action:'',xClasses:'editButton',xAttributes:'id=trainerEditButton type=button value=trainer',content:'Edit'}) %>
-								<%- include('templates/button', {action: '/profile/edit/trainer',xClasses:'saveButton',xAttributes:'id=trainerSaveButton style=display:none',content:'Save'}) %>
+							<div class="row my-3">
+								<%- include('templates/button', {action:'',xClasses:'editButton col-2',xAttributes:'id=trainerEditButton type=button value=trainer',content:'Edit'}) %>
+								<%- include('templates/button', {action:'',xClasses:'cancelButton col-2',xAttributes:'id=trainerCancelButton type=button value=trainer style=display:none',content:'Cancel'}) %>
+								<%- include('templates/button', {action: '/profile/edit/trainer',xClasses:'saveButton col-2',xAttributes:'id=trainerSaveButton style=display:none',content:'Save'}) %>
 							</div>
 
 						</form>
@@ -119,8 +121,8 @@
 							Description
 						-->
 						<br>
-						<div class="border p-2">
-						<form class="container" id="newProgramForm" method="post" style="display:none">
+						<div class="border p-2" id="newProgramForm" style="display:none">
+						<form class="container"  method="post">
 							<div class="form-group my-2">
 								<label for="programName">Program Name:</label>
 								<input class="newProgramInfo" type="text" id="programName" name="name" required>
@@ -145,7 +147,7 @@
 
 							<div class="form-group my-2">
 								<label for="programDiscounts">Discounts:</label>
-								<textarea class="form-control newProgramInfo" style="width:80%" id="programDiscounts" name="discounts" rows="2"></textarea>
+								<textarea class="form-control auto-resize newProgramInfo" style="width:80%" id="programDiscounts" name="discounts" rows="2"></textarea>
 							</div>
 
 							<div class="form-group my-2">
@@ -155,10 +157,13 @@
 
 							<div class="form-group my-2">
 								<label for="programDescription">Program Description:</label>
-								<textarea class="form-control newProgramInfo" style="width:80%" id="programDescription" name="description" rows="3" required></textarea>
+								<textarea class="form-control auto-resize newProgramInfo" style="width:80%" id="programDescription" name="description" rows="3" required></textarea>
 							</div>
 
-							<%- include('templates/button', {action:'/profile/edit/addProgram',xClasses:'',xAttributes:'',content:'Add'}) %>
+							<div class="my-2">
+								<%- include('templates/button', {action:'/profile/edit/addProgram',xClasses:'',xAttributes:'id=submitNewProgram',content:'Add'}) %>
+								<%- include('templates/button', {action:'',xClasses:'',xAttributes:'id=cancelNewProgram type=button',content:'Cancel'}) %>
+							</div>
 						</form>
                     </div>
                 </div>
@@ -170,6 +175,7 @@
 	<template id="serviceTemplate">
 		<%- include('templates/businessServiceBox', {serviceName:'', displayButton: 'display'}) %>
 	</template>
+
 <script>
 	//Find the profile image upload element
 	let picUploads = document.querySelectorAll('[name=accountUpload]');
@@ -190,7 +196,9 @@
 	//Buttons on page
 	let serviceButtons = document.querySelectorAll('.serviceDelete');
 	let editButtons = document.querySelectorAll('.editButton');
+	let cancelButtons = document.querySelectorAll('.cancelButton');
 	let addProgramButton = document.getElementById('addProgramButton');
+	let cancelAddProgramButton = document.getElementById('cancelNewProgram');
 
 	//Form for adding a new program on the programs page
 	let programForm = document.getElementById('newProgramForm');
@@ -223,76 +231,126 @@
 			let upload = document.getElementById(button.value + 'Upload');
 			upload.style = 'display: block';
 
-			//Show the save button
+			//Show the save and cancel buttons
 			let saveButton = document.getElementById(button.value + 'SaveButton');
+			let cancelButton = document.getElementById(button.value + 'CancelButton');
 			saveButton.style = 'display: block';
+			cancelButton.style = 'display:block';
 
-			//Show the delete service buttons
-			serviceButtons.forEach((button) => {
-				button.style = 'display: inline';
-			});
-			
-			//Display the add service button
-			let addServiceButton = document.getElementById('addService');
-			addServiceButton.style = 'display: block';
-
-			//Add service event
-			addServiceButton.addEventListener('click', () => {
-				//Hide the add service button
-				addServiceButton.style = 'display: none';
-
-				//Show the add service form and submit service button
-				let addServiceInput = document.getElementById('addServiceInputDiv');
-				addServiceInput.style = 'display: block';
-
-				//Collect save service buttons and service name input
-				let saveServiceButton = document.getElementById('submitService');
-				let serviceInput = document.getElementById('toAddService');
-
-				//Clone service list template
-				let newService = document.getElementById("serviceTemplate").content.cloneNode(true);
-
-				//Save service event
-				saveServiceButton.addEventListener('click', () => {
-					//Convert to string for easy manipulation
-					let service = String(serviceInput.value);
-
-					//Populate template
-					newService.querySelector('li').id = service.replace(' ', '') + 'Item';
-					newService.querySelector('span').innerHTML = service;
-					newService.querySelector('.serviceField').value = service;
-					
-					//Show service delete and add the delete event
-					let deleteButton = newService.querySelector('button');
-					deleteButton.style = 'display:inline';
-					deleteButton.value = service.replace(' ', '');
-					deleteButton.addEventListener('click', ()=> {
-						document.getElementById(deleteButton.value + 'Item').remove();
-					});
-
-					//Add the new service to the page and reset the input
-					document.getElementById('serviceList').appendChild(newService);
-					document.getElementById('toAddService').value = '';
-
-					//Show the add service button and hide the service input
-					addServiceButton.style = 'display: block';
-					addServiceInput.style = 'display: none';
+			if(button.value = 'business'){
+				//Show the delete service buttons
+				serviceButtons.forEach((button) => {
+					button.style = 'display: inline';
 				});
-			});
+			
+				//Display the add service button
+				let addServiceButton = document.getElementById('addService');
+				addServiceButton.style = 'display: block';
+
+				//Add service event
+				addServiceButton.addEventListener('click', () => {
+					//Hide the add service button
+					addServiceButton.style = 'display: none';
+
+					//Show the add service form and submit service button
+					let addServiceInput = document.getElementById('addServiceInputDiv');
+					addServiceInput.style = 'display: block';
+
+					//Collect save service buttons and service name input
+					let saveServiceButton = document.getElementById('submitService');
+					let serviceInput = document.getElementById('toAddService');
+
+					//Clone service list template
+					let newService = document.getElementById("serviceTemplate").content.cloneNode(true);
+
+					//Save service event
+					saveServiceButton.addEventListener('click', () => {
+						//Convert to string for easy manipulation
+						let service = String(serviceInput.value);
+
+						//Populate template
+						newService.querySelector('li').id = service.replace(' ', '') + 'Item';
+						newService.querySelector('span').innerHTML = service;
+						newService.querySelector('.serviceField').value = service;
+						
+						//Show service delete and add the delete event
+						let deleteButton = newService.querySelector('button');
+						deleteButton.style = 'display:inline';
+						deleteButton.value = service.replace(' ', '');
+						deleteButton.addEventListener('click', ()=> {
+							document.getElementById(deleteButton.value + 'Item').remove();
+						});
+
+						//Add the new service to the page and reset the input
+						document.getElementById('serviceList').appendChild(newService);
+						document.getElementById('toAddService').value = '';
+
+						//Show the add service button and hide the service input
+						addServiceButton.style = 'display: block';
+						addServiceInput.style = 'display: none';
+					});
+				});
+			}
+			
 
 		});
 	});
+
+	cancelButtons.forEach((button) => {
+		button.addEventListener('click', () => {
+			button.style = "display:none";
+
+			//Show edit button, hide save button
+			let saveButton = document.getElementById(button.value + 'SaveButton');
+			let editButton = document.getElementById(button.value + 'EditButton');
+			editButton.style = 'display:block';
+			saveButton.style = 'display:none';
+
+			//Hide the logo or profile pic upload
+			let upload = document.getElementById(button.value + 'Upload');
+			upload.style = 'display: none';
+
+
+			//Select and enable all input fields
+			let fields = document.querySelectorAll('.' + button.value + 'Info');
+			fields.forEach((field) => {
+				field.disabled = true;
+			});
+
+			if(button.value = 'business'){
+				//Hide the delete service buttons
+				serviceButtons.forEach((button) => {
+					button.style = 'display: none';
+				});
+
+				//Hide the add service button
+				let addServiceButton = document.getElementById('addService');
+				addServiceButton.style = 'display: none';
+			}
+
+    	});  
+	});
+	
 
 	//Add program event shows the new program form and hides the add program button
 	addProgramButton.addEventListener('click', () => {
 		programForm.style = 'display:block';
 		addProgramButton.style = 'display:none';
 	});
+
+	cancelAddProgramButton.addEventListener('click', () => {
+		programForm.style = 'display:none';
+		addProgramButton.style = 'display:block';
+
+		let inputs = document.querySelectorAll('.newProgramInfo');
+		inputs.forEach((input) => {
+			input.value = '';
+		});
+	});
 	
 	//Change the label for the price input in the program form according to the selected pricing type
 	pricingToggles.forEach((toggle) => {
 		toggle.addEventListener('change', () => {
-			console.log('aaaa');
 			if(toggle.checked){
 				priceLabel.innerHTML = toggle.value + ":";
 			}

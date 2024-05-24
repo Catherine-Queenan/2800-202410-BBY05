@@ -2,7 +2,7 @@
 	<link href="/css/calendar.css" rel="stylesheet">
 
 		<div class="container border bg-light my-3 py-3 rounded" id='calendar'></div>
-		<div>
+		<div class="container">
 			<label for="clientFilter">Filter by Client:</label>
 			<select id="clientFilter" name="clientFilter" class="form-select">
 				<option selected></option>
@@ -28,12 +28,4 @@
 		</div>
 	</div>
 
-	<!-- FullCalendar -->
-	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-		integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-		crossorigin="anonymous"></script>
-	<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
-	<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
-	<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-	<script src="/scripts/calendarBusiness.js"></script>
-	<%- include("templates/footerCopyright") %>
+	<%- include("templates/footerCalendar", {script: 'Business'}) %>
