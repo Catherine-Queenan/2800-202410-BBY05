@@ -43,7 +43,7 @@
 						
 								<div id="addServiceInputDiv" style="display:none">
 									<input class="col-4" type="text" id="toAddService">
-									<%- include('templates/button', {action:'',xClasses:'',xAttributes:'id=submitService type=button value=business ',content:'Save Service'}) %>
+									<%- include('templates/button', {action:'',xClasses:'',xAttributes:'id=submitService type=button value=business disabled',content:'Save Service'}) %>
 								</div>
 						
 								<div class="form-group">
@@ -235,10 +235,13 @@
 			//Show the save and cancel buttons
 			let saveButton = document.getElementById(button.value + 'SaveButton');
 			let cancelButton = document.getElementById(button.value + 'CancelButton');
+
 			saveButton.style = 'display: block';
 			cancelButton.style = 'display:block';
 
-			if(button.value = 'business'){
+			console.log(button.parentElement);
+
+			if(button.value == 'business'){
 				//Show the delete service buttons
 				serviceButtons.forEach((button) => {
 					button.style = 'display: inline';
@@ -261,6 +264,14 @@
 					let saveServiceButton = document.getElementById('submitService');
 					let serviceInput = document.getElementById('toAddService');
 
+					serviceInput.addEventListener('input', function(){
+						console.log('aaaaaaaaaaaa');
+						if(this.value == ''){
+							saveServiceButton.disabled = true;
+						} else {
+							saveServiceButton.disabled = false;
+						}
+					});	
 					//Clone service list template
 					let newService = document.getElementById("serviceTemplate").content.cloneNode(true);
 
@@ -268,27 +279,33 @@
 					saveServiceButton.addEventListener('click', () => {
 						//Convert to string for easy manipulation
 						let service = String(serviceInput.value);
+						if(service != ''){
+							//Populate template
+							newService.querySelector('li').id = service.replace(' ', '') + 'Item';
+							newService.querySelector('li').classList.add('addedService');
+							newService.querySelector('span').innerHTML = service;
+							newService.querySelector('.serviceField').value = service;
+							
+							//Show service delete and add the delete event
+							let deleteButton = newService.querySelector('button');
+							deleteButton.style = 'display:inline';
+							deleteButton.value = service.replace(' ', '');
+							deleteButton.addEventListener('click', ()=> {
+								document.getElementById(deleteButton.value + 'Item').remove();
+							});
 
-						//Populate template
-						newService.querySelector('li').id = service.replace(' ', '') + 'Item';
-						newService.querySelector('span').innerHTML = service;
-						newService.querySelector('.serviceField').value = service;
+							//Add the new service to the page and reset the input
+							document.getElementById('serviceList').appendChild(newService);
+							document.getElementById('toAddService').value = '';
+
+							//Show the add service button and hide the service input
+							addServiceButton.style = 'display: block';
+							addServiceInput.style = 'display: none';
+
+							saveServiceButton.disabled = true;
+						}
+
 						
-						//Show service delete and add the delete event
-						let deleteButton = newService.querySelector('button');
-						deleteButton.style = 'display:inline';
-						deleteButton.value = service.replace(' ', '');
-						deleteButton.addEventListener('click', ()=> {
-							document.getElementById(deleteButton.value + 'Item').remove();
-						});
-
-						//Add the new service to the page and reset the input
-						document.getElementById('serviceList').appendChild(newService);
-						document.getElementById('toAddService').value = '';
-
-						//Show the add service button and hide the service input
-						addServiceButton.style = 'display: block';
-						addServiceInput.style = 'display: none';
 					});
 				});
 			}
@@ -318,15 +335,27 @@
 				field.disabled = true;
 			});
 
-			if(button.value = 'business'){
+			if(button.value == 'business'){
 				//Hide the delete service buttons
 				serviceButtons.forEach((button) => {
 					button.style = 'display: none';
 				});
 
+				let serviceInput = document.getElementById('toAddService');
+				serviceInput.value = '';
 				//Hide the add service button
 				let addServiceButton = document.getElementById('addService');
 				addServiceButton.style = 'display: none';
+
+				let serviceInputDiv = document.getElementById('addServiceInputDiv');
+				serviceInputDiv.style = 'display:none';
+
+				//Delete added services
+				let addedServices = document.querySelectorAll('.addedService');
+				addedServices.forEach((service) => {
+					service.remove();
+				});
+
 			}
 
     	});  

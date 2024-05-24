@@ -6,8 +6,15 @@
             <input id="tabR-1" type="radio" name="tab" class="tabR-one btn-check" checked>
             <label for="tabR-1" class="tabR">Profile</label>
 
+<<<<<<< HEAD
+        <%- include('templates/button', {action:'',xClasses:'cancelButton btn-danger col-3 me-4',xAttributes:'id=cancelEdit type=button style=display:none',content:'Cancel'}) %>
+        <%- include('templates/button', {action:'/profile/edit/clientProfile',xClasses:'col-3',xAttributes:'id=saveButton style=display:none',content:'Save'}) %>
+        <%- include('templates/button', {action:'',xClasses:'col-3',xAttributes:'type=button id=editButton',content:'Edit'})%>
+    </form> 
+=======
             <input id="tabR-2" type="radio" name="tab" class="tabR-two btn-check">
             <label for="tabR-2" class="tabR">Dogs</label>
+>>>>>>> 2f839fc38aef4c501e53257945059402be8b083b
 
             <div class="resource-form">
                 <div class="tabR-one-htm">
@@ -20,6 +27,12 @@
                             <input name="firstName" id="firstName" type="text" class="profileInfo col-3" value="<%= user.firstName %>" disabled>
                         </div>
 
+<<<<<<< HEAD
+    <form>
+        <%- include('templates/button', {action:'/addDog',xClasses:'col-3',xAttributes:'',content:'Add New Dog'}) %>
+    </form>
+    
+=======
                         <div class="form-group">
                             <label for="lastName">Last Name:</label>
                             <input name="lastName" type="text" id="lastName" class="profileInfo col-3" value="<%= user.lastName %>" disabled>
@@ -35,9 +48,9 @@
                             <input name="phone" type="tel" id="phone" class="profileInfo col-6" value="<%= user.phone %>" disabled>
                         </div>
 
-                            <%- include('templates/button', {action:'',xClasses:'cancelButton btn-danger col-3 me-4',xAttributes:'id=cancelEdit type=button style=display:none',content:'Cancel'}) %>
-                            <%- include('templates/button', {action:'/profile/edit/clientProfile',xClasses:'col-3',xAttributes:'id=saveButton style=display:none',content:'Save'}) %>
-                            <%- include('templates/button', {action:'',xClasses:'col-3',xAttributes:'type=button id=editButton',content:'Edit'})%>
+                            <%- include('templates/button', {action:'',xClasses:'cancelButton',xAttributes:'id=cancelEdit type=button style=display:none',content:'Cancel'}) %>
+                            <%- include('templates/button', {action:'/profile/edit/clientProfile',xClasses:'',xAttributes:'id=saveButton style=display:none',content:'Save'}) %>
+                            <%- include('templates/button', {action:'',xClasses:'',xAttributes:'type=button id=editButton',content:'Edit'})%>
                         </form> 
                 </div>
             </div>
@@ -49,20 +62,23 @@
                         <% for(let i = 0; i < dogs.length; i++){ %>
                             <%- include('templates/dog', {dog: dogs[i]}) %>
                         <%} %>
-                        
+                        <br>
 
-
-    
                     <form>
-                        <%- include('templates/button', {action:'/addDog',xClasses:'col-3',xAttributes:'',content:'Add New Dog'}) %>
+                        <%- include('templates/button', {action:'/addDog',xClasses:'',xAttributes:'',content:'Add New Dog'}) %>
                     </form>
             	</div>	
             </div>
         </div>
     </div>
+>>>>>>> 2f839fc38aef4c501e53257945059402be8b083b
     <form method="get">
         <%- include('templates/button', {action:'/accountDeletion',xClasses:'col-3',xAttributes:'',content:'Delete Account'}) %>
     </form>
+<<<<<<< HEAD
+	</div>
+=======
+>>>>>>> 2f839fc38aef4c501e53257945059402be8b083b
     </div>
 
    
