@@ -1263,7 +1263,6 @@ document.getElementById('searchInput').addEventListener('input', (event) => {
 	console.log(searchTerm);
 });
 
-
 app.use(express.static(__dirname + "/public"));
 
 app.get('*', (req, res) => {
