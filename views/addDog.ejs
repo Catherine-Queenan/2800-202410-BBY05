@@ -1,14 +1,14 @@
 <%- include("templates/header") %>
 
 <div class="container mx-3">
-	<%- include('templates/backLinkButton', {page: '/profile'}) %>
+	<%- include('templates/linkButton', {page: '/profile', content:'Cancel'}) %>
 	<h3 class="my-2">
 		Add Dog
 	</h3>
 	<img src="/images/DefaultAvatar.png" id="demoPic" class="rounded-circle"
 	style="width: 150px; height: 150px; object-fit: cover;">
 	<form method="post" enctype="multipart/form-data">
-		<%- include('templates/uploadFile', {divId:'newDogPic', xDivAttributes:'', fileId:'dogPicInput',fileName:'dogUpload', label:'Upload a New Photo:', xfileAttributes:'accept=.png,.jpg'}) %>
+		<%- include('templates/uploadFile', {divId:'newDogPic', xDivAttributes:'', fileId:'dogPicInput',fileName:'dogUpload', label:'Upload a New Photo:', xfileAttributes:'accept=.png,.jpg, .jpeg'}) %>
 
 		<div class="form-group">
 			<label for="dogName">Dog Name:</label>

@@ -1,0 +1,18 @@
+<%- include("templates/header") %>
+<link href="/css/chat.css" rel="stylesheet">
+
+<div id="chatRoom" class="container border border-3 rounded d-flex flex-column">
+	<h1 class="underline-header"><%= receiver %></h1>
+	<div id="messages" class="d-flex flex-column"></div>
+	<form id="messageForm" class="d-flex">
+		<input id="messageInput" placeholder="...">
+		<span><button type="submit" class="btn btn-primary">Send</button></span>
+	</form>
+</div>
+
+<script>
+	const receiverIdentifier = '<%= receiver %>';
+</script>
+
+<script src="/scripts/chatClient.js"></script>
+<%- include("templates/footerCopyright") %>

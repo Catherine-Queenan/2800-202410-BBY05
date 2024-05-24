@@ -1,0 +1,12 @@
+<li>
+	<div class="row">
+		<div class="col">
+			<%= clients.email %>
+		</div>
+		<div class="col">
+			<form method="get">
+				<button class="btn btn-primary" formaction="/chat/<%= clients.email %>">Chat</button>
+			</form>
+		</div>
+	</div>
+</li>

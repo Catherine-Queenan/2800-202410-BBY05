@@ -1,6 +1,6 @@
 <%- include("templates/header") %>
 <div class="mx-3">
-<%- include('templates/backLinkButton', {page: '/profile'}) %>
+<%- include('templates/linkButton', {page: '/profile', content:'Back'}) %>
 <div class=" my-2 mt-3 d-flex flex-row justify-content-between">
 	<span class="h5"><%=dog.dogName%></span> 
 </div>
@@ -14,38 +14,38 @@
 	<div class="resource-form">
 		<div class="tabR-one-htm">
 	<form class="my-3" id="basicInfo" method="post" enctype="multipart/form-data">
-		<%- include('templates/uploadFile', {divId:'newDogPic', xDivAttributes:'style=display:none', fileId:'dogUpload',fileName:'dogUpload', label:'Upload a New Photo:', xfileAttributes:'accept=.png,.jpg'}) %>
+		<%- include('templates/uploadFile', {divId:'newDogPic', xDivAttributes:'style=display:none', fileId:'dogUpload',fileName:'dogUpload', label:'Upload a New Photo:', xfileAttributes:'accept=.png,.jpg, .jpeg'}) %>
 			<div class="form-group">
 				<label for="dogName">Dog Name:</label>
-				<input class="dogInfo" type="text" id="dogName" name="dogName" value="<%=dog.dogName%>" required disabled>
+				<input class="dogInput" type="text" id="dogName" name="dogName" value="<%=dog.dogName%>" required disabled>
 			</div>
 			<br>
 			<% if (dog.neuteredStatus == 'neutered') {%>
-				<%- include('templates/checkmark', {classes: 'dogInfo', value:'neutered', name:'neuteredStatus', id: 'neuteredStatus', label:'Neutered', xAttr:'checked disabled'}) %>
+				<%- include('templates/checkmark', {classes: 'dogInput', value:'neutered', name:'neuteredStatus', id: 'neuteredStatus', label:'Neutered', xAttr:'checked disabled'}) %>
 			<% } else { %>
-				<%- include('templates/checkmark', {classes: 'dogInfo', value:'neutered', name:'neuteredStatus', id: 'neuteredStatus', label:'Neutered', xAttr:'disabled'}) %>
+				<%- include('templates/checkmark', {classes: 'dogInput', value:'neutered', name:'neuteredStatus', id: 'neuteredStatus', label:'Neutered', xAttr:'disabled'}) %>
 			<%}%>
 		
 			<br>
 				
 			<% if(dog.sex == 'M') { %>
 			<div class="form-check">
-				<input class="form-check-input dogInfo" type="radio" name="sex" value="M" id="sexM" checked disabled>
+				<input class="form-check-input dogInput" type="radio" name="sex" value="M" id="sexM" checked disabled>
 				<label class="form-check-label" for="sexM">Male</label>
 		  	</div>
 		  
 			<div class="form-check">
-				<input class="form-check-input dogInfo" type="radio" name="sex" value="F" id="sexF" disabled>
+				<input class="form-check-input dogInput" type="radio" name="sex" value="F" id="sexF" disabled>
 				<label class="form-check-label" for="sexF">Female</label>
 			</div>
 		<%} else {%> 
 			<div class="form-check">
-				<input class="form-check-input dogInfo" type="radio" name="sex" value="M" id="sexM" disabled>
+				<input class="form-check-input dogInput" type="radio" name="sex" value="M" id="sexM" disabled>
 				<label class="form-check-label" for="sexM">Male</label>
 		  	</div>
 		  
 			<div class="form-check">
-				<input class="form-check-input dogInfo" type="radio" name="sex" value="F" id="sexF" checked disabled>
+				<input class="form-check-input dogInput" type="radio" name="sex" value="F" id="sexF" checked disabled>
 				<label class="form-check-label" for="sexF">Female</label>
 			</div>
 		
@@ -53,24 +53,25 @@
 				
 			<br>
 			
-			<%- include('templates/dateInput', {divId: 'birthdayDateDiv', xDivAttributes:'', dateId: 'birthday',dateClass:'dogInfo', dateName:'birthday', label:'Birthday', xDateAttributes:'value=' + dog.birthday + ' required disabled'}) %>
+			<%- include('templates/dateInput', {divId: 'birthdayDateDiv', xDivAttributes:'', dateId: 'birthday',dateClass:'dogInput', dateName:'birthday', label:'Birthday', xDateAttributes:'value=' + dog.birthday + ' required disabled'}) %>
 			 
 			<br>
 				
 			<div class="form-group">
 				<label for="weight">Weight (lb):</label>
-				<input class="dogInfo" type="number" id="weight" name="weight" min="0" value="<%=dog.weight%>" disabled>
+				<input class="dogInput" type="number" id="weight" name="weight" min="0" value="<%=dog.weight%>" disabled>
 			</div>
 				
 			<br>
 				
 			<div class="form-group">
 				<label for="specialAlerts">Special Alerts</label>
-				<textarea class="form-control dogInfo" id="specialAlerts" name="specialAlerts" rows="3" disabled><%=dog.specialAlerts%></textarea>
+				<textarea class="form-control dogInput" id="specialAlerts" name="specialAlerts" rows="3" disabled><%=dog.specialAlerts%></textarea>
 			</div>
 			<div class="my-3">
-			<%- include('templates/button', {action:'',xClasses:'',xAttributes:'id=editBasicButton type=button',content:'Edit'}) %>
-			<%- include('templates/button', {action: dog._id + '/edit',xClasses:'',xAttributes:'id=saveBasicButton style=display:none',content:'Save'}) %>
+			<%- include('templates/button', {action:'',xClasses:'editButton',xAttributes:'id=dogEditButton type=button value=dog',content:'Edit'}) %>
+			<%- include('templates/button', {action:'',xClasses:'cancelButton',xAttributes:'id=dogCancelButton type=button value=dog style=display:none',content:'Cancel'}) %>
+			<%- include('templates/button', {action: dog._id + '/edit',xClasses:'',xAttributes:'id=dogSaveButton style=display:none',content:'Save'}) %>
 		</div>
 		</form>
 		</div>
@@ -110,8 +111,11 @@
 				<%- include('templates/uploadFile', {divId:'DA2PPProofDiv', xDivAttributes:'class=vaccineUpload style=display:none', fileId: 'DA2PPProof', fileName:'dogUpload', label:'Provide New Proof of Vaccincation', xfileAttributes: 'class=vaccineProof accept=.pdf'})%>
 			</div>
 
-			<%- include('templates/button', {action:'',xClasses:'',xAttributes:'id=editVaccinesButton type=button',content:'Edit'}) %>
-			<%- include('templates/button', {action: dog._id + '/editVaccines',xClasses:'',xAttributes:'id=saveVaccinesButton style=display:none',content:'Save'}) %>
+			<div class="my-2">
+			<%- include('templates/button', {action:'',xClasses:'editButton',xAttributes:'id=vaccineEditButton type=button value=vaccine',content:'Edit'}) %>
+			<%- include('templates/button', {action:'',xClasses:'cancelButton',xAttributes:'id=vaccineCancelButton type=button value=vaccine style=display:none',content:'Cancel'}) %>
+			<%- include('templates/button', {action: dog._id + '/editVaccines',xClasses:'',xAttributes:'id=vaccineSaveButton style=display:none',content:'Save'}) %>
+		</div>
 		</form>
 		</div>
 	</div>
@@ -146,14 +150,10 @@
 			//delete dog button
 			let deleteButton = document.getElementById('deleteDogButton');
 
-			//Edit buttons for forms
-			let editBasicButton = document.getElementById('editBasicButton');
-			let editVaccinesButton = document.getElementById('editVaccinesButton');
-
-			//Save buttons for forms
-			let saveVaccinesButton = document.getElementById('saveVaccinesButton');
-			let saveBasicButton = document.getElementById('saveBasicButton');
-
+			//Edit and cancel buttons for forms
+			let editButtons = document.querySelectorAll('.editButton');
+			let cancelButtons = document.querySelectorAll('.cancelButton');
+			
 			//Toggles between the two forms
 			let toggleButton = document.getElementById('viewVaccines');
 
@@ -187,85 +187,104 @@
 					}
 				});
 			});
-			//Sets up the basic form for editting
-			editBasicButton.addEventListener('click', ()=>{
-				//Hide the delete button and edit buttons
-				deleteButton.style = 'display:none';
-				editBasicButton.style = 'display:none';
 
-				//show the save button
-        		saveBasicButton.style = 'display:block';
+			//Set up editting
+			editButtons.forEach((button) => {
+				button.addEventListener('click', () => {
 
-				//Allow the input fields to be editted
-				let inputFields = document.querySelectorAll('.dogInfo');
-				inputFields.forEach((input)=>{
-					input.disabled = false;
-				});
+					//Hide the delete button and edit buttons
+					deleteButton.style = 'display:none';
+					button.style = 'display:none';
+					
+					let saveButton = document.getElementById(button.value + 'SaveButton');
+					let cancelButton = document.getElementById(button.value + 'CancelButton');
+					saveButton.style = 'display:inline';
+					cancelButton.style = 'display:inline';
 
-				//Show the new dog pic upload area
-				let picDiv = document.getElementById('newDogPic');
-				picDiv.style = 'display:block';
-
-				//Get the file input element for the dog pic
-				picUpload = document.getElementById('dogUpload');
-
-				//Change the image displayed if a file was inputted
-				picUpload.addEventListener('input', (event) => {
-				
-				//get the image, its url and the element to display it in
-				let imageFile = event.target.files[0]
-				let path = URL.createObjectURL(imageFile);
-				let dogPic = document.getElementById('dogPic');
-
-				//update the image display
-				dogPic.src = path;
-				});
-			});
-
-			//Allow the vaccine records to be editted
-			editVaccinesButton.addEventListener('click', ()=>{
-				//Hide the delete and edit buttons
-				deleteButton.style = 'display:none';
-				editVaccinesButton.style = 'display:none';
-
-				//Show the save button
-				saveVaccinesButton.style = 'display:block';
-
-				//Allow user to edit all the date fields
-				let dateFields = document.querySelectorAll('.vaccineInput');
-				dateFields.forEach((date)=>{
-					//Enable editting
-					date.disabled = false;
-
-					//Store the original value
-					let originalDate = date.value;
-
-					//Identify the file upload corresponding with the date input
-					let fileUpload = date.name.substring(0, date.name.length-4);
-					fileUpload = fileUpload + "Proof";
-					let fileUploadElement = document.getElementById(fileUpload);
-
-					//If the expiration date is changed, show the file upload and make it required
-					date.addEventListener('input', ()=>{
-						//If the current inputed date doesn't match the original date
-						if(originalDate != date.value){
-							//show file upload and make it required
-							fileUploadElement.required = true;
-							fileUploadElement.parentNode.style = 'display:block';
-						
-						//If the new date matches the original
-						} else {
-
-							//hide file upload and make it not required
-							fileUploadElement.required = false;
-							fileUploadElement.parentNode.style = 'display:none';
-						}
+					//Allow the input fields to be editted
+					let inputFields = document.querySelectorAll('.' + button.value + 'Input');
+					inputFields.forEach((input)=>{
+						input.disabled = false;
 					});
+
+					if(button.value == 'dog'){
+						//Show the new dog pic upload area
+						let picDiv = document.getElementById('newDogPic');
+						picDiv.style = 'display:block';
+
+						//Get the file input element for the dog pic
+						picUpload = document.getElementById('dogUpload');
+
+						//Change the image displayed if a file was inputted
+						picUpload.addEventListener('input', (event) => {
+
+							//get the image, its url and the element to display it in
+							let imageFile = event.target.files[0]
+							let path = URL.createObjectURL(imageFile);
+							let dogPic = document.getElementById('dogPic');
+
+							//update the image display
+							dogPic.src = path;
+						});
+					} else {
+						inputFields.forEach((date)=>{
+							//Enable editting
+							date.disabled = false;
+
+							//Store the original value
+							let originalDate = date.value;
+
+							//Identify the file upload corresponding with the date input
+							let fileUpload = date.name.substring(0, date.name.length-4);
+							fileUpload = fileUpload + "Proof";
+							let fileUploadElement = document.getElementById(fileUpload);
+
+							//If the expiration date is changed, show the file upload and make it required
+							date.addEventListener('input', ()=>{
+								//If the current inputed date doesn't match the original date
+								if(originalDate != date.value){
+									//show file upload and make it required
+									fileUploadElement.required = true;
+									fileUploadElement.parentNode.style = 'display:block';
+								
+								//If the new date matches the original
+								} else {
+
+									//hide file upload and make it not required
+									fileUploadElement.required = false;
+									fileUploadElement.parentNode.style = 'display:none';
+								}
+							});
+						});
+					}
 				});
-
-			});
-
+			});		
 			
+			cancelButtons.forEach((button) => {
+				button.addEventListener('click', ()=>{
+
+					//Hide the delete button and edit buttons
+					deleteButton.style = 'display:block';
+					button.style = 'display:none';
+					
+					let saveButton = document.getElementById(button.value + 'SaveButton');
+					let editButton = document.getElementById(button.value + 'EditButton');
+					saveButton.style = 'display:none';
+					editButton.style = 'display:block';
+
+					//Allow the input fields to be editted
+					let inputFields = document.querySelectorAll('.' + button.value + 'Input');
+					inputFields.forEach((input)=>{
+						input.disabled = true;
+					});
+
+					if(button.value == 'dog'){
+						//Show the new dog pic upload area
+						let picDiv = document.getElementById('newDogPic');
+						picDiv.style = 'display:none';
+					}
+				});
+			});
 		
 
 		</script>

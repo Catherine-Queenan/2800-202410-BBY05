@@ -1,34 +1,53 @@
-		<div class="container">
-			<footer class="d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top">
-			
-			<!--Copyright-->
-			<div class="col-md-4 d-flex">
-				<span class="mb-md-0 user-select-none text-body-secondary">&copy; 2024 Pawfolio </br> Proper Subset</span>
-			</div>
-
-			<!--Logo TODO: Implement final logo choice-->
-			<form method="get" class="col-md-4 justify-content-center d-flex">
-				<%- include('icon', {iconPath: '/icons/Logo.png', altText: 'Logo', action: '/', theClass: '', theAttributes: 'style= width:50px; height:50px;'}) %>
-			</form>
-			
-			<!--FAQ clickable icon-->
-			<ul class="nav col-md-4 justify-content-end align-items-bottom list-unstyled d-flex">
-
-				<form method="get">
-					<%- include('icon', {iconPath: '/icons/FAQ.png', altText: 'FAQ', action: '/FAQ', theClass: 'mt-3', theAttributes: 'style= width:50px; height:50px;'}) %>
-					<p class="text-center user-select-none karla-heavy mb-0">FAQ</p>
-				</form>
-
-			</ul>
-			</footer>
+	<div class="container">
+		<!--For the Easter Egg-->
+		<div id="scoreBoard">
+			Score: <span id="score">0</span> | Lives: <span id="lives">3</span>
 		</div>
-		
-		<!--Bootstrap script integration-->
-		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-			integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-			crossorigin="anonymous">
-		</script>
 
+        <div id="easterEggOverlay"></div>
+		<div id="dogContainer"></div>
+
+		<audio id="startSound" src="/audio/whoLetThemDawgsOutFinal.wav" loop></audio>
+
+		<footer class="d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top">
+		
+		<!--Copyright-->
+		<div class="col-md-4 d-flex">
+			<span class="mb-md-0 user-select-none text-body-secondary">&copy; 2024 Pawfolio </br> Proper Subset</span>
+		</div>
+
+		<!--Logo TODO: Implement final logo choice-->
+		<form method="get" class="col-md-4 justify-content-center d-flex">
+			<a id="easterEggButton" href="#">
+				<img src="/icons/Logo.png" alt="Logo" style="width:50px; height:50px;">
+			</a>
+		</form>
+		
+		<!--FAQ clickable icon-->
+		<ul class="nav col-md-4 justify-content-end align-items-bottom list-unstyled d-flex">
+
+			<form method="get">
+				<%- include('icon', {iconPath: '/icons/FAQ.png', altText: 'FAQ', action: '/FAQ', theClass: 'mt-3', theAttributes: 'style= width:50px; height:50px;'}) %>
+				<p class="text-center user-select-none karla-heavy mb-0">FAQ</p>
+			</form>
+
+		</ul>
+		</footer>
+	</div>
+
+	<!--Bootstrap script integration-->
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+		integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+		crossorigin="anonymous">
+	</script>
+	
+
+	<!--Easter Egg Script-->
+    <script>
+        const currentUrl = "<%= currentUrl %>";
+    </script>
+	<script src="/scripts/easterEgg.js"></script>
+	<script src="/scripts/global.js"></script>
 	</body>
 
 </html>
