@@ -1,7 +1,7 @@
 <%- include("templates/header") %>
 <div class="container">
-    <p class="h5"><span class="bolder">Hire Request</span> from <span class="bolder"><%=alert.clientName%></span></p>
-
+    <p class="h5">Hire Request</span> from <%=alert.clientName%></p>
+    <p>They are interest in enrolling their dog <span class="karla-heavy"><%=alert.dogName%></span> in the <span class="karla-heavy"><%=alert.programName%> program</span></p>
     <div class="card">
         <div class="card-title">
             <%- include('templates/defaultingPic', {picId: 'dogPic', pic: dog.dogPic}) %>
