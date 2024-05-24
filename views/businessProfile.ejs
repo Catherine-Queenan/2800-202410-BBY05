@@ -1,6 +1,6 @@
 <%- include("templates/header") %>
-	<div class="container"> <!--Added container div to center content on page-->
-		<p class="h5"><%=business.companyName%></p>  <!--Page title-->
+	<div class="container my-4"> <!--Added container div to center content on page-->
+		<h1 class="text-center mb-4 yeseva-one underline-header"><%=business.companyName%></h1>  <!--Page title-->
         
     	<!--TODO: Catherine links tabs.ejs here-->
         <div class="resource-wrap">
@@ -52,9 +52,9 @@
 									<input class="businessInfo col-4" type="text" id="companySite" name="companyWebsite" value="<%=business.companyWebsite%>" required disabled>
 								</div>
 									
-								<div class="form-group">
+								<div class="form-group row">
 									<label for="businessDescrtiption">Business Description:</label>
-									<textarea class="form-control businessInfo" id="businessDescrtiption" name="description" rows="4" disabled><%=business.description%></textarea>
+									<textarea class="form-control auto-resize businessInfo" id="businessDescrtiption" name="description" rows="4" disabled><%=business.description%></textarea>
 								</div>
 						
 								<div class="my-3">
@@ -145,7 +145,7 @@
 
 							<div class="form-group my-2">
 								<label for="programDiscounts">Discounts:</label>
-								<textarea class="form-control newProgramInfo" style="width:80%" id="programDiscounts" name="discounts" rows="2"></textarea>
+								<textarea class="form-control auto-resize newProgramInfo" style="width:80%" id="programDiscounts" name="discounts" rows="2"></textarea>
 							</div>
 
 							<div class="form-group my-2">
@@ -155,7 +155,7 @@
 
 							<div class="form-group my-2">
 								<label for="programDescription">Program Description:</label>
-								<textarea class="form-control newProgramInfo" style="width:80%" id="programDescription" name="description" rows="3" required></textarea>
+								<textarea class="form-control auto-resize newProgramInfo" style="width:80%" id="programDescription" name="description" rows="3" required></textarea>
 							</div>
 
 							<%- include('templates/button', {action:'/profile/edit/addProgram',xClasses:'',xAttributes:'',content:'Add'}) %>
@@ -170,6 +170,7 @@
 	<template id="serviceTemplate">
 		<%- include('templates/businessServiceBox', {serviceName:'', displayButton: 'display'}) %>
 	</template>
+
 <script>
 	//Find the profile image upload element
 	let picUploads = document.querySelectorAll('[name=accountUpload]');
