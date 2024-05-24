@@ -1,4 +1,5 @@
 <%- include("templates/header") %>
+<link href="/css/calendar.css" rel="stylesheet">
 <div>
 	<% if (!loggedIn) { %>
 		<%- include('templates/hero', {content: 'Canine-Centered Connections... Where pet professionals and pet owners come together'}) %>
@@ -8,7 +9,7 @@
 				<div class="row gy-5">
 					
 					<%- include('templates/clientPreview', { 
-						title: 'Login or Sign Up', 
+						title: 'Sign In or Sign Up', 
 						content: 'Join our community of passionate animal professionals and pet owners. Connecting and scheduling made easy, by pet people, for pet people.',
 						prevClass: 'offset-3 offset-sm-4 offset-md-6 upperShadow',
 						actionOne: '/login/clientLogin',
@@ -27,11 +28,11 @@
 						title: 'Finding a Trainer', 
 						content: 'With our network of trainers, finding the perfect one for you is just a paw trick away! Learn more about what we require from our trainers.',
 						prevClass: 'lowerShadow',
-						actionOne: '/',
+						actionOne: '/FAQ',
 						classesOne: '',
 						attributesOne: '',
 						contentOne: 'Learn More',
-						actionTwo: '/',
+						actionTwo: '/findTrainer',
 						classesTwo: '',
 						attributesTwo: '',
 						contentTwo: 'Find a Trainer',
@@ -47,10 +48,10 @@
 						classesOne: '',
 						attributesOne: '',
 						contentOne: 'All Resources',
-						actionTwo: '/',
+						actionTwo: '/FAQ',
 						classesTwo: '',
 						attributesTwo: '',
-						contentTwo: 'Trusted Professionals',
+						contentTwo: 'Learn More',
 						justify: '',
 						imageUrl: 'images/PupReadFade.png'
 					}) %>
@@ -161,7 +162,7 @@
 						title: 'Inbox', 
 						content: 'Dynamically loaded content based on inbox messages.',
 						prevClass: 'smallShadow',
-						actionOne: '/',
+						actionOne: '/chatSelectClient',
 						classesOne: '',
 						attributesOne: '',
 						contentOne: 'Learn More',
@@ -206,19 +207,10 @@
 					}) %>
 				</div>
 			</div>
-		</section> 
-		<form method="get">
-			<%- include('templates/button', {action:'/calendar',xClasses:'',xAttributes:'',content:'Check out the Calendar'}) %>
-			<%- include('templates/button', {action:'/logout',xClasses:'',xAttributes:'',content:'Logout'}) %>
-			<!-- <button formaction="/logout">Get me out of here</button> -->
-		</form>
+		</section>
+		<script src="/scripts/calendarBusinessHome.js"></script>
+		<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
 	<% } %>
 </div>
 
-	<!-- FullCalendar -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-	integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-	crossorigin="anonymous"></script>
-<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
-<script src="/scripts/calendarBusinessHome.js"></script>
 <%- include("templates/footerCopyright") %>

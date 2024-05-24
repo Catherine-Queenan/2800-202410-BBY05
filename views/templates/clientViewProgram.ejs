@@ -1,0 +1,19 @@
+
+    <div class="card-title">
+        <p class="h3"><%=program.name%></p>
+        
+        <span class="karla-heavy"><%=program.pricing.priceType%>:</span><span>$<%=program.pricing.price%></span>
+        <p><span class="karla-heavy">Hours:</span> <%=program.hours%></p>
+        <p class="karla-heavy">Program Description</p>
+    </div> 
+
+    <div class="card-body">
+        <p><%=program.description%></p>
+        <% if(program.discounts != '' && program.discounts != null){ %>
+            <div>
+                <p>Available Discounts</p>
+                <p><%=program.discount%></p>
+            </div>
+        <% } %>
+    </div>
+   

@@ -21,10 +21,17 @@
 
 <body>
 	<!--If statements to determine which navbar to load based on authentication and authorization-->
+	
 	<% if (!loggedIn) { %>
         <%- include("navbarEmpty") %>
     <% } else if (userType == "client") { %>
-		<%- include("navbarClient") %>
+		<%- include("navbarClient", {alerts: unreadAlerts}) %>
 	<% } else if (userType == "business") { %>
-		<%- include("navbarBusinessHome") %>
+        <% if(currentUrl === '/') { %>
+            <%- include("navbarBusinessHome", {alerts: unreadAlerts}) %>
+        <% } else { %>
+            <%- include("navbarBusiness", {alerts: unreadAlerts}) %>
+        <% } %>
 	<% } %>
+
+	
