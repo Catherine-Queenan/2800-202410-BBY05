@@ -108,7 +108,7 @@
 								<%- include('templates/programProfileView', {program: programs[i]}) %>
 							<% } %>
 						<% } else { %>
-							<p>You haven't created any programs</p>
+							<p class="text-center">You haven't created any programs</p>
 						<% } %>
 
 						<%- include('templates/button', {action:'',xClasses:'',xAttributes:'type=button id=addProgramButton',content:'Add Program'}) %>
@@ -122,41 +122,41 @@
 						<br>
 						<div class="p-2" id="newProgramForm" style="display:none">
 						<form class="container"  method="post">
-							<div class="form-group my-2">
+							<div class="form-group my-3">
 								<label for="programName">Program Name:</label>
 								<input class="newProgramInfo" type="text" id="programName" name="name" required>
 							</div>
 							
-							<div class="form-group my-2">
-								<div class="check-buttons">
+							<div style="font-size: 18px; font-weight:700;">
+								<div class="radio-buttons">
 									<div class="form-check" style="max-width:fit-content;">
-										<label class="form-check-label" for="hourlyToggle">Hourly Rate</label>
 										<input type="radio" id="hourlyToggle" name="priceType" class="pricingChoice form-check-input" value="Hourly Rate" checked>
+										<label class="form-check-label" for="hourlyToggle">Hourly Rate</label>
 									</div>
 								
 									<div class="form-check" style="max-width:fit-content;">
-										<label class="form-check-label" for="setToggle">Set Price</label>
 										<input type="radio" id="setToggle" name="priceType" class="pricingChoice form-check-input" value="Set Price">
+										<label class="form-check-label" for="setToggle">Set Price</label>
 									</div>
 								</div>
 							</div>
 
-							<div class="form-group my-2">
+							<div class="form-group">
 								<label id="priceLabel" for="price">Hourly Rate:</label>
 								<input class="newProgramInfo" type="number" id="price" name="price" min="0" step="0.01" required/>
 							</div>
 
-							<div class="form-group my-2">
+							<div class="form-group">
 								<label for="programDiscounts">Discounts:</label>
 								<textarea class="form-control auto-resize newProgramInfo" id="programDiscounts" name="discounts" rows="2"></textarea>
 							</div>
 
-							<div class="form-group my-2">
+							<div class="form-group">
 								<label for="hours">Total Hours:</label>
 								<input class="newProgramInfo" type="number" id="hours" name="hours" min="0" step="0.01" required/>
 							</div>
 
-							<div class="form-group my-2">
+							<div class="form-group">
 								<label for="programDescription">Program Description:</label>
 								<textarea class="form-control auto-resize newProgramInfo" id="programDescription" name="description" rows="3" required></textarea>
 							</div>
