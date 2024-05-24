@@ -74,6 +74,7 @@ let appdb = new MongoClient(`mongodb+srv://${mongodb_user}:${mongodb_password}@$
 // This database is set when the user is logged in or signs up for the first time using setUserDatabase().
 let userdb = '';
 let trainerdb = '';
+let clientdb = '';
 
 // ----- Collections -----
 const appUserCollection = appdb.db(mongodb_appdb).collection('users');
@@ -194,7 +195,7 @@ function setUserDatabase(req) {
 		} else if (isBusiness(req)) {
 			db = mongodb_businessdb + '-' + req.session.name.replace(/\s/g, "");
 		}
-		let userdbAccess = new MongoClient(`mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/${db}?retryWrites=true`);
+		const userdbAccess = new MongoClient(`mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/${db}?retryWrites=true`);
 		userdb = userdbAccess.db(db);
 	}
 }
@@ -204,16 +205,23 @@ async function setTrainerDatabase(req) {
 	if (!isClient(req)) {
 		trainerdb = null;
 	} else {
-		let trainer = await appUserCollection.find({ email: req.session.email}).project({companyName: 1, _id: 1}).toArray();
+		const trainer = await appUserCollection.find({ email: req.session.email}).project({companyName: 1, _id: 1}).toArray();
 		// Checking for if the client currently has a hired trainer.
 		if (trainer[0].companyName == null || trainer[0].companyName == '' || trainer[0].companyName == undefined) {
 			trainerdb = null;
 		} else {
-			let db = mongodb_businessdb + '-' + trainer[0].companyName.replace(/\s/g, "");
-			let trainerdbAccess = new MongoClient(`mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/${db}?retryWrites=true`);
+			const db = mongodb_businessdb + '-' + trainer[0].companyName.replace(/\s/g, "");
+			const trainerdbAccess = new MongoClient(`mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/${db}?retryWrites=true`);
 			trainerdb = trainerdbAccess.db(db);
 		}
 	}
+}
+
+async function setClientDatabase(client) {
+	const clientEmail = client.split('.').join('');
+	const db = mongodb_clientdb + '-' + clientEmail;
+	const clientdbAccess = new MongoClient(`mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/${db}?retryWrites=true`);
+	clientdb = clientdbAccess.db(db);
 }
 
 //Upload files to Google Cloud
@@ -1457,6 +1465,110 @@ app.post('/removeEvent', async (req, res) => {
 });
 
 // ----------------- CALENDAR SECTION ENDS HERE -------------------
+
+// ----------------- MESSAGING SECTION STARTS HERE -------------------
+
+app.get('/chatSelectClient', async (req, res) => {
+	if (isClient(req)) {
+		res.redirect('/chat/client');
+		return;
+	} else if (isBusiness(req)) {
+		setUserDatabase(req);
+		const clientList = await userdb.collection('clients').find().project({email: 1}).toArray();
+		res.render('chatSelectClient', {loggedIn: isValidSession(req), userType: req.session.userType, clients: clientList});
+	}
+});
+
+app.get('/chat/:type', async (req, res) => {
+	const type = req.params.type;
+	setUserDatabase(req);
+	if (type == 'client') {
+		setTrainerDatabase(req);
+		const receiver = await appUserCollection.find({email: req.session.email}).project({companyName: 1}).toArray();
+		res.render('chatClient', { loggedIn: isValidSession(req), userType: req.session.userType, receiver: receiver[0].companyName });
+		return;
+	} else if (isBusiness(req)) {
+		setClientDatabase(type);
+		const receiver = await clientdb.collection('info').find().project({email: 1}).toArray();
+		res.render('chatBusiness', { loggedIn: isValidSession(req), userType: req.session.userType, clientParam: type, receiver: receiver[0].email });
+	}
+});
+
+app.get('/messagesClient', async (req, res) => {
+	// setUserDatabase(req);
+	// setTrainerDatabase(req);
+	const senderMsgList = await userdb.collection('messages').find().sort({ createdAt: 1 }).limit(25).toArray();
+	const receiverMsgList = await trainerdb.collection('messages').find().sort({ createdAt: 1 }).limit(25).toArray();
+	res.json({ senderMessages: senderMsgList, receiverMessages: receiverMsgList });
+});
+
+app.post('/messagesClient', async (req, res) => {
+	// setUserDatabase(req);
+	// setTrainerDatabase(req);
+	const { text } = req.body;
+	const sender = req.session.email;
+	const trainer = await appUserCollection.find({ email: sender }).project({ companyName: 1 }).toArray();
+	const receiver = trainer[0].companyName;
+	const newMessage = { text, receiver: receiver, createdAt: new Date() };
+	await userdb.collection('messages').insertOne(newMessage);
+	res.status(201).json(newMessage);
+});
+
+app.get('/messagesBusiness/:client', async (req, res) => {
+	// setUserDatabase(req);
+	const client = req.params.client;
+	// setClientDatabase(client);
+	const senderMsgList = await userdb.collection('messages').find().sort({ createdAt: 1 }).limit(25).toArray();
+	const receiverMsgList = await clientdb.collection('messages').find().sort({ createdAt: 1 }).limit(25).toArray();
+	res.json({ senderMessages: senderMsgList, receiverMessages: receiverMsgList });
+});
+
+app.post('/messagesBusiness/:client', async (req, res) => {
+	// setUserDatabase(req);
+	const clientParam = req.params.client;
+	// setClientDatabase(clientParam);
+	const { text } = req.body;
+	const sender = req.session.name;
+	const client = await clientdb.collection('info').find().project({email: 1}).toArray();
+	const receiver = client[0].email;
+	const newMessage = { text, receiver: receiver, createdAt: new Date() };
+	await userdb.collection('messages').insertOne(newMessage);
+	res.status(201).json(newMessage);
+});
+
+// app.post('/messages', async (req, res) => {
+// 	setUserDatabase(req);
+// 	const { text } = req.body;
+// 	let sender, receiver;
+// 	if (isClient(req)) {
+// 		sender = req.session.email;
+// 		const trainer = await appUserCollection.find({ email: sender }).project({ companyName: 1 }).toArray();
+// 		receiver = trainer[0].companyName;
+// 	} else if (isBusiness(req)) {
+// 		sender = req.session.name;
+// 		const client = await clientdb.collection('info').find().project({email: 1}).toArray();
+// 		receiver = client[0].email;
+// 	}
+	
+// 	const newMessage = { text, receiver: receiver, createdAt: new Date() };
+// 	await userdb.collection('messages').insertOne(newMessage);
+// 	res.status(201).json(newMessage);
+// });
+
+// app.get('/messages', async (req, res) => {
+// 	setUserDatabase(req);
+// 	let senderMsgList, receiverMsgList;
+// 	senderMsgList = await userdb.collection('messages').find().sort({ createdAt: 1 }).limit(25).toArray();
+// 	if (isClient(req)) {
+// 		setTrainerDatabase(req);
+// 		receiverMsgList = await trainerdb.collection('messages').find().sort({ createdAt: 1 }).limit(25).toArray();
+// 	} else if (isBusiness(req)) {
+
+// 		receiverMsgList = await clientdb.collection('messages').find().sort({ createdAt: 1 }).limit(25).toArray();
+// 	}
+	
+// 	res.json({ senderMessages: senderMsgList, receiverMessages: receiverMsgList });
+// });
 
 app.use(express.static(__dirname + "/public"));
 

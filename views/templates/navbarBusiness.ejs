@@ -28,7 +28,7 @@ body {
         </li>
         <li class="nav-item pe-3">
           <div class="d-flex flex-column align-items-center">
-            <%- include('icon', {iconPath: '/icons/Calendar.png', altText: 'Calendar', action: '/', theClass: '', theAttributes: 'style= width:30px; height:30px;'}) %>
+            <%- include('icon', {iconPath: '/icons/Calendar.png', altText: 'Calendar', action: '/calendar', theClass: '', theAttributes: 'style= width:30px; height:30px;'}) %>
             <a href="/calendar"><span class="yeseva-one">Calendar</span></a>
           </div>
         </li>
@@ -60,8 +60,8 @@ body {
             </li>
             <li class="nav-item py-3">
               <div class="d-flex align-items-center">
-                <%- include('icon', {iconPath: '/icons/Mail.png', altText: 'Inbox', action: '/', theClass: '', theAttributes: 'style= width:30px; height:30px;'}) %>
-                <a href="/" class="ps-3"><span class="yeseva-one">Inbox</span></a>
+                <%- include('icon', {iconPath: '/icons/Mail.png', altText: 'Inbox', action: '/chatSelectClient', theClass: '', theAttributes: 'style= width:30px; height:30px;'}) %>
+                <a href="/chatSelectClient" class="ps-3"><span class="yeseva-one">Inbox</span></a>
               </div>
             </li>
             <li class="nav-item py-3">
