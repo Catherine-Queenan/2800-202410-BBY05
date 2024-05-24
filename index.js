@@ -576,6 +576,7 @@ function sendResetMail(emailAddress, resetToken) {
 
 // This function sets up the reminder emails to be sent. Sets up sending an email an hour before, and 24 hours before the appointment.
 async function sendReminderEmails() {
+	const userdb = await getdb(req.session.userdb);
     const now = new Date();
 
     const events = await userdb.collection('eventSource').find({
@@ -1359,6 +1360,7 @@ app.post('/getThisEvent', async (req, res) => {
 
 // Returns client list to the calendar
 app.post('/getClients', async (req, res) => {
+	const userdb = await getdb(req.session.userdb);
 	const clientList = await userdb.collection('clients').find().project({ email: 1, _id: 1 }).toArray();
 	res.json(clientList);
 });
