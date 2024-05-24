@@ -26,5 +26,9 @@
     <% } else if (userType == "client") { %>
 		<%- include("navbarClient") %>
 	<% } else if (userType == "business") { %>
-		<%- include("navbarBusinessHome") %>
+        <% if(currentUrl === '/') { %>
+            <%- include("navbarBusinessHome") %>
+        <% } else { %>
+            <%- include("navbarBusiness") %>
+        <% } %>
 	<% } %>

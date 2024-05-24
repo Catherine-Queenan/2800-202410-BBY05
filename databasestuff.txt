@@ -2,7 +2,7 @@ appDB {
 	users {
 		_id
 		email
-		companyName // Can be null
+		companyName // Can be null or hired business
 		firstName
 		lastName
 		phone
@@ -36,11 +36,13 @@ business-email {
 	}
 	activeAlerts{}
 	inactiveAlerts{}
-	events {
+	eventSource {
 		_id
 		title
 		start
 		end
+		client //email
+		info
 	}
 	clients {
 		_id

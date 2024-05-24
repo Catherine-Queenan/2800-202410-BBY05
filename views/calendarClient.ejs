@@ -2,12 +2,6 @@
 	<link href="/css/calendar.css" rel="stylesheet">
 
 		<div class="container border bg-light my-3 py-3 rounded" id='calendar'></div>
-		<div class="container">
-			<label for="clientFilter">Filter by Client:</label>
-			<select id="clientFilter" name="clientFilter" class="form-select">
-				<option selected></option>
-			</select>
-		</div>
 
 
 	<!-- Modal -->
@@ -20,7 +14,7 @@
 				</div>
 
 				<form method="post">
-					<div class="modal-body" id="calModBod">
+					<div class="modal-body text-center" id="calModBod">
 						<!-- Modal body goes here -->
 					</div>
 				</form>
@@ -28,4 +22,4 @@
 		</div>
 	</div>
 
-	<%- include("templates/footerCalendar", {script: 'Business'}) %>
+	<%- include("templates/footerCalendar", {script: 'Client'}) %>

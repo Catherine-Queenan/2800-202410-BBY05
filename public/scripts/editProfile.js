@@ -1,8 +1,40 @@
 //If profile is being editted, allow all profile inputs to be editted
 let inputs = document.querySelectorAll(".profileInfo");
-inputs.forEach((input) => {
-    input.disabled = false;
+let picInput = document.getElementById('newProfilePic');
+let saveButton = document.getElementById('saveButton');
+let dogs = document.getElementById('dogSection');
+let cancelButton = document.getElementById('cancelEdit');
+
+let editButton = document.getElementById('editButton');
+editButton.addEventListener('click', () => {
+    inputs.forEach((input) => {
+        input.disabled = false;
+    });
+
+    picInput.style = 'display:block';
+
+    saveButton.style = 'display:inline';
+    editButton.style = 'display:none';
+    cancelButton.style = 'display:inline';
+
+    dogs.style = 'display:none';
 });
+
+cancelButton.addEventListener('click', () => {
+    cancelButton.style = 'display:none';
+    
+    inputs.forEach((input) => {
+        input.disabled = true;
+    });
+
+    picInput.style = 'display:none';
+
+    saveButton.style = 'display:none';
+    editButton.style = 'display:inline';
+
+    dogs.style = 'display:block';
+});
+
 
 //Find the profile image upload element
 let picUpload = document.getElementById('profilePicInput');
