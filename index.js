@@ -1293,6 +1293,28 @@ app.get('/viewBusiness/:company/register/:program', async(req, res) => {
 });
 
 
+app.post('/viewBusiness/:company/register/:program/submitRegister', async(req, res) => {
+	setUserDatabase(req); //bandaid for testing
+
+	let db = mongodb_businessdb + '-' + req.params.company.replace(/\s/g, "");
+	let businessdbAccess = new MongoClient(`mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/${db}?retryWrites=true`);
+	let tempBusiness = businessdbAccess.db(db);
+
+	let programId = ObjectId.createFromHexString(req.params.program);
+	let dogId = ObjectId.createFromHexString(req.body.selectedDog);
+
+	let request = {
+		alertType: 'hireRequest',
+		dog: req.body.selectedDog,
+		program: req.params.program,
+		client: req.session.email
+	}
+
+	await tempBusiness.collection('alerts').insertOne(request);
+	res.redirect('/findTrainer');
+});
+
+
 // Temporary add Trainer button for this Branch
 app.post('/addTrainer/:trainer', async (req, res) => {
 	let trainer = req.params.trainer;

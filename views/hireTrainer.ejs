@@ -13,8 +13,8 @@
         <% } %>
     </div>
 
-    <form id="selectDogForm" method="post" action="<%=currentUrl%>/submitRegister">
-        <input type="hidden" id="selectedDogSave">
+    <form id="selectDogForm" method="post" action="<%=currentUrl.replace('?', '')%>/submitRegister">
+        <input type="hidden" name="selectedDog" id="selectedDogSave">
     </form>
 
     <template id="deselectButton">
