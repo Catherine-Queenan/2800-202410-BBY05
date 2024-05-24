@@ -1,6 +1,8 @@
+<%- include("templates/header") %>
+
 <link href="/css/chat.css" rel="stylesheet">
 <section id="content">
-	<div id="chatRoom" class="d-none">
+	<div id="chatRoom">
 		<main id="messages"></main>
 		<form id="messageForm">
 			<input id="messageInput" placeholder="...">
@@ -9,4 +11,6 @@
 	</div>
 </section>
 
-<script src="/scripts/chat.js"></script>
+<script src="/scripts/chatClient.js"></script>
+
+<%- include("templates/footerCopyright") %>

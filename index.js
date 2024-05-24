@@ -1467,14 +1467,14 @@ app.post('/removeEvent', async (req, res) => {
 
 // ----------------- MESSAGING SECTION STARTS HERE -------------------
 
-app.get('/selectClientChat', async (req, res) => {
+app.get('/chatSelectClient', async (req, res) => {
 	if (isClient(req)) {
-		res.redirect('/chat');
+		res.redirect('/chat/client');
 		return;
 	} else if (isBusiness(req)) {
 		setUserDatabase(req);
 		const clientList = await userdb.collection('clients').find().project({email: 1}).toArray();
-		res.render('selectClientChat', {loggedIn: isValidSession(req), userType: req.session.userType, clients: clientList});
+		res.render('chatSelectClient', {loggedIn: isValidSession(req), userType: req.session.userType, clients: clientList});
 	}
 });
 
@@ -1483,15 +1483,15 @@ app.get('/chat/:type', (req, res) => {
 	setUserDatabase(req);
 	if (type == 'client') {
 		setTrainerDatabase(req);
-		res.render('clientChat');
+		res.render('chatClient', { loggedIn: isValidSession(req), userType: req.session.userType });
 		return;
 	} else if (isBusiness(req)) {
 		setClientDatabase(type);
 	}
-	res.render('businessChat');
+	res.render('chatBusiness', { loggedIn: isValidSession(req), userType: req.session.userType, clientParam: type });
 });
 
-app.get('/clientMessages', async (req, res) => {
+app.get('/messagesClient', async (req, res) => {
 	setUserDatabase(req);
 	setTrainerDatabase(req);
 	const senderMsgList = await userdb.collection('messages').find().sort({ createdAt: 1 }).limit(25).toArray();
@@ -1499,7 +1499,7 @@ app.get('/clientMessages', async (req, res) => {
 	res.json({ senderMessages: senderMsgList, receiverMessages: receiverMsgList });
 });
 
-app.post('/clientMessages', async (req, res) => {
+app.post('/messagesClient', async (req, res) => {
 	setUserDatabase(req);
 	setTrainerDatabase(req);
 	const { text } = req.body;
@@ -1511,7 +1511,7 @@ app.post('/clientMessages', async (req, res) => {
 	res.status(201).json(newMessage);
 });
 
-app.get('/businessMessages/:client', async (req, res) => {
+app.get('/messagesBusiness/:client', async (req, res) => {
 	setUserDatabase(req);
 	const client = req.params.client;
 	setClientDatabase(client);
@@ -1520,13 +1520,14 @@ app.get('/businessMessages/:client', async (req, res) => {
 	res.json({ senderMessages: senderMsgList, receiverMessages: receiverMsgList });
 });
 
-app.post('/businessMessages/:client', async (req, res) => {
+app.post('/messagesBusiness/:client', async (req, res) => {
 	setUserDatabase(req);
 	const clientParam = req.params.client;
 	setClientDatabase(clientParam);
-	sender = req.session.name;
+	const { text } = req.body;
+	const sender = req.session.name;
 	const client = await clientdb.collection('info').find().project({email: 1}).toArray();
-	receiver = client[0].email;
+	const receiver = client[0].email;
 	const newMessage = { text, receiver: receiver, createdAt: new Date() };
 	await userdb.collection('messages').insertOne(newMessage);
 	res.status(201).json(newMessage);

@@ -1,7 +1,7 @@
 let lastMessageTimestamp = null;
 
 async function fetchMessages() {
-	const response = await fetch('/messages');
+	const response = await fetch('/messagesClient');
 	const { senderMessages, receiverMessages } = await response.json();
 	const messagesDiv = document.getElementById('messages');
 
@@ -33,7 +33,7 @@ document.getElementById('messageForm').addEventListener('submit', async (e) => {
 	const text = input.value;
 	input.value = '';
 
-	await fetch('/messages', {
+	await fetch('/messagesClient', {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
@@ -44,7 +44,7 @@ document.getElementById('messageForm').addEventListener('submit', async (e) => {
 	fetchMessages();
 });
 
-// Poll for new messages every 5 seconds
-setInterval(fetchMessages, 5000);
+// Poll for new messages every 3 seconds
+setInterval(fetchMessages, 3000);
 
 fetchMessages();
