@@ -1257,10 +1257,28 @@ app.get('/clientList', async (req, res) => {
 	res.render('clientList', {clientArray: clientList, loggedIn: isValidSession(req), userType: req.session.userType});
 });
 
-document.getElementById('searchInput').addEventListener('input', (event) => {
-	const searchTerm = event.target.value.toLowerCase();
+app.get('/clientProfile/:id', async (req, res) => {
 
-	console.log(searchTerm);
+	// Get a list of all clients
+	const clients = await appUserCollection.find({userType: 'client'}).project({id: 1, email: 1, firstName: 1, lastName: 1, phone: 1}).toArray();
+
+	// Map their id's to a string
+	const ids = clients.map(item => item._id.toString());
+
+	// variable to store the client
+	let targetClient;
+
+	// loop through clients and find the target client to load the page with
+	for (let i = 0; i < clients.length; i++) {
+		if (ids[i] === req.params.id) {
+			console.log('match found');
+			targetClient = clients[i]
+		}
+	}
+
+	console.log(targetClient);
+
+	res.render('viewingClientProfile', {targetClient: targetClient, loggedIn: isValidSession(req), userType: req.session.userType});
 });
 
 app.use(express.static(__dirname + "/public"));

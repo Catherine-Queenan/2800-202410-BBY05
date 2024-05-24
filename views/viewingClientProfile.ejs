@@ -1,3 +1,10 @@
 <%- include("templates/header") %>
-<%- include('templates/defaultingPic', {pic: user.profilePic, picId:'profilePic'})%>
+<!-- name (first last) -->
+<%= targetClient.firstName %> <%= targetClient.lastName %>
+<!-- phone number -->
+<%= targetClient.phone %>
+<!-- email -->
+<%= targetClient.email %>
+<!-- dogs -->
+<!-- other buttons -->
 <%- include("templates/footerCopyright") %>
