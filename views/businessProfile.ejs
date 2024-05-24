@@ -1,10 +1,10 @@
 <%- include("templates/header") %>
-	<div class="container my-4"> <!--Added container div to center content on page-->
-		<h1 class="text-center mb-4 yeseva-one underline-header"><%=business.companyName%></h1>  <!--Page title-->
+	<div class="profile-container my-4"> <!--Added container div to center content on page-->
+		<h1 class="text-center mb-4 yeseva-one"><%=business.companyName%></h1>  <!--Page title-->
         
     	<!--TODO: Catherine links tabs.ejs here-->
-        <div class="resource-wrap">
-            <div class="resource-html">
+        <div class="resource-wrap d-flex justify-content-center">
+            <div class="resource-html justify-content-center">
                 <input id="tabR-1" type="radio" name="tab" class="tabR-one btn-check" <%=businessTab%>>
                 <label for="tabR-1" class="tabR">Business Details</label>
 
@@ -17,51 +17,50 @@
                 <div class="resource-form">
                     <div class="tabR-one-htm">
                         <form class="my-3" id="businessInfo" method="post" enctype="multipart/form-data">
-							<%- include('templates/defaultingPic', {pic: business.logo, picId: 'logoShow'})%>
+							<div class="d-flex justify-content-center">
+								<%- include('templates/defaultingPic', {pic: business.logo, picId: 'logoShow'})%>
+							</div>
 							<%- include('templates/uploadFile', {divId:'businessUpload', xDivAttributes:'style=display:none', fileId:'logo',fileName:'accountUpload', label:'Upload your Logo:', xfileAttributes:'accept=.png,.jpg'}) %>
-						
-								<div class="form-group row">
+								<div class="form-group">
 									<label for="companyEmail">Company Email:</label>
-									<input class="businessInfo col-4" type="email" id="companyEmail" name="email" value="<%=business.email%>" required disabled>
+									<input class="businessInfo" type="email" id="companyEmail" name="email" value="<%=business.email%>" required disabled>
 								</div>
 						
-								<div class="form-group row">
+								<div class="form-group">
 									<label for="companyPhone">Company Phone Number:</label>
-									<input class="businessInfo col-4" type="tel" id="companyPhone" name="phone" value="<%=business.phone%>" required disabled>
+									<input class="businessInfo" type="tel" id="companyPhone" name="phone" value="<%=business.phone%>" required disabled>
 								</div>
-						
 								
-								<br>
-								<div  class="card" style="width: 18rem;">
-									<ul id="serviceList" class="list-group list-group-flush">
+								<span class="form-group"><label style="margin-top:1rem;">Services:</label></span>
+								<div class="card" style="width: 18rem; background-color:transparent;">
+									<ul id="serviceList" class="list-group settingsList-group list-group-flush">
 										<% for(let i = 0; i < business.services.length; i++){ %>
 											<%- include('templates/businessServiceBox', {serviceName: business.services[i]}) %>
 										<%}%>
 									</ul>
 								</div>
-								<%- include('templates/button', {action:'',xClasses:'',xAttributes:'id=addService type=button value=business style=display:none',content:'Add Service'}) %>
+								<%- include('templates/button', {action:'',xClasses:'mt-3',xAttributes:'id=addService type=button value=business style=display:none',content:'Add Service'}) %>
 						
 								<div id="addServiceInputDiv" style="display:none">
 									<input class="col-4" type="text" id="toAddService">
 									<%- include('templates/button', {action:'',xClasses:'',xAttributes:'id=submitService type=button value=business ',content:'Save Service'}) %>
 								</div>
-								<br>
 						
-								<div class="form-group row">
+								<div class="form-group">
 									<label for="companySite">Company Website:</label>
-									<input class="businessInfo col-4" type="text" id="companySite" name="companyWebsite" value="<%=business.companyWebsite%>" required disabled>
+									<input class="businessInfo" type="text" id="companySite" name="companyWebsite" value="<%=business.companyWebsite%>" required disabled>
 								</div>
 									
-								<div class="form-group row">
+								<div class="form-group">
 									<label for="businessDescrtiption">Business Description:</label>
 									<textarea class="form-control auto-resize businessInfo" id="businessDescrtiption" name="description" rows="4" disabled><%=business.description%></textarea>
 								</div>
 						
-								<div class="row my-3">
+								<div class="my-3 d-flex justify-content-between">
 								
-								<%- include('templates/button', {action:'',xClasses:'editButton col-2',xAttributes:'id=businessEditButton type=button value=business',content:'Edit'}) %>
-								<%- include('templates/button', {action:'',xClasses:'cancelButton col-2',xAttributes:'id=businessCancelButton type=button value=business style=display:none',content:'Cancel'}) %>
-								<%- include('templates/button', {action: '/profile/edit/businessDetails',xClasses:'saveButton col-2',xAttributes:'id=businessSaveButton style=display:none',content:'Save'}) %>
+								<%- include('templates/button', {action:'',xClasses:'editButton col-3',xAttributes:'id=businessEditButton type=button value=business',content:'Edit'}) %>
+								<%- include('templates/button', {action:'',xClasses:'cancelButton btn-danger col-3 me-4',xAttributes:'id=businessCancelButton type=button value=business style=display:none',content:'Cancel'}) %>
+								<%- include('templates/button', {action: '/profile/edit/businessDetails',xClasses:'saveButton col-3',xAttributes:'id=businessSaveButton style=display:none',content:'Save'}) %>
 								
 							</div>
 							</form>
@@ -70,7 +69,9 @@
                 <div class="resource-form">
                     <div id="tab2" class="tabR-two-htm">
                         <form  class="my-3 tabR-two-htm" id="trainerInfo" method="post"  enctype="multipart/form-data">
-							<%- include('templates/defaultingPic', {pic: trainer.trainerPic, picId: 'trainerPicShow'})%>
+							<div class="d-flex justify-content-center">
+								<%- include('templates/defaultingPic', {pic: trainer.trainerPic, picId: 'trainerPicShow'})%>
+							</div>
 							<%- include('templates/uploadFile', {divId:'trainerUpload', xDivAttributes:'style=display:none', fileId:'trainerPic',fileName:'accountUpload', label:'Upload your Photo:', xfileAttributes:'accept=.png,.jpg'}) %>
 							
 							<div class="form-group">
@@ -93,10 +94,10 @@
 								<textarea class="form-control trainerInfo" id="trainerIntro" name="intro" rows="3" disabled><%=trainer.intro%></textarea>
 							</div>
 					
-							<div class="row my-3">
-								<%- include('templates/button', {action:'',xClasses:'editButton col-2',xAttributes:'id=trainerEditButton type=button value=trainer',content:'Edit'}) %>
-								<%- include('templates/button', {action:'',xClasses:'cancelButton col-2',xAttributes:'id=trainerCancelButton type=button value=trainer style=display:none',content:'Cancel'}) %>
-								<%- include('templates/button', {action: '/profile/edit/trainer',xClasses:'saveButton col-2',xAttributes:'id=trainerSaveButton style=display:none',content:'Save'}) %>
+							<div class="my-3 d-flex justify-content-between">
+								<%- include('templates/button', {action:'',xClasses:'editButton col-3',xAttributes:'id=trainerEditButton type=button value=trainer',content:'Edit'}) %>
+								<%- include('templates/button', {action:'',xClasses:'cancelButton btn-danger col-3 me-4',xAttributes:'id=trainerCancelButton type=button value=trainer style=display:none',content:'Cancel'}) %>
+								<%- include('templates/button', {action: '/profile/edit/trainer',xClasses:'saveButton col-3',xAttributes:'id=trainerSaveButton style=display:none',content:'Save'}) %>
 							</div>
 
 						</form>
@@ -160,9 +161,9 @@
 								<textarea class="form-control auto-resize newProgramInfo" style="width:80%" id="programDescription" name="description" rows="3" required></textarea>
 							</div>
 
-							<div class="my-2">
-								<%- include('templates/button', {action:'/profile/edit/addProgram',xClasses:'',xAttributes:'id=submitNewProgram',content:'Add'}) %>
-								<%- include('templates/button', {action:'',xClasses:'',xAttributes:'id=cancelNewProgram type=button',content:'Cancel'}) %>
+							<div class="my-3 d-flex justify-content-between">
+								<%- include('templates/button', {action:'',xClasses:'btn-danger col-3 me-4',xAttributes:'id=cancelNewProgram type=button',content:'Cancel'}) %>
+								<%- include('templates/button', {action:'/profile/edit/addProgram',xClasses:'col-3',xAttributes:'id=submitNewProgram',content:'Add'}) %>
 							</div>
 						</form>
                     </div>
