@@ -1761,8 +1761,9 @@ app.get('/clientProfile/:id', async (req, res) => {
 	const emailParsed = targetClient.email.split('.').join('');
 	const dbName = mongodb_clientdb + '-' + emailParsed;
 
-	// set the database
+	// set the databases
 	clientdb = appdb.db(dbName).collection('info');
+	clientdbDogs = appdb.db(dbName).collection('dogs');
 
 	//grab the array version of the pfp url
 	pfpUrlProcessing = await clientdb.find({email}).project({profilePic: 1}).toArray();
@@ -1775,13 +1776,14 @@ app.get('/clientProfile/:id', async (req, res) => {
 	}
 
 	//Gather dogs and their images if they have one
-	let dogs = await userdb.collection('dogs').find({}).toArray();
+	let dogs = await clientdbDogs.find({}).toArray();
 	for(let i = 0; i < dogs.length; i++){
 		let pic = dogs[i].dogPic;
 		if(pic != ''){
 			dogs[i].dogPic = cloudinary.url(pic);
 		}
 	}
+	console.log(dogs);
 
 	res.render('viewingClientProfile', {targetClient: targetClient, pfpUrl: pfpUrl, dogs: dogs, loggedIn: isValidSession(req), userType: req.session.userType});
 });
