@@ -11,7 +11,7 @@ body {
 /* End of Navbar */
 </style>
 
-<nav class="navbar fixed-top whiteBackground border-bottom border-body">
+<nav class="navbar fixed-top whiteBackground border-bottom border-body" style="width:100%;">
     <div class="container-fluid">
       <a class="navbar-brand">
         <form method="get">
@@ -20,16 +20,16 @@ body {
       </a>
       <form method="get" class="col-md-4 d-flex">
         <ul class="nav nav-pills align-items-center">
-        <li class="nav-item pe-5">
+        <li class="nav-item pe-3">
           <div class="d-flex flex-column align-items-center">
             <%- include('icon', {iconPath: '/icons/Schedule.png', altText: 'Schedule', action: '/', theClass: '', theAttributes: 'style= width:30px; height:30px;;'}) %>
             <a href="/"><span class="yeseva-one">Sessions</span></a>
           </div>
         </li>
-        <li class="nav-item pe-5">
+        <li class="nav-item pe-3">
           <div class="d-flex flex-column align-items-center">
             <%- include('icon', {iconPath: '/icons/Calendar.png', altText: 'Calendar', action: '/', theClass: '', theAttributes: 'style= width:30px; height:30px;'}) %>
-            <a href="/"><span class="yeseva-one">Calendar</span></a>
+            <a href="/calendar"><span class="yeseva-one">Calendar</span></a>
           </div>
         </li>
         <li class="nav-item">
@@ -43,7 +43,7 @@ body {
       <button class="navbar-toggler custom-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"><span></span></span>
       </button>
-      <div class="offcanvas offcanvas-end offcanvas-custom" style="background-color:#F0F1FA !important" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
+      <div class="offcanvas offcanvas-end offcanvas-custom" style="background-color:#F0F1FA !important; height:700px !important;" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
         <div class="offcanvas-header d-flex">
         <h5 class="offcanvas-title yeseva-one fw-bold" id="offcanvasNavbarLabel">More Options</h5>
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
@@ -52,7 +52,7 @@ body {
 		  									url('/images/PawBack.png') center no-repeat;">
           <form method="get" class="col-md-4 d-flex">
           <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
-            <li class="nav-item py-3">
+            <li class="nav-item pb-3">
               <div class="d-flex align-items-center">
                 <%- include('icon', {iconPath: '/icons/Profile.png', altText: 'Account', action: '/profile', theClass: '', theAttributes: 'style= width:30px; height:30px;'}) %>
                 <a href="/profile" class="ps-3"><span class="yeseva-one">Account</span></a>
@@ -100,6 +100,11 @@ body {
                 <a href="/" class="ps-3"><span class="yeseva-one">Support</span></a>
               </div>
             </li>
+            <li class="nav-item pt-3">
+              <div class="d-flex align-items-center">
+                <%- include('button', {action:'/logout',xClasses:'',xAttributes:'',content:'Logout'}) %>
+              </div>
+            </li>	
           </ul>
         </form>
         </div>

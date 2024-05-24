@@ -251,7 +251,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			var modalBody = `
 			<div class="mb-3">
 				<label for="calModTitle" class="form-label h5 modal-heading">Title of session</label>
-				<input type="text" class="form-control" name="calModTitle" id="calModTitle">
+				<input type="text" class="form-control auto-resize" name="calModTitle" id="calModTitle">
 				<input type="text" class="form-control-plaintext d-none" name="calModDate" value="${selectedDate}">
 			</div>
 			<div class="mb-3">
@@ -265,14 +265,13 @@ document.addEventListener('DOMContentLoaded', function () {
 						<option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option>
 						<option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option>
 					</select>
-					<span class="input-group-text">:</span>
+					<span class="input-group-text whiteBackground">:</span>
 					<select class="form-select" name="calModStartMM" id="calModStartMM">
 						<option selected>00</option>
 						<option value="15">15</option>
 						<option value="30">30</option>
 						<option value="45">45</option>
 					</select>
-					<span class="input-group-text">:00</span>
 				</div>		
 			</div>
 
@@ -287,14 +286,13 @@ document.addEventListener('DOMContentLoaded', function () {
 						<option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option>
 						<option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option>
 					</select>
-					<span class="input-group-text">:</span>
+					<span class="input-group-text whiteBackground">:</span>
 					<select class="form-select" name="calModEndMM" id="calModEndMM">
 						<option selected>00</option>
 						<option value="15">15</option>
 						<option value="30">30</option>
 						<option value="45">45</option>
 					</select>
-					<span class="input-group-text">:00</span>
 				</div>
 			</div>
 
@@ -309,7 +307,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			<div class="mb-3">
 				<label for="calModInfo" class="form-label h5 modal-heading">Info</label>
 				<div class="input-group">
-					<textarea class="form-control" name="calModInfo" id="calModInfo"></textarea>
+					<textarea class="form-control auto-resize" name="calModInfo" id="calModInfo"></textarea>
 				</div>
 			</div>
 
