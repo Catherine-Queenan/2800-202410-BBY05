@@ -1,0 +1,24 @@
+<%- include("templates/header") %>
+<div class="container">
+    <p class="h5"><span class="bolder">Hire Request</span> from <span class="bolder"><%=alert.clientName%></span></p>
+
+    <div class="card">
+        <div class="card-title">
+            <%- include('templates/defaultingPic', {picId: 'dogPic', pic: dog.dogPic}) %>
+            <p class="h5"><%=alert.dogName%></p>
+        </div>
+        <div class="card-body">
+            <% if(dog.neuteredStatus == ''){ %>
+                <p>Neutered Status: Unneutered</p>
+            <% } else { %>
+                <p>Neutered Status: Neutered</p>
+            <% } %>
+
+            <p>Sex: <%=dog.sex%></p>
+            <p> Weight: <%=dog.weight%> lb</p>
+
+            <p>Special Alerts: <%=dog.specialAlerts%></p>
+        </div>
+    </div>
+</div>
+<%- include("templates/footerCopyright") %>

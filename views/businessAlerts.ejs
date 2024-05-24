@@ -1,0 +1,10 @@
+<%- include("templates/header") %>
+<div class="container">
+    <p class="h3 yeseva-one">Alerts</p>
+    <% for(let i=0; i < alerts.length; i++){ %>
+        <% if(alerts[i].alertType == 'hireRequest'){ %>
+            <%- include('templates/alertHireRequest', {alert: alerts[i]})%>
+        <% } %>
+    <% } %>
+</div>
+<%- include("templates/footerCopyright") %>
