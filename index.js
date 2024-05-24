@@ -219,7 +219,7 @@ async function setUserDatabase(req) {
         throw new Error('User type not recognized');
     }
 
-    req.session.userdb = dbName;
+    req.session.userdb = dbName.replace(' ','');
 	console.log('userdb: ' + req.session.userdb);
 }
 
@@ -1028,7 +1028,7 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
 	//validation schema
 	var schema = Joi.object(
 		{
-			dogName: Joi.string().pattern(/^[a-zA-Z\s]*$/).max(20),
+			dogName: Joi.string().pattern(/^[a-zA-Z\s\'\-]*$/).max(20),
 			specialAlerts: Joi.string().pattern(/^[A-Za-z0-9 _.,!"'()#;:\s]*$/).allow(null, '')
 		}
 	);

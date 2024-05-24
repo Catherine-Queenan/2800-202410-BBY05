@@ -1,6 +1,6 @@
 <%- include("templates/header") %>
 <div class="mx-3">
-<%- include('templates/backLinkButton', {page: '/profile'}) %>
+<%- include('templates/linkButton', {page: '/profile', content:'Back'}) %>
 <div class=" my-2 mt-3 d-flex flex-row justify-content-between">
 	<span class="h5"><%=dog.dogName%></span> 
 </div>
@@ -14,7 +14,7 @@
 	<div class="resource-form">
 		<div class="tabR-one-htm">
 	<form class="my-3" id="basicInfo" method="post" enctype="multipart/form-data">
-		<%- include('templates/uploadFile', {divId:'newDogPic', xDivAttributes:'style=display:none', fileId:'dogUpload',fileName:'dogUpload', label:'Upload a New Photo:', xfileAttributes:'accept=.png,.jpg'}) %>
+		<%- include('templates/uploadFile', {divId:'newDogPic', xDivAttributes:'style=display:none', fileId:'dogUpload',fileName:'dogUpload', label:'Upload a New Photo:', xfileAttributes:'accept=.png,.jpg, .jpeg'}) %>
 			<div class="form-group">
 				<label for="dogName">Dog Name:</label>
 				<input class="dogInput" type="text" id="dogName" name="dogName" value="<%=dog.dogName%>" required disabled>

@@ -20,7 +20,7 @@
 							<div class="d-flex justify-content-center">
 								<%- include('templates/defaultingPic', {pic: business.logo, picId: 'logoShow'})%>
 							</div>
-							<%- include('templates/uploadFile', {divId:'businessUpload', xDivAttributes:'style=display:none', fileId:'logo',fileName:'accountUpload', label:'Upload your Logo:', xfileAttributes:'accept=.png,.jpg'}) %>
+							<%- include('templates/uploadFile', {divId:'businessUpload', xDivAttributes:'style=display:none', fileId:'logo',fileName:'accountUpload', label:'Upload your Logo:', xfileAttributes:'accept=.png,.jpg, .jpeg'}) %>
 								<div class="form-group">
 									<label for="companyEmail">Company Email:</label>
 									<input class="businessInfo" type="email" id="companyEmail" name="email" value="<%=business.email%>" required disabled>
@@ -72,7 +72,7 @@
 							<div class="d-flex justify-content-center">
 								<%- include('templates/defaultingPic', {pic: trainer.trainerPic, picId: 'trainerPicShow'})%>
 							</div>
-							<%- include('templates/uploadFile', {divId:'trainerUpload', xDivAttributes:'style=display:none', fileId:'trainerPic',fileName:'accountUpload', label:'Upload your Photo:', xfileAttributes:'accept=.png,.jpg'}) %>
+							<%- include('templates/uploadFile', {divId:'trainerUpload', xDivAttributes:'style=display:none', fileId:'trainerPic',fileName:'accountUpload', label:'Upload your Photo:', xfileAttributes:'accept=.png,.jpg, .jpeg'}) %>
 							
 							<div class="form-group">
 								<label for="trainerFirstName">First Name:</label>
