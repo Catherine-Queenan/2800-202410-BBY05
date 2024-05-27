@@ -211,16 +211,17 @@ async function setUserDatabase(req) {
     }
 
     if (isClient(req)) {
-        let clientEmail = req.session.email.split('.').join("");
+        const clientEmail = req.session.email.replaceAll(/[\s.]/g, "");
         dbName = `${mongodb_clientdb}-${clientEmail}`;
     } else if (isBusiness(req)) {
-        dbName = `${mongodb_businessdb}-${req.session.name}`;
+		const businessName = req.session.name.replaceAll(/[\s.]/g, "")
+        dbName = `${mongodb_businessdb}-${businessName}`;
     } else {
         throw new Error('User type not recognized');
     }
 
-    req.session.userdb = dbName.replace(' ','');
-	console.log('userdb: ' + req.session.userdb);
+    req.session.userdb = dbName;
+	// console.log('userdb: ' + req.session.userdb);
 }
 
 // Allows access to the trainer's database when tied to a client
@@ -233,18 +234,18 @@ async function setTrainerDatabase(req) {
 		if (trainer[0].companyName == null || trainer[0].companyName == '' || trainer[0].companyName == undefined) {
 			return;
 		} else {
-			const trainerName = mongodb_businessdb + '-' + trainer[0].companyName.replace(/\s/g, "");
+			const trainerName = mongodb_businessdb + '-' + trainer[0].companyName.replaceAll(/[\s.]/g, "");
 			req.session.trainerdb = trainerName;
-			console.log('trainerdb: ' + req.session.trainerdb);
+			// console.log('trainerdb: ' + req.session.trainerdb);
 		}
 	}
 }
 
 function setClientDatabase(req, client) {
-	const clientEmail = client.split('.').join('');
+	const clientEmail = client.replaceAll(/[\s.]/g, "");
 	const dbName = mongodb_clientdb + '-' + clientEmail;
 	req.session.clientdb = dbName;
-	console.log('clientdb: ' + req.session.clientdb);
+	// console.log('clientdb: ' + req.session.clientdb);
 }
 
 async function getdb(dbName) {
@@ -657,7 +658,7 @@ async function sendEmail(to, subject, eventTitle, eventDate, eventStartTime, eve
 
         try {
             transporter.sendMail(mailOptions);
-            console.log(`Email sent to ${to}`);
+            // console.log(`Email sent to ${to}`);
         } catch (error) {
             console.error(`Error sending email to ${to}:`, error); 
             throw error;
@@ -920,14 +921,14 @@ app.post('/profile/edit/:editType', sessionValidation, upload.array('accountUplo
 	} else if (req.params.editType == 'businessDetails'){
 
 		//Grab current logo id
-		let business = await userdb.collection('info').find({companyName: req.session.name}).project({logo: 1}).toArray();
+		let business = await userdb.collection('info').find({email: req.session.email}).project({logo: 1}).toArray();
 
 		//Logo id is updated with a newly upload logo or kept the same
 		if(req.files.length != 0){
 			await deleteUploadedImage(business[0].logo);
 			req.body.logo = await uploadImage(req.files[0], "businessLogos");
 		} else {
-			req.body.logo - business[0].logo;
+			req.body.logo = business[0].logo;
 		}
 
 		//update database
@@ -1244,11 +1245,13 @@ app.get('/findTrainer', async(req, res) => {
 	for(let i = 0; i < businesses.length; i++){
 		//Key is the business name
 		let name = businesses[i].companyName;
+		// console.log(name);
 
 		//Establish connection the user database
-		let db = mongodb_businessdb + '-' + name.replace(/\s/g, "");
+		let db = mongodb_businessdb + '-' + name.replaceAll(/\s/g, "");
 		let userdbAccess = new MongoClient(`mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/${db}?retryWrites=true`);
 		let tempBusiness = userdbAccess.db(db);
+		// console.log(tempBusiness);
 
 		//Query for the info and trainer
 		let info = await tempBusiness.collection('info').find({companyName: name}).toArray();
@@ -1266,7 +1269,7 @@ app.get('/findTrainer', async(req, res) => {
 		}
 
 		//Convert the search string to lowercase to avoid case sensitivity
-		info[0].searchString = info[0].searchString.replace(' ','').toLowerCase();
+		info[0].searchString = info[0].searchString.replaceAll(' ','').toLowerCase();
 
 		//Add the information to each array
 		businessDetails.push(info[0]);
@@ -1285,7 +1288,7 @@ app.get('/trainer', async (req, res) => {
 //View indivdual business
 app.get('/viewBusiness/:company', async(req, res) => {
 	//Connect to the specific business' database
-	let db = mongodb_businessdb + '-' + req.params.company.replace(/\s/g, "");
+	let db = mongodb_businessdb + '-' + req.params.company.replaceAll(/\s/g, "");
 	let userdbAccess = new MongoClient(`mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/${db}?retryWrites=true`);
 	let tempBusiness = userdbAccess.db(db);
 
@@ -1322,7 +1325,7 @@ app.get('/viewBusiness/:company/register/:program', async(req, res) => {
 	const userdb = await getdb(req.session.userdb);
 
 	//Connect to the specific business' database
-	let db = mongodb_businessdb + '-' + req.params.company.replace(/\s/g, "");
+	let db = mongodb_businessdb + '-' + req.params.company.replaceAll(/\s/g, "");
 	let userdbAccess = new MongoClient(`mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/${db}?retryWrites=true`);
 	let tempBusiness = userdbAccess.db(db);
 
@@ -1359,7 +1362,7 @@ app.get('/viewBusiness/:company/register/:program', async(req, res) => {
 app.post('/viewBusiness/:company/register/:program/submitRegister', async(req, res) => {
 	const userdb = await getdb(req.session.userdb);
 
-	let db = mongodb_businessdb + '-' + req.params.company.replace(/\s/g, "");
+	let db = mongodb_businessdb + '-' + req.params.company.replaceAll(/\s/g, "");
 	let businessdbAccess = new MongoClient(`mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/${db}?retryWrites=true`);
 	let tempBusiness = businessdbAccess.db(db);
 	
@@ -1406,8 +1409,15 @@ app.get('/addTrainer/:trainer', async (req, res) => {
 	const trainerdb = await getdb(req.session.trainerdb);
 
 	let client = await userdb.collection('info').find().project({email: 1, firstName: 1, lastName: 1, phone: 1}).toArray();
-
-	trainerdb.collection('clients').insertOne(client[0]);
+	let check = await trainerdb.collection('clients').find({email: client[0].email}).project({_id: 1, email: 1}).toArray();
+	if (check.length == 0) {
+		await trainerdb.collection('clients').insertOne({
+			email: client[0].email,
+			firstName: client[0].firstName,
+			lastName: client[0].lastName,
+			phone: client[0].phone
+		});
+	}
 
 	res.redirect('/');
 });
@@ -1791,7 +1801,7 @@ app.get('/clientProfile/:id', async (req, res) => {
 			dogs[i].dogPic = cloudinary.url(pic);
 		}
 	}
-	console.log(dogs);
+	// console.log(dogs);
 
 	res.render('viewingClientProfile', {targetClient: targetClient, pfpUrl: pfpUrl, dogs: dogs, loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
 });

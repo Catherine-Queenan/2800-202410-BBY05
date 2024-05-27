@@ -1,38 +1,72 @@
 <%- include("templates/header") %>
-<div class="m-3">
-<%- include('templates/defaultingPic', {pic: user.profilePic, picId:'profilePic'})%>
-    <form method="post" enctype="multipart/form-data">
-        <%- include('templates/uploadFile', {divId:'newProfilePic', xDivAttributes:'style=display:none', fileId:'profilePicInput',fileName:'accountUpload', label:'Upload a New Photo:', xfileAttributes:'accept=.png,.jpg, .jpeg'}) %>
-            
-        <input name="firstName" type="text" class="profileInfo col-3" value="<%= user.firstName %>" disabled>
-        <input name="lastName" type="text" class="profileInfo col-3" value="<%= user.lastName %>" disabled> <br><br>
-        <input name="email" type="email" class="col-6" value="<%= user.email %>" disabled><br><br>
-        <input name="phone" type="tel" class="profileInfo col-6" value="<%= user.phone %>" disabled>
+<div class="profile-container my-4 mx-4">
+    <h1 class="text-center mb-4 yeseva-one"><%=user.firstName%> <%=user.lastName%></h1>
+    <div class="resource-wrap d-flex justify-content-center">
+        <div class="resource-html justify-content-center flex-fill" style="max-width:500px;">
+            <input id="tabR-1" type="radio" name="tab" class="tabR-one btn-check" checked>
+            <label for="tabR-1" class="tabR">Profile</label>
 
-        <%- include('templates/button', {action:'',xClasses:'cancelButton btn-danger col-3 me-4',xAttributes:'id=cancelEdit type=button style=display:none',content:'Cancel'}) %>
-        <%- include('templates/button', {action:'/profile/edit/clientProfile',xClasses:'col-3',xAttributes:'id=saveButton style=display:none',content:'Save'}) %>
-        <%- include('templates/button', {action:'',xClasses:'col-3',xAttributes:'type=button id=editButton',content:'Edit'})%>
-    </form> 
+            <input id="tabR-2" type="radio" name="tab" class="tabR-two btn-check">
+            <label for="tabR-2" class="tabR">Dogs</label>
 
-   <br><br>
-	<div id="dogSection">
-        <h3><%=userName%>'s Dogs:</h3>
-        <% for(let i = 0; i < dogs.length; i++){ %>
-            <%- include('templates/dog', {dog: dogs[i]}) %>
-        <%} %>
-        <br>
+            <div class="resource-form">
+                <div class="tabR-one-htm">
+                        <form class="my-3" method="post" enctype="multipart/form-data">
+                            <div class="d-flex justify-content-center">
+                                <%- include('templates/defaultingPic', {pic: user.profilePic, picId:'profilePic'})%>
+                            </div>
+                            <%- include('templates/uploadFile', {divId:'newProfilePic', xDivAttributes:'style=display:none', fileId:'profilePicInput',fileName:'accountUpload', label:'Upload a New Photo:', xfileAttributes:''}) %>    
+                        <div class="form-group">
+                            <label for="firstName">First Name:</label>
+                            <input name="firstName" id="firstName" type="text" class="profileInfo" value="<%= user.firstName %>" disabled>
+                        </div>
 
-    <form>
-        <%- include('templates/button', {action:'/addDog',xClasses:'col-3',xAttributes:'',content:'Add New Dog'}) %>
-    </form>
+                        <div class="form-group">
+                            <label for="lastName">Last Name:</label>
+                            <input name="lastName" type="text" id="lastName" class="profileInfo" value="<%= user.lastName %>" disabled>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="email">Email:</label>
+                            <input name="email" type="email" id="email" value="<%= user.email %>" disabled>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="phone">Phone:</label>
+                            <input name="phone" type="tel" id="phone" class="profileInfo" value="<%= user.phone %>" disabled>
+                        </div>
+                        <div class="my-3 d-flex justify-content-between">
+                            <%- include('templates/button', {action:'',xClasses:'cancelButton btn-danger me-4',xAttributes:'id=cancelEdit type=button style=display:none',content:'Cancel'}) %>
+                            <%- include('templates/button', {action:'/profile/edit/clientProfile',xClasses:'',xAttributes:'id=saveButton style=display:none',content:'Save'}) %>
+                            <%- include('templates/button', {action:'',xClasses:'',xAttributes:'type=button id=editButton',content:'Edit'})%>
+                        </div>
+                        </form> 
+                </div>
+            </div>
+
+            <div class="resource-form">
+                <div id="tab2" class="tabR-two-htm">
+                    <div id="dogSection" class="my-3">
+                        <h3><%=userName%>'s Dogs:</h3>
+                        <% for(let i = 0; i < dogs.length; i++){ %>
+                            <%- include('templates/dog', {dog: dogs[i]}) %>
+                        <%} %>
+                        
+
+
     
-    <form method="get">
-        <%- include('templates/button', {action:'/accountDeletion',xClasses:'col-3',xAttributes:'',content:'Delete Account'}) %>
-    </form>
-	</div>
+                    <form class="my-3">
+                        <%- include('templates/button', {action:'/addDog',xClasses:'',xAttributes:'',content:'Add New Dog'}) %>
+                    </form>
+            	</div>	
+            </div>
+        </div>
     </div>
-
+    </div>
+    <form method="get" class="mx-auto d-flex justify-content-center mt-3" style="max-width:500px">
+        <%- include('templates/button', {action:'/accountDeletion',xClasses:'mw-50',xAttributes:'',content:'Delete Account'}) %>
+    </form>
+</div>
    
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-    <script src="/scripts/editProfile.js"></script>
-    <%- include("templates/footerCopyright") %>
+<script src="/scripts/editProfile.js"></script>
+<%- include("templates/footerCopyright") %>
