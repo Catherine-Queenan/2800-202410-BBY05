@@ -200,6 +200,24 @@ function adminAuthorization(req, res, next) {
 		next();
 	}
 }
+
+function clientAuthorization(req, res, next) {
+	if (!isClient(req)) {
+		res.status(403);
+		res.render('errorMessage', { error: 'Not Authorized - 403', loggedIn: isValidSession(req), userType: req.session.userType });
+	} else {
+		next();
+	}
+}
+
+function businessAuthorization(req, res, next) {
+	if (!isBusiness(req)) {
+		res.status(403);
+		res.render('errorMessage', { error: 'Not Authorized - 403', loggedIn: isValidSession(req), userType: req.session.userType });
+	} else {
+		next();
+	}
+}
 //Function to call
 async function updateUnreadAlertsMidCode(req) {
     if (req.session && req.session.email) {
