@@ -1288,14 +1288,19 @@ app.post('/dog/:dogId/editVaccines', uploadFields, async (req, res) => {
 
 //Show specific dog
 app.get('/dog/:dogId', async(req, res) => {
+
+	if(req.session.userType === 'business') {
+		res.redirect('/dogView');
+	}
+
 	const userdb = await getdb(req.session.userdb);
 
 	//Use the dog document id to find the specific dog
 	let dogId =  ObjectId.createFromHexString(req.params.dogId);
-	let dogRecord = await userdb.collection('dogs').find({_id: dogId}).toArray();
+	let dogRecord = await userdb.collection('dogs').find({_id: dogId}).toArray();	
 
 	//If there is a dog pic attached to this dog, create a link to it
-	if(dogRecord[0].dogPic != ''){
+	if(dogRecord[0].dogPic != '') {
 		dogRecord[0].dogPic = cloudinary.url(dogRecord[0].dogPic);
 	}
 
@@ -1951,6 +1956,10 @@ app.get('/clientProfile/:id', async (req, res) => {
 	// console.log(dogs);
 
 	res.render('viewingClientProfile', {targetClient: targetClient, pfpUrl: pfpUrl, dogs: dogs, loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
+});
+
+app.get('/dogView', businessAuthorization, async (req, res) => {
+	res.send('safe');
 });
 
 app.use(express.static(__dirname + "/public"));
