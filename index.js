@@ -6,8 +6,11 @@ const MongoStore = require('connect-mongo');
 const ObjectId = require('mongodb').ObjectId;
 
 const bcrypt = require('bcrypt');
+
 const {Storage} = require('@google-cloud/storage');
 const {Readable} = require('stream');
+const crypto = require('crypto');
+
 const multer = require("multer");
 const stream = require("stream");
 const cloudinary = require('cloudinary').v2;
@@ -36,10 +39,18 @@ const googleCredentials = {
 const googleStorage = new Storage({ credentials: googleCredentials });
 const bucketName = process.env.BUCKET_NAME;
 
+//For File Encryption
+const algorithm = 'aes-256-ctr';
+const secretKey = process.env.SECRET_KEY;
+
+if (!secretKey || secretKey.length !== 32) {
+    throw new Error("SECRET_KEY is not defined or does not meet the required length (32 characters) in the environment variables");
+}
+//console.log(secretKey);
+
 //END OF GOOGLE CLOUD STORAGE
 
 const nodemailer = require('nodemailer');
-const crypto = require('crypto')
 const app = express();
 const port = process.env.PORT || 3000;
 const Joi = require('joi');
@@ -211,16 +222,17 @@ async function setUserDatabase(req) {
     }
 
     if (isClient(req)) {
-        let clientEmail = req.session.email.split('.').join("");
+        const clientEmail = req.session.email.replaceAll(/[\s.]/g, "");
         dbName = `${mongodb_clientdb}-${clientEmail}`;
     } else if (isBusiness(req)) {
-        dbName = `${mongodb_businessdb}-${req.session.name}`;
+		const businessName = req.session.name.replaceAll(/[\s.]/g, "")
+        dbName = `${mongodb_businessdb}-${businessName}`;
     } else {
         throw new Error('User type not recognized');
     }
 
-    req.session.userdb = dbName.replaceAll(' ','');
-	console.log('userdb: ' + req.session.userdb);
+    req.session.userdb = dbName;
+	// console.log('userdb: ' + req.session.userdb);
 }
 
 // Allows access to the trainer's database when tied to a client
@@ -233,18 +245,18 @@ async function setTrainerDatabase(req) {
 		if (trainer[0].companyName == null || trainer[0].companyName == '' || trainer[0].companyName == undefined) {
 			return;
 		} else {
-			const trainerName = mongodb_businessdb + '-' + trainer[0].companyName.replaceAll(/\s/g, "");
+			const trainerName = mongodb_businessdb + '-' + trainer[0].companyName.replaceAll(/[\s.]/g, "");
 			req.session.trainerdb = trainerName;
-			console.log('trainerdb: ' + req.session.trainerdb);
+			// console.log('trainerdb: ' + req.session.trainerdb);
 		}
 	}
 }
 
 function setClientDatabase(req, client) {
-	const clientEmail = client.split('.').join('');
+	const clientEmail = client.replaceAll(/[\s.]/g, "");
 	const dbName = mongodb_clientdb + '-' + clientEmail;
 	req.session.clientdb = dbName;
-	console.log('clientdb: ' + req.session.clientdb);
+	// console.log('clientdb: ' + req.session.clientdb);
 }
 
 async function getdb(dbName) {
@@ -254,14 +266,29 @@ async function getdb(dbName) {
 	return type.db(dbName);
 }
 
+// Function to encrypt the PDF file
+function encrypt(buffer) {
+    const iv = crypto.randomBytes(16);
+    console.log('IV:', iv); // Debugging
+    const cipher = crypto.createCipheriv(algorithm, Buffer.from(secretKey, 'utf8'), iv);
+    const encrypted = Buffer.concat([cipher.update(buffer), cipher.final()]);
+    console.log('Encrypted content:', encrypted); // Debugging
+    return {
+        iv: iv.toString('hex'),
+        content: encrypted.toString('hex')
+    };
+}
+
 //Upload files to Google Cloud
 async function uploadFileToGoogleCloud(fileBuffer, fileName) {
+    const encryptedFile = encrypt(fileBuffer);
+    console.log('Encrypted File:', encryptedFile); // Debugging
     const bucket = googleStorage.bucket(bucketName);
     const file = bucket.file(fileName);
-    const stream = Readable.from(fileBuffer);
 
     return new Promise((resolve, reject) => {
-        stream.pipe(file.createWriteStream())
+        const encryptedStream = Readable.from(Buffer.from(encryptedFile.content, 'hex'));
+        encryptedStream.pipe(file.createWriteStream())
             .on('error', reject)
             .on('finish', () => {
                 resolve(`gs://${bucketName}/${fileName}`);
@@ -354,6 +381,7 @@ app.post('/submitSignup/:type', async (req, res) => {
 				lastName: Joi.string().pattern(/^[a-zA-Z\s]*$/).max(20).required(),
 				email: Joi.string().email().required(),
 				phone: Joi.string().pattern(/^[0-9\s]*$/).length(10).required(),
+				address: Joi.string().pattern(/^[0-9a-zA-Z',\-&*@\s]*$/).required(),
 				password: Joi.string().max(20).min(2).required()
 			}
 		);
@@ -364,6 +392,7 @@ app.post('/submitSignup/:type', async (req, res) => {
 			lastName: req.body.lastName,
 			email: req.body.email,
 			phone: req.body.phone,
+			address: req.body.address,
 			password: req.body.password
 		};
 
@@ -378,7 +407,7 @@ app.post('/submitSignup/:type', async (req, res) => {
 		}
 
 		//Hash entered password for storing
-		var hashPass = await bcrypt.hash(user.password, saltRounds);
+		let hashPass = await bcrypt.hash(user.password, saltRounds);
 
 		//Store new user info in the appdb
 		await appUserCollection.insertOne({
@@ -408,7 +437,8 @@ app.post('/submitSignup/:type', async (req, res) => {
 			email: user.email,
 			firstName: user.firstName,
 			lastName: user.lastName,
-			phone: user.phone
+			phone: user.phone,
+			address: user.address
 		});
 
 	//Submits info for business side forms
@@ -657,7 +687,7 @@ async function sendEmail(to, subject, eventTitle, eventDate, eventStartTime, eve
 
         try {
             transporter.sendMail(mailOptions);
-            console.log(`Email sent to ${to}`);
+            // console.log(`Email sent to ${to}`);
         } catch (error) {
             console.error(`Error sending email to ${to}:`, error); 
             throw error;
@@ -861,6 +891,9 @@ app.get('/profile', sessionValidation, async(req, res) => {
 			}
 		}
 
+		//Unhash client address
+
+
 		//Render client profile page
 		res.render('clientProfile', {loggedIn: isValidSession(req), user: user, dogs: dogs, userName: req.session.name, userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
 		return;
@@ -920,7 +953,7 @@ app.post('/profile/edit/:editType', sessionValidation, upload.array('accountUplo
 	} else if (req.params.editType == 'businessDetails'){
 
 		//Grab current logo id
-		let business = await userdb.collection('info').find({email: req.session.email}).project({logo: 1}).toArray();
+		let business = await userdb.collection('info').find({companyName: req.session.name}).toArray();
 
 		//Logo id is updated with a newly upload logo or kept the same
 		if(req.files.length != 0){
@@ -928,7 +961,7 @@ app.post('/profile/edit/:editType', sessionValidation, upload.array('accountUplo
 			req.body.logo = await uploadImage(req.files[0], "businessLogos");
 		} else {
 			req.body.logo = business[0].logo;
-		}
+		}		
 
 		//update database
 		await userdb.collection('info').updateOne({companyName: req.session.name}, {$set: req.body});
@@ -968,6 +1001,7 @@ app.post('/profile/edit/:editType', sessionValidation, upload.array('accountUplo
 			},
 			discount: req.body.discounts,
 			hours: req.body.hours,
+			sessions: req.body.sessions,
 			description: req.body.description
 		}
 
@@ -1005,6 +1039,7 @@ app.post('/program/:programId/edit', async(req, res) => {
 		},
 		discount: req.body.discounts,
 		hours: req.body.hours,
+		sessions: req.body.sessions,
 		description: req.body.description
 	}
 
@@ -1024,20 +1059,20 @@ app.get('/addDog', (req, res) => {
 //Adds the dog to the database
 app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
     const userdb = await getdb(req.session.userdb);
-
-	//validation schema
+  
 	var schema = Joi.object(
 		{
 			dogName: Joi.string().pattern(/^[a-zA-Z\s\'\-]*$/).max(20),
+			dogBreed: Joi.string().pattern(/^[a-zA-Z\s\'\-]*$/).max(40),
 			specialAlerts: Joi.string().pattern(/^[A-Za-z0-9 _.,!"'()#;:\s]*$/).allow(null, '')
 		}
 	);
 
-	if(!req.body.specialAlerts){
-		req.body.specialAlerts = '';
-	}
+    if (!req.body.specialAlerts) {
+        req.body.specialAlerts = '';
+    }
 
-	let validationRes = schema.validate({dogName: req.body.dogName, specialAlerts: req.body.specialAlerts});
+    let validationRes = schema.validate({ dogName: req.body.dogName, dogBreed: req.body.dogBreed, specialAlerts: req.body.specialAlerts });
     // Deals with errors from validation
     if (validationRes.error != null) {
         let doc = '<body><p>Invalid Dog</p><br><a href="/addDog">Try again</a></body>';
@@ -1068,25 +1103,25 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
         let v = 0;
         for (let i = 0; i < req.files.length; i++) {
             let vaccineType;
-            
+
             // Check if you have one or multiple vaccines to upload
             if (Array.isArray(req.body.vaccineCheck)) {
                 vaccineType = req.body.vaccineCheck[v]; // We put v here because the first iteration (i) might be the profile photo image
             } else {
                 vaccineType = req.body.vaccineCheck;
             }
-            
+
             let filename = req.files[i].mimetype;
             filename = filename.split('/');
             let fileType = filename[0];
             let dogName = req.body.dogName;
-            
+
             // Iterate v so that we can get the number of vaccines
             // This accounts for the potential profile photo upload
-            if(fileType != 'image') {
+            if (fileType != 'image') {
                 v++;
             }
-            
+
             // Get the last name of the client
             let lastName = req.session.name.split(' ')[1];
 
@@ -1102,24 +1137,25 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
         dog.dogPic = '';
     }
 
-	//stores the neutered status
-	if(req.body.neuteredStatus == 'neutered'){
-		dog.neuteredStatus = req.body.neuteredStatus;
-	} else {
-		dog.neuteredStatus = 'not neutered';
-	}
-	
-	//Stores sex, birthday, weight, specialAlerts of the dog
-	dog.sex = req.body.sex;
-	dog.birthday = req.body.birthday;
-	dog.weight = req.body.weight;
-	dog.specialAlerts = req.body.specialAlerts;
+    // stores the neutered status
+    if (req.body.neuteredStatus == 'neutered') {
+        dog.neuteredStatus = req.body.neuteredStatus;
+    } else {
+        dog.neuteredStatus = 'not neutered';
+    }
 
-	//Creates documents in the dog document for each vaccine
-	let allVaccines = ['rabies', 'leptospia', 'bordatella', 'bronchiseptica', 'DA2PP'];
-	allVaccines.forEach((vaccine)=>{
-		eval('dog.' + vaccine + '= {}');
-	});
+    // Stores sex, birthday, weight, specialAlerts of the dog
+	dog.breed = req.body.dogBreed;
+    dog.sex = req.body.sex;
+    dog.birthday = req.body.birthday;
+    dog.weight = req.body.weight;
+    dog.specialAlerts = req.body.specialAlerts;
+
+    // Creates documents in the dog document for each vaccine
+    let allVaccines = ['rabies', 'leptospia', 'bordatella', 'bronchiseptica', 'DA2PP'];
+    allVaccines.forEach((vaccine) => {
+        eval('dog.' + vaccine + '= {}');
+    });
 
     // If dog has more than one vaccine, add the expiration date and pdf of the proof of vaccination to the specific vaccine document
     if (Array.isArray(req.body.vaccineCheck)) {
@@ -1135,8 +1171,8 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
             vaccineRecord: req.body[req.body.vaccineCheck + 'Proof']
         };
     }
-	
-	//Insert the dog into the database and return to profile
+
+    // Insert the dog into the database and return to profile
     await userdb.collection('dogs').insertOne(dog);
     res.redirect('/profile');
 });
@@ -1244,13 +1280,13 @@ app.get('/findTrainer', async(req, res) => {
 	for(let i = 0; i < businesses.length; i++){
 		//Key is the business name
 		let name = businesses[i].companyName;
-		console.log(name);
+		// console.log(name);
 
 		//Establish connection the user database
 		let db = mongodb_businessdb + '-' + name.replaceAll(/\s/g, "");
 		let userdbAccess = new MongoClient(`mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/${db}?retryWrites=true`);
 		let tempBusiness = userdbAccess.db(db);
-		console.log(tempBusiness);
+		// console.log(tempBusiness);
 
 		//Query for the info and trainer
 		let info = await tempBusiness.collection('info').find({companyName: name}).toArray();
@@ -1408,8 +1444,15 @@ app.get('/addTrainer/:trainer', async (req, res) => {
 	const trainerdb = await getdb(req.session.trainerdb);
 
 	let client = await userdb.collection('info').find().project({email: 1, firstName: 1, lastName: 1, phone: 1}).toArray();
-
-	trainerdb.collection('clients').insertOne(client[0]);
+	let check = await trainerdb.collection('clients').find({email: client[0].email}).project({_id: 1, email: 1}).toArray();
+	if (check.length == 0) {
+		await trainerdb.collection('clients').insertOne({
+			email: client[0].email,
+			firstName: client[0].firstName,
+			lastName: client[0].lastName,
+			phone: client[0].phone
+		});
+	}
 
 	res.redirect('/');
 });
@@ -1722,12 +1765,16 @@ app.get('/alerts/view/:alert', async(req, res) => {
 		let clientdbAccess = new MongoClient(`mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/${db}?retryWrites=true`);
 		let clientInfo = clientdbAccess.db(db);
 
-		let dog = await clientInfo.collection('dogs').find({_id: alert[0].dog}).toArray();
+		let [dog, address] = await Promise.all([
+			clientInfo.collection('dogs').find({_id: alert[0].dog}).toArray(),
+			clientInfo.collection('info').find({}).project({address: 1}).toArray()
+		]);
+
 		if(dog[0].dogPic != '' && dog[0].dogPic != null){
 			dog[0].dogPic = cloudinary.url(dog[0].dogPic);
 		}
 
-		res.render('hireAlertView', {loggedIn: isValidSession(req), userType: req.session.userType, alert: alert[0], dog: dog[0], unreadAlerts: req.session.unreadAlerts});
+		res.render('hireAlertView', {loggedIn: isValidSession(req), userType: req.session.userType, alert: alert[0], dog: dog[0], address: address[0].address, unreadAlerts: req.session.unreadAlerts});
 	} else {
 		res.redirect('/');
 	}
@@ -1737,7 +1784,7 @@ app.get('/alerts/view/:alert', async(req, res) => {
 app.get('/clientList', async (req, res) => {
 	// console.log(req.session.name);
 	clientList = await appUserCollection.find({companyName: null, userType: 'client'}).project({email: 1, firstName: 1, lastName: 1}).toArray();
-	console.log(clientList.length);
+	// console.log(clientList.length);
 	res.render('clientList', {clientArray: clientList, loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
 });
 
@@ -1791,7 +1838,7 @@ app.get('/clientProfile/:id', async (req, res) => {
 			dogs[i].dogPic = cloudinary.url(pic);
 		}
 	}
-	console.log(dogs);
+	// console.log(dogs);
 
 	res.render('viewingClientProfile', {targetClient: targetClient, pfpUrl: pfpUrl, dogs: dogs, loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
 });
