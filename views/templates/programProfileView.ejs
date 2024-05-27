@@ -2,5 +2,8 @@
     <div class="card-title m-3">
         <a href="/program/<%=program._id%>"><span class="h3"><%=program.name%></span></a>
     </div> 
-    <div class="card-body"><%=program.pricing.priceType%> - <%=program.pricing.price%></div>
+    <div class="card-body">
+        <p><%=program.pricing.priceType%> - <%=program.pricing.price%></p>
+        <p>Session Count - <%=program.sessions%></p>
+    </div>
 </div>

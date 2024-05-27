@@ -1001,6 +1001,7 @@ app.post('/profile/edit/:editType', sessionValidation, upload.array('accountUplo
 			},
 			discount: req.body.discounts,
 			hours: req.body.hours,
+			sessions: req.body.sessions,
 			description: req.body.description
 		}
 
@@ -1061,6 +1062,7 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
 	var schema = Joi.object(
 		{
 			dogName: Joi.string().pattern(/^[a-zA-Z\s\'\-]*$/).max(20),
+			dogBreed: Joi.string().pattern(/^[a-zA-Z\s\'\-]*$/).max(40),
 			specialAlerts: Joi.string().pattern(/^[A-Za-z0-9 _.,!"'()#;:\s]*$/).allow(null, '')
 		}
 	);
@@ -1069,7 +1071,7 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
         req.body.specialAlerts = '';
     }
 
-    let validationRes = schema.validate({ dogName: req.body.dogName, specialAlerts: req.body.specialAlerts });
+    let validationRes = schema.validate({ dogName: req.body.dogName, dogBreed: req.body.dogBreed, specialAlerts: req.body.specialAlerts });
     // Deals with errors from validation
     if (validationRes.error != null) {
         let doc = '<body><p>Invalid Dog</p><br><a href="/addDog">Try again</a></body>';
@@ -1142,6 +1144,7 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
     }
 
     // Stores sex, birthday, weight, specialAlerts of the dog
+	dog.breed = req.body.dogBreed;
     dog.sex = req.body.sex;
     dog.birthday = req.body.birthday;
     dog.weight = req.body.weight;
@@ -1761,12 +1764,16 @@ app.get('/alerts/view/:alert', async(req, res) => {
 		let clientdbAccess = new MongoClient(`mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/${db}?retryWrites=true`);
 		let clientInfo = clientdbAccess.db(db);
 
-		let dog = await clientInfo.collection('dogs').find({_id: alert[0].dog}).toArray();
+		let [dog, address] = await Promise.all([
+			clientInfo.collection('dogs').find({_id: alert[0].dog}).toArray(),
+			clientInfo.collection('info').find({}).project({address: 1}).toArray()
+		]);
+
 		if(dog[0].dogPic != '' && dog[0].dogPic != null){
 			dog[0].dogPic = cloudinary.url(dog[0].dogPic);
 		}
 
-		res.render('hireAlertView', {loggedIn: isValidSession(req), userType: req.session.userType, alert: alert[0], dog: dog[0], unreadAlerts: req.session.unreadAlerts});
+		res.render('hireAlertView', {loggedIn: isValidSession(req), userType: req.session.userType, alert: alert[0], dog: dog[0], address: address[0].address, unreadAlerts: req.session.unreadAlerts});
 	} else {
 		res.redirect('/');
 	}

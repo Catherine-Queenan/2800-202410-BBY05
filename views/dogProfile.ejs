@@ -19,6 +19,11 @@
 						<label for="dogName">Name:</label>
 						<input class="dogInput" type="text" id="dogName" name="dogName" value="<%=dog.dogName%>" required disabled>
 					</div>
+
+					<div class="form-group">
+						<label for="dogBreed">Breed:</label>
+						<input class="dogInput" type="text" id="dogBreed" name="breed" value="<%=dog.breed%>" required disabled>
+					</div>
 					
 					<div class="check-buttons mb-4 mt-2">
 						<% if (dog.neuteredStatus == 'neutered') {%>
