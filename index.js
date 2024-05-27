@@ -381,7 +381,7 @@ app.post('/submitSignup/:type', async (req, res) => {
 				lastName: Joi.string().pattern(/^[a-zA-Z\s]*$/).max(20).required(),
 				email: Joi.string().email().required(),
 				phone: Joi.string().pattern(/^[0-9\s]*$/).length(10).required(),
-				address: Joi.string().pattern(/^[0-9a-zA-Z\s]*$/).required(),
+				address: Joi.string().pattern(/^[0-9a-zA-Z',\-&*@\s]*$/).required(),
 				password: Joi.string().max(20).min(2).required()
 			}
 		);
@@ -407,10 +407,7 @@ app.post('/submitSignup/:type', async (req, res) => {
 		}
 
 		//Hash entered password for storing
-		let [hashPass, hashAddress] = await Promise.all([
-			bcrypt.hash(user.password, saltRounds),
-			bcrypt.hash(user.address, saltRounds)
-		]);
+		let hashPass = await bcrypt.hash(user.password, saltRounds);
 
 		//Store new user info in the appdb
 		await appUserCollection.insertOne({
@@ -441,7 +438,7 @@ app.post('/submitSignup/:type', async (req, res) => {
 			firstName: user.firstName,
 			lastName: user.lastName,
 			phone: user.phone,
-			address: hashAddress
+			address: user.address
 		});
 
 	//Submits info for business side forms
@@ -893,6 +890,9 @@ app.get('/profile', sessionValidation, async(req, res) => {
 				dogs[i].dogPic = cloudinary.url(pic);
 			}
 		}
+
+		//Unhash client address
+
 
 		//Render client profile page
 		res.render('clientProfile', {loggedIn: isValidSession(req), user: user, dogs: dogs, userName: req.session.name, userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
