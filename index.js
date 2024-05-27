@@ -1114,6 +1114,12 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
         dogName: req.body.dogName
     };
 
+	    // Creates documents in the dog document for each vaccine
+    let allVaccines = ['rabies', 'leptospia', 'bordatella', 'bronchiseptica', 'DA2PP'];
+    allVaccines.forEach((vaccine) => {
+        eval('dog.' + vaccine + '= {}');
+    });
+
     // this is the file management stuff
     if (req.files.length != 0) {
         // Check if the first image is an image file and upload the image if it is
@@ -1158,8 +1164,7 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
                 let fullFileName = `${lastName}_${dogName}_${vaccineType}.pdf`;
                 let filePath = `pdfs/${fullFileName}`;
                 let fileUrl = await uploadFileToGoogleCloud(req.files[i].buffer, filePath);
-                dog.vaccineRecords = dog.vaccineRecords || [];
-                dog.vaccineRecords.push({ fileName: req.files[i].originalname, fileUrl });
+                req.body[vaccineType + 'Proof'] =  fileUrl;
             }
         }
     } else {
@@ -1177,13 +1182,8 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
     dog.sex = req.body.sex;
     dog.birthday = req.body.birthday;
     dog.weight = req.body.weight;
+	dog.breed = req.body.breed;
     dog.specialAlerts = req.body.specialAlerts;
-
-    // Creates documents in the dog document for each vaccine
-    let allVaccines = ['rabies', 'leptospia', 'bordatella', 'bronchiseptica', 'DA2PP'];
-    allVaccines.forEach((vaccine) => {
-        eval('dog.' + vaccine + '= {}');
-    });
 
     // If dog has more than one vaccine, add the expiration date and pdf of the proof of vaccination to the specific vaccine document
     if (Array.isArray(req.body.vaccineCheck)) {
@@ -1236,17 +1236,17 @@ app.post('/dog/:dogId/editVaccines', uploadFields, async (req, res) => {
     return res.status(404).send('Dog not found');
   }
 
-  // Update existing fields with incoming data
-  dog.dogName = req.body.dogName || dog.dogName;
-  dog.sex = req.body.sex || dog.sex;
-  dog.birthday = req.body.birthday || dog.birthday;
-  dog.weight = req.body.weight || dog.weight;
-  dog.specialAlerts = req.body.specialAlerts || dog.specialAlerts;
+//   // Update existing fields with incoming data
+//   dog.dogName = req.body.dogName || dog.dogName;
+//   dog.sex = req.body.sex || dog.sex;
+//   dog.birthday = req.body.birthday || dog.birthday;
+//   dog.weight = req.body.weight || dog.weight;
+//   dog.specialAlerts = req.body.specialAlerts || dog.specialAlerts;
 
-  // Update the neutered status
-  if (req.body.neuteredStatus) {
-    dog.neuteredStatus = req.body.neuteredStatus;
-  }
+//   // Update the neutered status
+//   if (req.body.neuteredStatus) {
+//     dog.neuteredStatus = req.body.neuteredStatus;
+//   }
 
   const vaccineTypes = ['rabies', 'leptospia', 'bordatella', 'bronchiseptica', 'DA2PP'];
   
@@ -1274,10 +1274,6 @@ app.post('/dog/:dogId/editVaccines', uploadFields, async (req, res) => {
         if (req.body[`${vaccineType}Date`]) {
           dog[vaccineType].expirationDate = req.body[`${vaccineType}Date`];
         }
-
-        // Add to vaccineRecords array
-        dog.vaccineRecords = dog.vaccineRecords || [];
-        dog.vaccineRecords.push({ fileName: file.originalname, fileUrl });
       }
     }
   }
