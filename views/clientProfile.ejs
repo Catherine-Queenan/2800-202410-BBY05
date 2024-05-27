@@ -9,6 +9,9 @@
             <input id="tabR-2" type="radio" name="tab" class="tabR-two btn-check">
             <label for="tabR-2" class="tabR">Dogs</label>
 
+            <input id="tabR-3" type="radio" name="tab" class="tabR-three btn-check">
+            <label for="tabR-3" class="tabR">Outstanding Balance</label>
+
             <div class="resource-form">
                 <div class="tabR-one-htm">
                         <form class="my-3" method="post" enctype="multipart/form-data">
@@ -51,15 +54,29 @@
                         <% for(let i = 0; i < dogs.length; i++){ %>
                             <%- include('templates/dog', {dog: dogs[i]}) %>
                         <%} %>
-                        
-
-
-    
                     <form class="my-3">
                         <%- include('templates/button', {action:'/addDog',xClasses:'',xAttributes:'',content:'Add New Dog'}) %>
                     </form>
             	</div>	
             </div>
+
+            <div class="resource-form">
+				<div class="tabR-three-htm">
+					<table class="table">
+                        <thead>
+                            <tr>
+                                <th>Dog</th>
+                                <th>Program</th>
+                                <th>Credits</th>
+                                <th>Outstanding Balance</th>
+                            </tr>
+                        </thead>
+                        <% for(let i = 0; i < records.length; i++){ %>
+                            <%-include('templates/outstandingRecord', {record: records[i]}) %>
+                        <% } %>
+					</table>
+				</div>
+			</div>
         </div>
     </div>
     </div>
