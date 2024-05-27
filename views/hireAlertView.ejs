@@ -2,6 +2,10 @@
 <div class="container">
     <p class="h5">Hire Request</span> from <%=alert.clientName%></p>
     <p>They are interest in enrolling their dog <span class="karla-heavy"><%=alert.dogName%></span> in the <span class="karla-heavy"><%=alert.programName%> program</span></p>
+    <form method="post">
+        <%- include('templates/button', {action:'/resolveAlert/' + alert._id,xClasses:'',xAttributes:'name=resolve value=accept',content:'Accept Request'}) %>
+        <%- include('templates/button', {action:'/resolveAlert/' + alert._id,xClasses:'',xAttributes:'name=resolve value=reject',content:'Reject'}) %>
+    </form>
     <div class="card">
         <div class="card-title">
             <p class="h4 karla-heavy">Client Address: <%=address%></p>

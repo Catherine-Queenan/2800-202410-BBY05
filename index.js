@@ -195,7 +195,7 @@ function isAdmin(req) {
 function adminAuthorization(req, res, next) {
 	if (!isAdmin(req)) {
 		res.status(403);
-		res.render('errorMessage', { error: 'Not Authorized - 403', loggedIn: isValidSession(req), userType: req.session.userType });
+		res.render('errorMessage', { error: 'Not Authorized - 403', loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts });
 	} else {
 		next();
 	}
@@ -204,7 +204,7 @@ function adminAuthorization(req, res, next) {
 function clientAuthorization(req, res, next) {
 	if (!isClient(req)) {
 		res.status(403);
-		res.render('errorMessage', { error: 'Not Authorized - 403', loggedIn: isValidSession(req), userType: req.session.userType });
+		res.render('errorMessage', { error: 'Not Authorized - 403', loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts });
 	} else {
 		next();
 	}
@@ -213,7 +213,7 @@ function clientAuthorization(req, res, next) {
 function businessAuthorization(req, res, next) {
 	if (!isBusiness(req)) {
 		res.status(403);
-		res.render('errorMessage', { error: 'Not Authorized - 403', loggedIn: isValidSession(req), userType: req.session.userType });
+		res.render('errorMessage', { error: 'Not Authorized - 403', loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts });
 	} else {
 		next();
 	}
@@ -921,7 +921,10 @@ app.get('/profile', sessionValidation, async(req, res) => {
 		}
 
 		//Gather dogs and their images if they have one
-		let dogs = await userdb.collection('dogs').find({}).toArray();
+		let [dogs, outstandingBalance] = await Promise.all([
+			userdb.collection('dogs').find({}).toArray(),
+			userdb.collection('outstandingBalance').find({}).toArray()
+		]);
 		for(let i = 0; i < dogs.length; i++){
 			let pic = dogs[i].dogPic;
 			if(pic != '' && pic != null){
@@ -933,7 +936,7 @@ app.get('/profile', sessionValidation, async(req, res) => {
 
 
 		//Render client profile page
-		res.render('clientProfile', {loggedIn: isValidSession(req), user: user, dogs: dogs, userName: req.session.name, userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
+		res.render('clientProfile', {loggedIn: isValidSession(req), user: user, dogs: dogs, records: outstandingBalance, userName: req.session.name, userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
 		return;
 
 	//Business user profile
@@ -1035,7 +1038,7 @@ app.post('/profile/edit/:editType', sessionValidation, upload.array('accountUplo
 			name: req.body.name,
 			pricing: {
 				priceType: req.body.priceType,
-				price: req.body.price
+				price: req.body.price.toFixed(2)
 			},
 			discount: req.body.discounts,
 			hours: req.body.hours,
@@ -1073,7 +1076,7 @@ app.post('/program/:programId/edit', async(req, res) => {
 		name: req.body.name,
 		pricing: {
 			priceType: req.body.priceType,
-			price: req.body.price
+			price: req.body.price.toFixed(2)
 		},
 		discount: req.body.discounts,
 		hours: req.body.hours,
@@ -1523,7 +1526,6 @@ app.post('/viewBusiness/:company/register/:program/submitRegister', async(req, r
 	let dogId = ObjectId.createFromHexString(req.body.selectedDog);
 	let programId = ObjectId.createFromHexString(req.params.program);
 
-
 	let [program, dog, companyEmail] = await Promise.all([
 		tempBusiness.collection('programs').find({_id: programId}).project({name: 1}).toArray(),
 		userdb.collection('dogs').find({_id: dogId}).project({dogName: 1}).toArray(),
@@ -1545,11 +1547,78 @@ app.post('/viewBusiness/:company/register/:program/submitRegister', async(req, r
 		tempBusiness.collection('alerts').insertOne(request),
 		appUserCollection.updateOne({email: companyEmail, userType:'business'}, {$inc:{unreadAlerts: 1}})
 	]);
+
+	res.redirect('/viewBusiness/' + req.params.company);
 	
-	// CHANGE LATER TEMPORARY CODE TO AUTO HIRE THE TRAINER FOR NOW
-	const companyName = await tempBusiness.collection('info').find().project({companyName: 1}).toArray();
-	res.redirect('/addTrainer/' + companyName[0].companyName);
+	// // CHANGE LATER TEMPORARY CODE TO AUTO HIRE THE TRAINER FOR NOW
+	// const companyName = await tempBusiness.collection('info').find().project({companyName: 1}).toArray();
+	// res.redirect('/addTrainer/' + companyName[0].companyName);
 	// res.redirect('/findTrainer');
+});
+
+app.post('/resolveAlert/:alert', async(req, res) => {
+	//Create an id for the alert
+	let alertId = ObjectId.createFromHexString(req.params.alert);
+
+	//Find the trainer database
+	const userdb = await getdb(req.session.userdb);
+
+	if(req.body.resolve == 'accept'){
+		//Retrive the whole alert and create the database name for the client from it
+		let alert = await userdb.collection('alerts').find({_id: alertId}).toArray();
+		let clientEmail = alert[0].clientEmail.replaceAll('.', '');
+
+		//Find client hiring
+		const clientdb = await getdb('client-' + clientEmail);
+
+		//Get the client's information and check if this is a new client or not
+		let client = await clientdb.collection('info').find({}).project({email: 1, firstName: 1, lastName: 1, phone: 1}).toArray();
+		let check = await userdb.collection('clients').find({email: client[0].email}).project({_id: 1, email: 1}).toArray();
+
+		//Update that the client is with your business
+		appUserCollection.updateOne({email: client[0].email}, {$set: {companyName: req.session.name}});
+
+		if (check.length == 0) {
+			await userdb.collection('clients').insertOne({
+				email: client[0].email,
+				firstName: client[0].firstName,
+				lastName: client[0].lastName,
+				phone: client[0].phone
+			});
+		}
+
+		//Update the client's outstanding balance
+		let program = await userdb.collection('programs').find({_id: alert[0].program}).toArray();
+		let price;
+		if(program[0].pricing.priceType == 'Hourly Rate'){
+			price = (program[0].hours * program[0].pricing.price).toFixed(2);
+		} else {
+			price = program[0].pricing.price;
+		}
+
+		let balance = {
+			dogName: alert[0].dogName,
+			programName: alert[0].programName,
+			credits: program[0].sessions,
+			outstandingBalance: price
+		};
+
+		let registration = {
+			trainer: req.session.name,
+			program: alert[0].programName,
+			dog: alert[0].dog,
+			price: price
+		}
+
+		await Promise.all([
+			clientdb.collection('outstandingBalance').insertOne(balance),
+			clientdb.collection('registrations').insertOne(registration)
+		]);
+		
+	}
+	
+	userdb.collection('alerts').deleteOne({_id: alertId});
+	res.redirect('/alerts')
 });
 
 
