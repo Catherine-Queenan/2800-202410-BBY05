@@ -15,6 +15,12 @@
     overflow-x:hidden;
   }
 
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
   .content {
     height: calc(100vh - 50px);
     padding: 0.5rem;
@@ -139,37 +145,55 @@
     }
 
     /* Styling for the custom check button */
-.check-buttons .form-check-input + .form-check-label:before {
-  content: "";
-  display: inline-block;
-  width: 20px; /* Adjust size as needed */
-  height: 20px; /* Adjust size as needed */
-  border: 2px solid #201335; /* Border color */
-  position: relative; /* Positioning for the checkmark */
-  margin-right: 10px; /* Spacing between the custom button and label text */
-  vertical-align: middle; /* Align vertically with the text */
-}
+    .check-buttons .form-check-input + .form-check-label:before {
+      content: "";
+      display: inline-block;
+      width: 20px; /* Adjust size as needed */
+      height: 20px; /* Adjust size as needed */
+      border: 2px solid #201335; /* Border color */
+      position: relative; /* Positioning for the checkmark */
+      margin-right: 10px; /* Spacing between the custom button and label text */
+      vertical-align: middle; /* Align vertically with the text */
+    }
 
-/* Styling for the custom button when checked */
-.check-buttons .form-check-input:checked + .form-check-label:before {
-  background-color: #201335; /* Background color when checked */
-  content: "\2713"; /* Unicode for checkmark symbol */
-  text-align: center; /* Center the checkmark */
-  position: relative;
-  font-size: 12px; /* Adjust size of the checkmark */
-  color: #FEF6C3; /* Color of the checkmark */
-}
+    /* Styling for the custom button when checked */
+    .check-buttons .form-check-input:checked + .form-check-label:before {
+      background-color: #201335; /* Background color when checked */
+      content: "\2713"; /* Unicode for checkmark symbol */
+      text-align: center; /* Center the checkmark */
+      position: relative;
+      font-size: 12px; /* Adjust size of the checkmark */
+      color: #FEF6C3; /* Color of the checkmark */
+    }
 
-/* Styling for the label text */
-.check-buttons .form-check-label {
-  cursor: pointer; /* Show pointer cursor on hover */
-  vertical-align: middle; /* Align vertically with the check button */
-}
+    /* Styling for the label text */
+    .check-buttons .form-check-label {
+      cursor: pointer; /* Show pointer cursor on hover */
+      vertical-align: middle; /* Align vertically with the check button */
+    }
 
-/* Optional: Add some spacing between button groups */
-.check-buttons .form-check {
-  margin-bottom: 12px; /* Adjust spacing as needed */
-}
+    /* Optional: Add some spacing between button groups */
+    .check-buttons .form-check {
+      margin-bottom: 12px; /* Adjust spacing as needed */
+    }
+
+    .services {
+      overflow-x: auto;
+    }
+
+    .services span {
+      display: inline-block;
+    }
+
+    .serviceIndv {
+      display: inline-block;
+      padding: 10px;
+      margin: 10px;
+      border-radius: 3px;
+      border:2px solid #2013357e;
+      color: #201335;
+      cursor: default;
+    }
 
   .form-group {
     margin-top: 1rem;
@@ -428,6 +452,10 @@
   /* End of Forms */
 
   /* Custom navbar-toggler-icon */
+    .navbar {
+      max-width: 100vw;
+    }
+
   .custom-toggler .navbar-toggler-icon {
     width: 35px;
     height: 3px;
@@ -772,6 +800,7 @@
     .tabR-four-htm,
     .tabR-five-htm {
       /* Initially hide tab content */
+      max-width: 500px;
       display: none;
     }
 
@@ -1060,6 +1089,14 @@
     font-optical-sizing: auto;
     font-weight: 500;
     font-style: normal;
+  }
+
+  .heading-gen {
+    font-family: "Karla", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: bold;
+    font-size: 18px;
+    border-top: 2px solid #201335;
   }
 /* End of Fonts */
 
