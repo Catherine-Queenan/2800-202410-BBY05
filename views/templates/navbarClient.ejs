@@ -29,7 +29,7 @@
 		  <li class="nav-item pe-3">
 			<div class="d-flex flex-column align-items-center">
 			  <%- include('icon', {iconPath: '/icons/Calendar.png', altText: 'Calendar', action: '/calendar', theClass: '', theAttributes: 'style= width:30px; height:30px;'}) %>
-			  <a href="/"><span class="yeseva-one">Booking</span></a>
+			  <a href="/calendar"><span class="yeseva-one">Booking</span></a>
 			</div>
 		  </li>
 		  <li class="nav-item">
@@ -67,10 +67,12 @@
 			  <li class="nav-item py-3">
 				<div class="d-flex align-items-center">
 				  <%- include('icon', {iconPath: '/icons/Bell.png', altText: 'Bell', action: '/', theClass: '', theAttributes: 'style= width:30px; height:30px;'}) %>
+				  <% if(alerts > 0){ %> 
 				  <span class="position-absolute top-30 start-90 badge rounded-pill orangeBackground purple" style="transform:translate(75%,-60%) !important; font-weight:800; cursor:pointer;">
-					9
+					<%=alerts%>
 					<span class="visually-hidden">unread alerts</span>
 				  </span>
+				<% } %>
 				  <a href="/" class="ps-3"><span class="yeseva-one">Alerts</span></a>
 				</div>
 			  </li>
