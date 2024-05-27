@@ -381,6 +381,7 @@ app.post('/submitSignup/:type', async (req, res) => {
 				lastName: Joi.string().pattern(/^[a-zA-Z\s]*$/).max(20).required(),
 				email: Joi.string().email().required(),
 				phone: Joi.string().pattern(/^[0-9\s]*$/).length(10).required(),
+				address: Joi.string().pattern(/^[0-9a-zA-Z\s]*$/).required(),
 				password: Joi.string().max(20).min(2).required()
 			}
 		);
@@ -391,6 +392,7 @@ app.post('/submitSignup/:type', async (req, res) => {
 			lastName: req.body.lastName,
 			email: req.body.email,
 			phone: req.body.phone,
+			address: req.body.address,
 			password: req.body.password
 		};
 
@@ -405,7 +407,10 @@ app.post('/submitSignup/:type', async (req, res) => {
 		}
 
 		//Hash entered password for storing
-		var hashPass = await bcrypt.hash(user.password, saltRounds);
+		let [hashPass, hashAddress] = await Promise.all([
+			bcrypt.hash(user.password, saltRounds),
+			bcrypt.hash(user.address, saltRounds)
+		]);
 
 		//Store new user info in the appdb
 		await appUserCollection.insertOne({
@@ -435,7 +440,8 @@ app.post('/submitSignup/:type', async (req, res) => {
 			email: user.email,
 			firstName: user.firstName,
 			lastName: user.lastName,
-			phone: user.phone
+			phone: user.phone,
+			address: hashAddress
 		});
 
 	//Submits info for business side forms
