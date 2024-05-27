@@ -200,6 +200,24 @@ function adminAuthorization(req, res, next) {
 		next();
 	}
 }
+
+function clientAuthorization(req, res, next) {
+	if (!isClient(req)) {
+		res.status(403);
+		res.render('errorMessage', { error: 'Not Authorized - 403', loggedIn: isValidSession(req), userType: req.session.userType });
+	} else {
+		next();
+	}
+}
+
+function businessAuthorization(req, res, next) {
+	if (!isBusiness(req)) {
+		res.status(403);
+		res.render('errorMessage', { error: 'Not Authorized - 403', loggedIn: isValidSession(req), userType: req.session.userType });
+	} else {
+		next();
+	}
+}
 //Function to call
 async function updateUnreadAlertsMidCode(req) {
     if (req.session && req.session.email) {
@@ -269,10 +287,10 @@ async function getdb(dbName) {
 // Function to encrypt the PDF file
 function encrypt(buffer) {
     const iv = crypto.randomBytes(16);
-    console.log('IV:', iv); // Debugging
+    //console.log('IV:', iv); // Debugging
     const cipher = crypto.createCipheriv(algorithm, Buffer.from(secretKey, 'utf8'), iv);
     const encrypted = Buffer.concat([cipher.update(buffer), cipher.final()]);
-    console.log('Encrypted content:', encrypted); // Debugging
+    //console.log('Encrypted content:', encrypted); // Debugging
     return {
         iv: iv.toString('hex'),
         content: encrypted.toString('hex')
@@ -282,7 +300,7 @@ function encrypt(buffer) {
 //Upload files to Google Cloud
 async function uploadFileToGoogleCloud(fileBuffer, fileName) {
     const encryptedFile = encrypt(fileBuffer);
-    console.log('Encrypted File:', encryptedFile); // Debugging
+    //console.log('Encrypted File:', encryptedFile); // Debugging
     const bucket = googleStorage.bucket(bucketName);
     const file = bucket.file(fileName);
 
@@ -291,8 +309,28 @@ async function uploadFileToGoogleCloud(fileBuffer, fileName) {
         encryptedStream.pipe(file.createWriteStream())
             .on('error', reject)
             .on('finish', () => {
-                resolve(`gs://${bucketName}/${fileName}`);
+                resolve(file.publicUrl());
             });
+    });
+}
+
+async function overwriteOrUploadFile(buffer, filePath) {
+    const bucket = googleStorage.bucket(bucketName);
+    const file = bucket.file(filePath);
+    const encryptedFile = encrypt(buffer);
+    const encryptedStream = Readable.from(Buffer.from(encryptedFile.content, 'hex'));
+
+    return new Promise((resolve, reject) => {
+        encryptedStream.pipe(file.createWriteStream({
+            metadata: {
+                contentType: 'application/pdf',
+            },
+            resumable: false
+        }))
+        .on('error', reject)
+        .on('finish', () => {
+            resolve(file.publicUrl());
+        });
     });
 }
 
@@ -1177,6 +1215,87 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
     res.redirect('/profile');
 });
 
+// Overwriting Files
+//async function overwriteOrUploadFile(buffer, filePath) {
+//    const bucket = googleStorage.bucket(bucketName);
+//    const file = bucket.file(filePath);
+//    await file.save(buffer, {
+//        contentType: 'application/pdf',
+//        resumable: false
+//    });
+//    return file.publicUrl();
+//}
+
+// Configure multer to handle fields with specific names
+const uploadFields = upload.fields([
+  { name: 'rabiesUpload', maxCount: 1 },
+  { name: 'leptospiaUpload', maxCount: 1 },
+  { name: 'bordatellaUpload', maxCount: 1 },
+  { name: 'bronchisepticaUpload', maxCount: 1 },
+  { name: 'DA2PPUpload', maxCount: 1 }
+]);
+
+// Route to handle updating vaccination records
+app.post('/dog/:dogId/editVaccines', uploadFields, async (req, res) => {
+  const userdb = await getdb(req.session.userdb);
+  const dogId = req.params.dogId;
+
+  let dog = await userdb.collection('dogs').findOne({ _id: new ObjectId(dogId) });
+
+  if (!dog) {
+    return res.status(404).send('Dog not found');
+  }
+
+  // Update existing fields with incoming data
+  dog.dogName = req.body.dogName || dog.dogName;
+  dog.sex = req.body.sex || dog.sex;
+  dog.birthday = req.body.birthday || dog.birthday;
+  dog.weight = req.body.weight || dog.weight;
+  dog.specialAlerts = req.body.specialAlerts || dog.specialAlerts;
+
+  // Update the neutered status
+  if (req.body.neuteredStatus) {
+    dog.neuteredStatus = req.body.neuteredStatus;
+  }
+
+  const vaccineTypes = ['rabies', 'leptospia', 'bordatella', 'bronchiseptica', 'DA2PP'];
+  
+  for (let vaccineType of vaccineTypes) {
+    const file = req.files[`${vaccineType}Upload`] ? req.files[`${vaccineType}Upload`][0] : null;
+    if (file) {
+      let fileType = file.mimetype.split('/')[0];
+      let dogName = dog.dogName;
+      let lastName = req.session.name.split(' ')[1];
+
+      if (fileType === 'application') {
+        let fullFileName = `${lastName}_${dogName}_${vaccineType}.pdf`;
+        let filePath = `pdfs/${fullFileName}`;
+        let fileUrl = await overwriteOrUploadFile(file.buffer, filePath);
+
+        // Initialize vaccine type if it doesn't exist
+        if (!dog[vaccineType]) {
+          dog[vaccineType] = {};
+        }
+
+        // Add vaccine record URL
+        dog[vaccineType].vaccineRecord = fileUrl;
+
+        // Add or update expiration date
+        if (req.body[`${vaccineType}Date`]) {
+          dog[vaccineType].expirationDate = req.body[`${vaccineType}Date`];
+        }
+
+        // Add to vaccineRecords array
+        dog.vaccineRecords = dog.vaccineRecords || [];
+        dog.vaccineRecords.push({ fileName: file.originalname, fileUrl });
+      }
+    }
+  }
+
+  await userdb.collection('dogs').updateOne({ _id: new ObjectId(dogId) }, { $set: dog });
+  res.redirect('/profile');
+});
+
 //Show specific dog
 app.get('/dog/:dogId', async(req, res) => {
 	const userdb = await getdb(req.session.userdb);
@@ -1524,40 +1643,43 @@ app.post('/getClients', async (req, res) => {
 });
 
 app.post('/addEvent', async (req, res) => {
-	const userdb = await getdb(req.session.userdb);
-	const date = req.body.calModDate;
-	const startDateStr = date + "T" + req.body.calModStartHH + ":" + req.body.calModStartMM + ":00";
-	const endDateStr = date + "T" + req.body.calModEndHH + ":" + req.body.calModEndMM + ":00";
-	const startDate = new Date(startDateStr);
-	const endDate = new Date(endDateStr);
-	const trainerName = req.session.name;
-	const clientEmail = req.body.calModClient;
-	const eventInfo = req.body.calModInfo;
-	const event = {
-		title: req.body.calModTitle,
-		start: startDateStr,
-		end: endDateStr,
-		trainer: trainerName,
-		client: clientEmail,
-		info: eventInfo
-	};
+    const userdb = await getdb(req.session.userdb);
+    const date = req.body.calModDate;
+    const startDateStr = date + "T" + req.body.calModStartHH + ":" + req.body.calModStartMM + ":00";
+    const endDateStr = date + "T" + req.body.calModEndHH + ":" + req.body.calModEndMM + ":00";
+    const startDate = new Date(startDateStr);
+    const endDate = new Date(endDateStr);
+    const trainerName = req.session.name;
+    const clientEmail = req.body.calModClient;
+    const eventInfo = req.body.calModInfo;
+    const event = {
+        title: req.body.calModTitle,
+        start: startDateStr,
+        end: endDateStr,
+        trainer: trainerName,
+        client: clientEmail,
+        info: eventInfo
+    };
 
-	// Check for duplicate event
-	let check = userdb.collection('eventSource').find({
-		event: event.title,
-		start: event.start,
-		end: event.end,
-		client: event.client
-	}).project({_id: 1}).toArray(); //Check for everything but info
+    // Check for duplicate event
+    let check = await userdb.collection('eventSource').find({
+        title: event.title,
+        start: event.start,
+        end: event.end,
+        client: event.client
+    }).project({_id: 1}).toArray();
 
-	if (check.length > 0) {
-		// TODO DUPE ERROR EXIT HERE
-	} else {
-		await userdb.collection('eventSource').insertOne(event);
-	}
+    if (check.length > 0) {
+        // TODO DUPE ERROR EXIT HERE
+    } else {
+        await userdb.collection('eventSource').insertOne(event);
+    }
+
+    const businessEmail = req.session.email;
+
     // Schedule the email to be sent immediately after the event is added
     await sendEmail(
-        req.session.email,
+        [businessEmail, clientEmail],
         'New Appointment - Pawfolio',
         event.title,
         startDate.toDateString(),

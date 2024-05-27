@@ -80,43 +80,43 @@
 				<div class="resource-form">
 					<div class="tabR-two-htm">
 
-				<form  class="my-3" id="vaccineInfo" method="post"  enctype="multipart/form-data">
-					<div class="my-3 py-2">
-						<h5 style="font-weight:700;">Rabies</h5>
-						<%- include('templates/dateInput', {divId: 'rabiesDateDiv', xDivAttributes:'', dateId: 'rabiesDate',dateClass:'vaccineInput', dateName:'rabiesDate', label:'Expiration Date', xDateAttributes:'disabled value=' + dog.rabies.expirationDate}) %>
-						<%- include('templates/uploadFile', {divId:'rabiesProofDiv', xDivAttributes:'class=vaccineUpload style=display:none', fileId: 'rabiesProof', fileName:'dogUpload', label:'Please Provide a Vaccination Record for Proof', xfileAttributes: 'class=vaccineProof accept=.pdf'})%>
-					</div>
+				<form class="my-3" id="vaccineInfo" method="post" action="/dog/<%= dog._id %>/editVaccines" enctype="multipart/form-data">
+                  <div class="my-3 py-2">
+                    <h5 style="font-weight:700;">Rabies</h5>
+                    <%- include('templates/dateInput', {divId: 'rabiesDateDiv', xDivAttributes:'', dateId: 'rabiesDate',dateClass:'vaccineInput', dateName:'rabiesDate', label:'Expiration Date', xDateAttributes:'disabled value=' + dog.rabies.expirationDate}) %>
+                    <%- include('templates/uploadFile', {divId:'rabiesProofDiv', xDivAttributes:'class=vaccineUpload style=display:none', fileId: 'rabiesProof', fileName:'rabiesUpload', label:'Please Provide a Vaccination Record for Proof', xfileAttributes: 'class=vaccineProof accept=.pdf'}) %>
+                  </div>
 
-					<div class="my-3 py-2">
-						<h5 style="font-weight:700;">Leptospia</h5>
-						<%- include('templates/dateInput', {divId: 'leptospiaDateDiv', xDivAttributes:'', dateId: 'leptospiaDate',dateClass:'vaccineInput', dateName:'leptospiaDate', label:'Expiration Date', xDateAttributes:'disabled value=' + dog.leptospia.expirationDate}) %>
-						<%- include('templates/uploadFile', {divId:'leptospiaProofDiv', xDivAttributes:'class=vaccineUpload style=display:none', fileId: 'leptospiaProof', fileName:'dogUpload', label:'Provide New Proof of Vaccincation', xfileAttributes: 'class=vaccineProof accept=.pdf'})%>
-					</div>
+                  <div class="my-3 py-2">
+                    <h5 style="font-weight:700;">Leptospia</h5>
+                    <%- include('templates/dateInput', {divId: 'leptospiaDateDiv', xDivAttributes:'', dateId: 'leptospiaDate',dateClass:'vaccineInput', dateName:'leptospiaDate', label:'Expiration Date', xDateAttributes:'disabled value=' + dog.leptospia.expirationDate}) %>
+                    <%- include('templates/uploadFile', {divId:'leptospiaProofDiv', xDivAttributes:'class=vaccineUpload style=display:none', fileId: 'leptospiaProof', fileName:'leptospiaUpload', label:'Provide New Proof of Vaccination', xfileAttributes: 'class=vaccineProof accept=.pdf'}) %>
+                  </div>
 
-					<div class="my-3 py-2">
-						<h5 style="font-weight:700;">Bordatella</h5>
-						<%- include('templates/dateInput', {divId: 'bordatellaDateDiv', xDivAttributes:'', dateId: 'bordatellaDate',dateClass:'vaccineInput', dateName:'bordatellaDate', label:'Expiration Date', xDateAttributes:'disabled value=' + dog.bordatella.expirationDate}) %>
-						<%- include('templates/uploadFile', {divId:'bordatellaProofDiv', xDivAttributes:'class=vaccineUpload style=display:none', fileId: 'bordatellaProof', fileName:'dogUpload', label:'Provide New Proof of Vaccincation', xfileAttributes: 'class=vaccineProof accept=.pdf'})%>
-					</div>
+                  <div class="my-3 py-2">
+                    <h5 style="font-weight:700;">Bordatella</h5>
+                    <%- include('templates/dateInput', {divId: 'bordatellaDateDiv', xDivAttributes:'', dateId: 'bordatellaDate',dateClass:'vaccineInput', dateName:'bordatellaDate', label:'Expiration Date', xDateAttributes:'disabled value=' + dog.bordatella.expirationDate}) %>
+                    <%- include('templates/uploadFile', {divId:'bordatellaProofDiv', xDivAttributes:'class=vaccineUpload style=display:none', fileId: 'bordatellaProof', fileName:'bordatellaUpload', label:'Provide New Proof of Vaccination', xfileAttributes: 'class=vaccineProof accept=.pdf'}) %>
+                  </div>
 
-					<div class="my-3 py-2">
-						<h5 style="font-weight:700;">Bronchiseptica</h5>
-						<%- include('templates/dateInput', {divId: 'bronchisepticaDateDiv', xDivAttributes:'', dateId: 'bronchisepticaDate',dateClass:'vaccineInput', dateName:'bronchisepticaDate', label:'Expiration Date', xDateAttributes:'disabled value=' + dog.bronchiseptica.expirationDate}) %>
-						<%- include('templates/uploadFile', {divId:'bronchisepticaProofDiv', xDivAttributes:'class=vaccineUpload style=display:none', fileId: 'bronchisepticaProof', fileName:'dogUpload', label:'Provide New Proof of Vaccincation', xfileAttributes: 'class=vaccineProof accept=.pdf'})%>
-					</div>
-				
-					<div class="my-3 py-2">
-						<h5 style="font-weight:700;">DA2PP</h5>
-						<%- include('templates/dateInput', {divId: 'DA2PPDateDiv', xDivAttributes:'', dateId: 'DA2PPDate',dateClass:'vaccineInput', dateName:'DA2PPDate', label:'Expiration Date', xDateAttributes:'disabled value=' + dog.DA2PP.expirationDate}) %>
-						<%- include('templates/uploadFile', {divId:'DA2PPProofDiv', xDivAttributes:'class=vaccineUpload style=display:none', fileId: 'DA2PPProof', fileName:'dogUpload', label:'Provide New Proof of Vaccincation', xfileAttributes: 'class=vaccineProof accept=.pdf'})%>
-					</div>
+                  <div class="my-3 py-2">
+                    <h5 style="font-weight:700;">Bronchiseptica</h5>
+                    <%- include('templates/dateInput', {divId: 'bronchisepticaDateDiv', xDivAttributes:'', dateId: 'bronchisepticaDate',dateClass:'vaccineInput', dateName:'bronchisepticaDate', label:'Expiration Date', xDateAttributes:'disabled value=' + dog.bronchiseptica.expirationDate}) %>
+                    <%- include('templates/uploadFile', {divId:'bronchisepticaProofDiv', xDivAttributes:'class=vaccineUpload style=display:none', fileId: 'bronchisepticaProof', fileName:'bronchisepticaUpload', label:'Provide New Proof of Vaccination', xfileAttributes: 'class=vaccineProof accept=.pdf'}) %>
+                  </div>
 
-					<div class="my-3 d-flex justify-content-between">
-					<%- include('templates/button', {action:'',xClasses:'editButton',xAttributes:'id=vaccineEditButton type=button value=vaccine',content:'Edit'}) %>
-					<%- include('templates/button', {action:'',xClasses:'cancelButton',xAttributes:'id=vaccineCancelButton type=button value=vaccine style=display:none',content:'Cancel'}) %>
-					<%- include('templates/button', {action: dog._id + '/editVaccines',xClasses:'',xAttributes:'id=vaccineSaveButton style=display:none',content:'Save'}) %>
-				</div>
-				</form>
+                  <div class="my-3 py-2">
+                    <h5 style="font-weight:700;">DA2PP</h5>
+                    <%- include('templates/dateInput', {divId: 'DA2PPDateDiv', xDivAttributes:'', dateId: 'DA2PPDate',dateClass:'vaccineInput', dateName:'DA2PPDate', label:'Expiration Date', xDateAttributes:'disabled value=' + dog.DA2PP.expirationDate}) %>
+                    <%- include('templates/uploadFile', {divId:'DA2PPProofDiv', xDivAttributes:'class=vaccineUpload style=display:none', fileId: 'DA2PPProof', fileName:'DA2PPUpload', label:'Provide New Proof of Vaccination', xfileAttributes: 'class=vaccineProof accept=.pdf'}) %>
+                  </div>
+
+                  <div class="my-3 d-flex justify-content-between">
+                    <%- include('templates/button', {action:'',xClasses:'editButton',xAttributes:'id=vaccineEditButton type=button value=vaccine',content:'Edit'}) %>
+                    <%- include('templates/button', {action:'',xClasses:'cancelButton',xAttributes:'id=vaccineCancelButton type=button value=vaccine style=display:none',content:'Cancel'}) %>
+                    <%- include('templates/button', {action: dog._id + '/editVaccines',xClasses:'',xAttributes:'id=vaccineSaveButton style=display:none',content:'Save'}) %>
+                  </div>
+                </form>
 				</div>
 			</div>
 				</div>
