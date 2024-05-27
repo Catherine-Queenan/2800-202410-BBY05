@@ -38,7 +38,11 @@
                 <p>Program:</p>
                 <div class="card">
                 <%- include('templates/clientViewProgram', {program: program})%>
-            </div>
+                </div>
+                <p><%=companyName%>'s <a class="karla-heavy" href="/termsAndCondition/<%=companyName%>">Terms and Conditions</a></p>
+                <div class="check-buttons my-4">
+                    <%- include('templates/checkmark', {classes: '', value:'agree', name:'agreement', id: 'termsAndConditions', label:"I have read and agree with the provided trainer's terms and conditions", xAttr:''}) %>
+                </div>
             </div>
             <div class="modal-footer">
                 <%- include('templates/button', {action:'',xClasses:'',xAttributes:'type=button data-bs-dismiss=modal', content:'Cancel'}) %>

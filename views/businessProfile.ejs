@@ -18,7 +18,7 @@
 							<div class="d-flex justify-content-center">
 								<%- include('templates/defaultingPic', {pic: business.logo, picId: 'logoShow'})%>
 							</div>
-							<%- include('templates/uploadFile', {divId:'businessUpload', xDivAttributes:'style=display:none', fileId:'logo',fileName:'accountUpload', label:'Upload your Logo:', xfileAttributes:'accept=.png,.jpg, .jpeg'}) %>
+							<%- include('templates/uploadFile', {divId:'businessUpload', xDivAttributes:'style=display:none', fileId:'logo',fileName:'accountUpload', label:'Upload your Logo:', xfileAttributes:'class=picUpload accept=.png,.jpg, .jpeg'}) %>
 								<div class="form-group">
 									<label for="companyEmail">Company Email:</label>
 									<input class="businessInfo" type="email" id="companyEmail" name="email" value="<%=business.email%>" required disabled>
@@ -53,7 +53,14 @@
 									<label for="businessDescrtiption">Business Description:</label>
 									<textarea class="form-control auto-resize businessInfo" id="businessDescrtiption" name="description" rows="4" disabled><%=business.description%></textarea>
 								</div>
-						
+
+								<%- include('templates/uploadFile', {divId:'termsAndConditionsUpload', xDivAttributes:'style=display:none', fileId:'termsAndConditions',fileName:'accountUpload', label:'Upload your Terms and Conditions (pdf only)', xfileAttributes:'accept=.pdf'}) %>
+								<p id="contractMessage" style="display:none">
+								<% if(business.contract != '' && business.contract != null) { %>
+									You have already uploaded a contract. Reuploading will replace it
+								<% } else {%>
+									You have not upload any contract yet
+								<% } %></p>
 								<div class="my-3 d-flex justify-content-between">
 								
 								<%- include('templates/button', {action:'',xClasses:'editButton col-3',xAttributes:'id=businessEditButton type=button value=business',content:'Edit'}) %>
@@ -70,7 +77,7 @@
 							<div class="d-flex justify-content-center">
 								<%- include('templates/defaultingPic', {pic: trainer.trainerPic, picId: 'trainerPicShow'})%>
 							</div>
-							<%- include('templates/uploadFile', {divId:'trainerUpload', xDivAttributes:'style=display:none', fileId:'trainerPic',fileName:'accountUpload', label:'Upload your Photo:', xfileAttributes:'accept=.png,.jpg, .jpeg'}) %>
+							<%- include('templates/uploadFile', {divId:'trainerUpload', xDivAttributes:'style=display:none', fileId:'trainerPic',fileName:'accountUpload', label:'Upload your Photo:', xfileAttributes:'class=picUpload accept=.png,.jpg, .jpeg'}) %>
 							
 							<div class="form-group">
 								<label for="trainerFirstName">First Name:</label>
@@ -179,7 +186,7 @@
 
 <script>
 	//Find the profile image upload element
-	let picUploads = document.querySelectorAll('[name=accountUpload]');
+	let picUploads = document.querySelectorAll('.picUpload');
 
 	//Change the image upload if a file was inputted
 	picUploads.forEach((upload) => {
@@ -246,6 +253,12 @@
 				serviceButtons.forEach((button) => {
 					button.style = 'display: inline';
 				});
+
+				//Display Terms and Conditions upload
+				let termsAndConditionsDiv = document.getElementById('termsAndConditionsUpload');
+				termsAndConditionsDiv.style='display:block';
+				let contractMessage = document.getElementById('contractMessage');
+				contractMessage.style='display:block';
 			
 				//Display the add service button
 				let addServiceButton = document.getElementById('addService');
@@ -328,7 +341,6 @@
 			let upload = document.getElementById(button.value + 'Upload');
 			upload.style = 'display: none';
 
-
 			//Select and enable all input fields
 			let fields = document.querySelectorAll('.' + button.value + 'Info');
 			fields.forEach((field) => {
@@ -343,6 +355,13 @@
 
 				let serviceInput = document.getElementById('toAddService');
 				serviceInput.value = '';
+				
+				//Hide Terms and Conditions upload
+				let termsAndConditionsDiv = document.getElementById('termsAndConditionsUpload');
+				termsAndConditionsDiv.style='display:none';
+				let contractMessage = document.getElementById('contractMessage');
+				contractMessage.style='display:none';
+
 				//Hide the add service button
 				let addServiceButton = document.getElementById('addService');
 				addServiceButton.style = 'display: none';
