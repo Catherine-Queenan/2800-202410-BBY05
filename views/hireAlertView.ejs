@@ -8,10 +8,13 @@
     </form>
     <div class="card">
         <div class="card-title">
+            <p class="h4 karla-heavy">Client Address: <%=address%></p>
             <%- include('templates/defaultingPic', {picId: 'dogPic', pic: dog.dogPic}) %>
             <p class="h5"><%=alert.dogName%></p>
         </div>
         <div class="card-body">
+            <p>Breed: <%=dog.breed%></p>
+
             <% if(dog.neuteredStatus == ''){ %>
                 <p>Neutered Status: Unneutered</p>
             <% } else { %>

@@ -419,6 +419,7 @@ app.post('/submitSignup/:type', async (req, res) => {
 				lastName: Joi.string().pattern(/^[a-zA-Z\s]*$/).max(20).required(),
 				email: Joi.string().email().required(),
 				phone: Joi.string().pattern(/^[0-9\s]*$/).length(10).required(),
+				address: Joi.string().pattern(/^[0-9a-zA-Z',\-&*@\s]*$/).required(),
 				password: Joi.string().max(20).min(2).required()
 			}
 		);
@@ -429,6 +430,7 @@ app.post('/submitSignup/:type', async (req, res) => {
 			lastName: req.body.lastName,
 			email: req.body.email,
 			phone: req.body.phone,
+			address: req.body.address,
 			password: req.body.password
 		};
 
@@ -443,7 +445,7 @@ app.post('/submitSignup/:type', async (req, res) => {
 		}
 
 		//Hash entered password for storing
-		var hashPass = await bcrypt.hash(user.password, saltRounds);
+		let hashPass = await bcrypt.hash(user.password, saltRounds);
 
 		//Store new user info in the appdb
 		await appUserCollection.insertOne({
@@ -473,7 +475,8 @@ app.post('/submitSignup/:type', async (req, res) => {
 			email: user.email,
 			firstName: user.firstName,
 			lastName: user.lastName,
-			phone: user.phone
+			phone: user.phone,
+			address: user.address
 		});
 
 	//Submits info for business side forms
@@ -929,6 +932,9 @@ app.get('/profile', sessionValidation, async(req, res) => {
 			}
 		}
 
+		//Unhash client address
+
+
 		//Render client profile page
 		res.render('clientProfile', {loggedIn: isValidSession(req), user: user, dogs: dogs, records: outstandingBalance, userName: req.session.name, userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
 		return;
@@ -1036,6 +1042,7 @@ app.post('/profile/edit/:editType', sessionValidation, upload.array('accountUplo
 			},
 			discount: req.body.discounts,
 			hours: req.body.hours,
+			sessions: req.body.sessions,
 			description: req.body.description
 		}
 
@@ -1073,6 +1080,7 @@ app.post('/program/:programId/edit', async(req, res) => {
 		},
 		discount: req.body.discounts,
 		hours: req.body.hours,
+		sessions: req.body.sessions,
 		description: req.body.description
 	}
 
@@ -1096,6 +1104,7 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
 	var schema = Joi.object(
 		{
 			dogName: Joi.string().pattern(/^[a-zA-Z\s\'\-]*$/).max(20),
+			dogBreed: Joi.string().pattern(/^[a-zA-Z\s\'\-]*$/).max(40),
 			specialAlerts: Joi.string().pattern(/^[A-Za-z0-9 _.,!"'()#;:\s]*$/).allow(null, '')
 		}
 	);
@@ -1104,7 +1113,7 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
         req.body.specialAlerts = '';
     }
 
-    let validationRes = schema.validate({ dogName: req.body.dogName, specialAlerts: req.body.specialAlerts });
+    let validationRes = schema.validate({ dogName: req.body.dogName, dogBreed: req.body.dogBreed, specialAlerts: req.body.specialAlerts });
     // Deals with errors from validation
     if (validationRes.error != null) {
         let doc = '<body><p>Invalid Dog</p><br><a href="/addDog">Try again</a></body>';
@@ -1177,6 +1186,7 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
     }
 
     // Stores sex, birthday, weight, specialAlerts of the dog
+	dog.breed = req.body.dogBreed;
     dog.sex = req.body.sex;
     dog.birthday = req.body.birthday;
     dog.weight = req.body.weight;
@@ -1946,12 +1956,16 @@ app.get('/alerts/view/:alert', async(req, res) => {
 		let clientdbAccess = new MongoClient(`mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/${db}?retryWrites=true`);
 		let clientInfo = clientdbAccess.db(db);
 
-		let dog = await clientInfo.collection('dogs').find({_id: alert[0].dog}).toArray();
+		let [dog, address] = await Promise.all([
+			clientInfo.collection('dogs').find({_id: alert[0].dog}).toArray(),
+			clientInfo.collection('info').find({}).project({address: 1}).toArray()
+		]);
+
 		if(dog[0].dogPic != '' && dog[0].dogPic != null){
 			dog[0].dogPic = cloudinary.url(dog[0].dogPic);
 		}
 
-		res.render('hireAlertView', {loggedIn: isValidSession(req), userType: req.session.userType, alert: alert[0], dog: dog[0], unreadAlerts: req.session.unreadAlerts});
+		res.render('hireAlertView', {loggedIn: isValidSession(req), userType: req.session.userType, alert: alert[0], dog: dog[0], address: address[0].address, unreadAlerts: req.session.unreadAlerts});
 	} else {
 		res.redirect('/');
 	}
