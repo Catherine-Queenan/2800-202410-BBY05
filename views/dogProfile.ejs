@@ -157,6 +157,9 @@
 				//Toggles between the two forms
 				let toggleButton = document.getElementById('viewVaccines');
 
+				//Back Button
+				let backLinkButton = document.getElementById('backLinkButton');
+
 				deleteButton.addEventListener('click', () =>{
 					swalWithBootstrapButtons.fire({
 						title: "Are you sure?",
@@ -191,7 +194,6 @@
 				//Set up editting
 				editButtons.forEach((button) => {
 					button.addEventListener('click', () => {
-						let backLinkButton = document.getElementById('backLinkButton');
 						backLinkButton.innerHTML = 'Cancel';
 						//Hide the delete button and edit buttons
 						deleteButton.style = 'display:none';
@@ -263,6 +265,7 @@
 				
 				cancelButtons.forEach((button) => {
 					button.addEventListener('click', ()=>{
+						backLinkButton.innerHTML = 'Back';
 
 						//Hide the delete button and edit buttons
 						deleteButton.style = 'display:block';
