@@ -1,6 +1,6 @@
 <%- include("templates/header") %>
 	<div class="profile-container my-4 mx-3">
-		<%- include('templates/backLinkButton', {page: '/profile'}) %>
+		<%- include('templates/linkButton', {page: '/profile', content: "Back"}) %>
 		<h1 class="text-center my-4 yeseva-one"><%=dog.dogName%></h1>
 		<div class="d-flex justify-content-center">
 			<%- include('templates/defaultingPic', {pic: dog.dogPic, picId: 'dogPic'})%>

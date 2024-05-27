@@ -11,32 +11,26 @@ document.addEventListener('DOMContentLoaded', () => {
     // Go through all clients, fill in the template, and insert
     clientsParsed.forEach((person) => {
         let template = document.getElementById('clientCardTemplate').innerHTML;
-
+    
         // Replace placeholder strings with actual data
         template = template.replace('[firstNamePlaceholder]', person.firstName);
         template = template.replace('[lastNamePlaceholder]', person.lastName);
         template = template.replace('[emailPlaceholder]', person.email);
-
-        //----------------------
+    
         // Create a temporary div to hold the template content
         let tempDiv = document.createElement('div');
         tempDiv.innerHTML = template;
-
+    
         // Find the profileLink element within the template content
         let profileLink = tempDiv.querySelector('.profileLink');
-
+    
         // Set the href attribute of the profileLink
-        if (profileLink) {
-            profileLink.href = `/clientProfile/${person._id}`;
-            console.log('linked!');
-        }
-        //-----------------------
-
-
+        profileLink.href = `/clientProfile/${person._id}`;
+    
         // Insert the compiled template into the client listing
-        document.getElementById('clientListing').insertAdjacentHTML('beforeend', template);
-
-        
+        document.getElementById('clientListing').insertAdjacentHTML('beforeend', tempDiv.innerHTML);
+    
+        // The tempDiv is no longer needed and will be garbage collected
     });
     console.log('loaded page')
 });
