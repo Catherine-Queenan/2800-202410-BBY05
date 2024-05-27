@@ -947,7 +947,7 @@ app.post('/profile/edit/:editType', sessionValidation, upload.array('accountUplo
 	} else if (req.params.editType == 'businessDetails'){
 
 		//Grab current logo id
-		let business = await userdb.collection('info').find({email: req.session.email}).project({logo: 1}).toArray();
+		let business = await userdb.collection('info').find({companyName: req.session.name}).toArray();
 
 		//Logo id is updated with a newly upload logo or kept the same
 		if(req.files.length != 0){
@@ -955,7 +955,7 @@ app.post('/profile/edit/:editType', sessionValidation, upload.array('accountUplo
 			req.body.logo = await uploadImage(req.files[0], "businessLogos");
 		} else {
 			req.body.logo = business[0].logo;
-		}
+		}		
 
 		//update database
 		await userdb.collection('info').updateOne({companyName: req.session.name}, {$set: req.body});
