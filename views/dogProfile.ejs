@@ -186,7 +186,8 @@
 				//Set up editting
 				editButtons.forEach((button) => {
 					button.addEventListener('click', () => {
-
+						let backLinkButton = document.getElementById('backLinkButton');
+						backLinkButton.innerHTML = 'Cancel';
 						//Hide the delete button and edit buttons
 						deleteButton.style = 'display:none';
 						button.style = 'display:none';
@@ -280,6 +281,8 @@
 						}
 					});
 				});
+
+				
 			
 
 			</script>
