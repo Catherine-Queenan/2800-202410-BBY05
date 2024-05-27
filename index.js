@@ -6,8 +6,11 @@ const MongoStore = require('connect-mongo');
 const ObjectId = require('mongodb').ObjectId;
 
 const bcrypt = require('bcrypt');
+
 const {Storage} = require('@google-cloud/storage');
 const {Readable} = require('stream');
+const crypto = require('crypto');
+
 const multer = require("multer");
 const stream = require("stream");
 const cloudinary = require('cloudinary').v2;
@@ -36,10 +39,18 @@ const googleCredentials = {
 const googleStorage = new Storage({ credentials: googleCredentials });
 const bucketName = process.env.BUCKET_NAME;
 
+//For File Encryption
+const algorithm = 'aes-256-ctr';
+const secretKey = process.env.SECRET_KEY;
+
+if (!secretKey || secretKey.length !== 32) {
+    throw new Error("SECRET_KEY is not defined or does not meet the required length (32 characters) in the environment variables");
+}
+//console.log(secretKey);
+
 //END OF GOOGLE CLOUD STORAGE
 
 const nodemailer = require('nodemailer');
-const crypto = require('crypto')
 const app = express();
 const port = process.env.PORT || 3000;
 const Joi = require('joi');
@@ -224,14 +235,29 @@ async function setClientDatabase(client) {
 	clientdb = clientdbAccess.db(db);
 }
 
+// Function to encrypt the PDF file
+function encrypt(buffer) {
+    const iv = crypto.randomBytes(16);
+    console.log('IV:', iv); // Debugging
+    const cipher = crypto.createCipheriv(algorithm, Buffer.from(secretKey, 'utf8'), iv);
+    const encrypted = Buffer.concat([cipher.update(buffer), cipher.final()]);
+    console.log('Encrypted content:', encrypted); // Debugging
+    return {
+        iv: iv.toString('hex'),
+        content: encrypted.toString('hex')
+    };
+}
+
 //Upload files to Google Cloud
 async function uploadFileToGoogleCloud(fileBuffer, fileName) {
+    const encryptedFile = encrypt(fileBuffer);
+    console.log('Encrypted File:', encryptedFile); // Debugging
     const bucket = googleStorage.bucket(bucketName);
     const file = bucket.file(fileName);
-    const stream = Readable.from(fileBuffer);
 
     return new Promise((resolve, reject) => {
-        stream.pipe(file.createWriteStream())
+        const encryptedStream = Readable.from(Buffer.from(encryptedFile.content, 'hex'));
+        encryptedStream.pipe(file.createWriteStream())
             .on('error', reject)
             .on('finish', () => {
                 resolve(`gs://${bucketName}/${fileName}`);
@@ -992,19 +1018,17 @@ app.get('/addDog', (req, res) => {
 app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
     setUserDatabase(req); // bandaid for testing
 
-	//validation schema
-	var schema = Joi.object(
-		{
-			dogName: Joi.string().pattern(/^[a-zA-Z\s]*$/).max(20),
-			specialAlerts: Joi.string().pattern(/^[A-Za-z0-9 _.,!"'()#;:\s]*$/).allow(null, '')
-		}
-	);
+    // validation schema
+    var schema = Joi.object({
+        dogName: Joi.string().pattern(/^[a-zA-Z\s]*$/).max(20),
+        specialAlerts: Joi.string().pattern(/^[A-Za-z0-9 _.,!"'()#;:\s]*$/).allow(null, '')
+    });
 
-	if(!req.body.specialAlerts){
-		req.body.specialAlerts = '';
-	}
+    if (!req.body.specialAlerts) {
+        req.body.specialAlerts = '';
+    }
 
-	let validationRes = schema.validate({dogName: req.body.dogName, specialAlerts: req.body.specialAlerts});
+    let validationRes = schema.validate({ dogName: req.body.dogName, specialAlerts: req.body.specialAlerts });
     // Deals with errors from validation
     if (validationRes.error != null) {
         let doc = '<body><p>Invalid Dog</p><br><a href="/addDog">Try again</a></body>';
@@ -1035,25 +1059,25 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
         let v = 0;
         for (let i = 0; i < req.files.length; i++) {
             let vaccineType;
-            
+
             // Check if you have one or multiple vaccines to upload
             if (Array.isArray(req.body.vaccineCheck)) {
                 vaccineType = req.body.vaccineCheck[v]; // We put v here because the first iteration (i) might be the profile photo image
             } else {
                 vaccineType = req.body.vaccineCheck;
             }
-            
+
             let filename = req.files[i].mimetype;
             filename = filename.split('/');
             let fileType = filename[0];
             let dogName = req.body.dogName;
-            
+
             // Iterate v so that we can get the number of vaccines
             // This accounts for the potential profile photo upload
-            if(fileType != 'image') {
+            if (fileType != 'image') {
                 v++;
             }
-            
+
             // Get the last name of the client
             let lastName = req.session.name.split(' ')[1];
 
@@ -1069,24 +1093,24 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
         dog.dogPic = '';
     }
 
-	//stores the neutered status
-	if(req.body.neuteredStatus == 'neutered'){
-		dog.neuteredStatus = req.body.neuteredStatus;
-	} else {
-		dog.neuteredStatus = 'not neutered';
-	}
-	
-	//Stores sex, birthday, weight, specialAlerts of the dog
-	dog.sex = req.body.sex;
-	dog.birthday = req.body.birthday;
-	dog.weight = req.body.weight;
-	dog.specialAlerts = req.body.specialAlerts;
+    // stores the neutered status
+    if (req.body.neuteredStatus == 'neutered') {
+        dog.neuteredStatus = req.body.neuteredStatus;
+    } else {
+        dog.neuteredStatus = 'not neutered';
+    }
 
-	//Creates documents in the dog document for each vaccine
-	let allVaccines = ['rabies', 'leptospia', 'bordatella', 'bronchiseptica', 'DA2PP'];
-	allVaccines.forEach((vaccine)=>{
-		eval('dog.' + vaccine + '= {}');
-	});
+    // Stores sex, birthday, weight, specialAlerts of the dog
+    dog.sex = req.body.sex;
+    dog.birthday = req.body.birthday;
+    dog.weight = req.body.weight;
+    dog.specialAlerts = req.body.specialAlerts;
+
+    // Creates documents in the dog document for each vaccine
+    let allVaccines = ['rabies', 'leptospia', 'bordatella', 'bronchiseptica', 'DA2PP'];
+    allVaccines.forEach((vaccine) => {
+        eval('dog.' + vaccine + '= {}');
+    });
 
     // If dog has more than one vaccine, add the expiration date and pdf of the proof of vaccination to the specific vaccine document
     if (Array.isArray(req.body.vaccineCheck)) {
@@ -1102,8 +1126,8 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
             vaccineRecord: req.body[req.body.vaccineCheck + 'Proof']
         };
     }
-	
-	//Insert the dog into the database and return to profile
+
+    // Insert the dog into the database and return to profile
     await userdb.collection('dogs').insertOne(dog);
     res.redirect('/profile');
 });
