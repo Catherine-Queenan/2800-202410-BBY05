@@ -1737,7 +1737,63 @@ app.get('/clientList', async (req, res) => {
 	// get the list of clients that are added to the logged in dog trainer
 	// !Currently, the companyName is set to null because there is no system for business view user pages at the time of writing.!
 	clientList = await appUserCollection.find({companyName: null, userType: 'client'}).project({email: 1, firstName: 1, lastName: 1}).toArray();
-	res.render('clientList', {clientArray: clientList, loggedIn: isValidSession(req), userType: req.session.userType});
+	console.log(clientList.length);
+	res.render('clientList', {clientArray: clientList, loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
+});
+
+app.get('/clientProfile/:id', async (req, res) => {
+
+	// Get a list of all clients
+	const clients = await appUserCollection.find({userType: 'client'}).project({id: 1, email: 1, firstName: 1, lastName: 1, phone: 1}).toArray();
+
+	// Map their id's to a string
+	const ids = clients.map(item => item._id.toString());
+
+	// variable to store the client
+	let targetClient;
+
+	// loop through clients and find the target client to load the page with
+	for (let i = 0; i < clients.length; i++) {
+		if (ids[i] === req.params.id) {
+			targetClient = clients[i];
+		}
+	}
+
+	// used for locating the pfpUrl directory
+	const email = targetClient.email;
+
+	// // parse the email to be a dbname
+	// const emailParsed = targetClient.email.split('.').join('');
+	// const dbName = mongodb_clientdb + '-' + emailParsed;
+
+	setClientDatabase(req, email);
+	const clientdb = await getdb(req.session.clientdb);
+
+	// set the databases
+	const clientdbInfo = clientdb.collection('info');
+	const clientdbDogs = clientdb.collection('dogs');
+
+	//grab the array version of the pfp url
+	pfpUrlProcessing = await clientdbInfo.find({email}).project({profilePic: 1}).toArray();
+	
+	//store the url to be passed into render
+	pfpUrl = pfpUrlProcessing[0].profilePic;
+
+	if(pfpUrl != '') {
+		pfpUrl = cloudinary.url(pfpUrl);
+	}
+
+	//Gather dogs and their images if they have one
+	let dogs = await clientdbDogs.find({}).toArray();
+	for(let i = 0; i < dogs.length; i++){
+		let pic = dogs[i].dogPic;
+		if(pic != ''){
+			dogs[i].dogPic = cloudinary.url(pic);
+		}
+	}
+	console.log(dogs);
+
+	res.render('viewingClientProfile', {targetClient: targetClient, pfpUrl: pfpUrl, dogs: dogs, loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
 });
 
 app.use(express.static(__dirname + "/public"));
