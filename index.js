@@ -1633,40 +1633,43 @@ app.post('/getClients', async (req, res) => {
 });
 
 app.post('/addEvent', async (req, res) => {
-	const userdb = await getdb(req.session.userdb);
-	const date = req.body.calModDate;
-	const startDateStr = date + "T" + req.body.calModStartHH + ":" + req.body.calModStartMM + ":00";
-	const endDateStr = date + "T" + req.body.calModEndHH + ":" + req.body.calModEndMM + ":00";
-	const startDate = new Date(startDateStr);
-	const endDate = new Date(endDateStr);
-	const trainerName = req.session.name;
-	const clientEmail = req.body.calModClient;
-	const eventInfo = req.body.calModInfo;
-	const event = {
-		title: req.body.calModTitle,
-		start: startDateStr,
-		end: endDateStr,
-		trainer: trainerName,
-		client: clientEmail,
-		info: eventInfo
-	};
+    const userdb = await getdb(req.session.userdb);
+    const date = req.body.calModDate;
+    const startDateStr = date + "T" + req.body.calModStartHH + ":" + req.body.calModStartMM + ":00";
+    const endDateStr = date + "T" + req.body.calModEndHH + ":" + req.body.calModEndMM + ":00";
+    const startDate = new Date(startDateStr);
+    const endDate = new Date(endDateStr);
+    const trainerName = req.session.name;
+    const clientEmail = req.body.calModClient;
+    const eventInfo = req.body.calModInfo;
+    const event = {
+        title: req.body.calModTitle,
+        start: startDateStr,
+        end: endDateStr,
+        trainer: trainerName,
+        client: clientEmail,
+        info: eventInfo
+    };
 
-	// Check for duplicate event
-	let check = userdb.collection('eventSource').find({
-		event: event.title,
-		start: event.start,
-		end: event.end,
-		client: event.client
-	}).project({_id: 1}).toArray(); //Check for everything but info
+    // Check for duplicate event
+    let check = await userdb.collection('eventSource').find({
+        title: event.title,
+        start: event.start,
+        end: event.end,
+        client: event.client
+    }).project({_id: 1}).toArray();
 
-	if (check.length > 0) {
-		// TODO DUPE ERROR EXIT HERE
-	} else {
-		await userdb.collection('eventSource').insertOne(event);
-	}
+    if (check.length > 0) {
+        // TODO DUPE ERROR EXIT HERE
+    } else {
+        await userdb.collection('eventSource').insertOne(event);
+    }
+
+    const businessEmail = req.session.email;
+
     // Schedule the email to be sent immediately after the event is added
     await sendEmail(
-        req.session.email,
+        [businessEmail, clientEmail],
         'New Appointment - Pawfolio',
         event.title,
         startDate.toDateString(),
