@@ -5,8 +5,10 @@
         <div class="resource-html justify-content-center flex-fill" style="max-width:500px;">
             <input id="tabR-1" type="radio" name="tab" class="tabR-one btn-check" checked>
             <label for="tabR-1" class="tabR">Company</label>
+
             <input id="tabR-2" type="radio" name="tab" class="tabR-two btn-check">
             <label for="tabR-2" class="tabR">Programs</label>
+
             <div class="resource-form">
                 <div class="tabR-one-htm">
                     <div class="my-3">
@@ -16,18 +18,18 @@
                         <div style="font-size: 17px;">
                             <div class="container contacts my-2">
                                 <p class="heading-gen"><span class="karla-heavy">Contact Information:</span></p>
-                                <p><span class="karla-heavy">Email:</span> <span><%=business.email%></span></p>
-                                <p><span class="karla-heavy">Phone:</span> <span><%=business.phone%></span></p>
-                                <p><span class="karla-heavy">Website:</span> <a href="<%=business.companyWebsite%>"><%=business.companyWebsite%></a></p>
+                                <p><span class="karla-heavy fw-bold">Email:</span> <span><%=business.email%></span></p>
+                                <p><span class="karla-heavy fw-bold">Phone:</span> <span><%=business.phone%></span></p>
+                                <p><span class="karla-heavy fw-bold">Website:</span> <a href="<%=business.companyWebsite%>"><%=business.companyWebsite%></a></p>
                             </div>
                             <div class="container services">
-                                <p class="heading-gen"><span class="karla-heavy">Services Offered:</span></p>
+                                <p class="heading-gen"><span class="karla-heavy fw-bold">Services Offered:</span></p>
                                 <% for(let i=0; i < business.services.length; i++){ %>
-                                    <span class="border karla-heavy p-1 mx-1"><%=business.services[i]%></span>
+                                    <span class="karla-heavy p-1 mx-1 serviceIndv"><%=business.services[i]%></span>
                                 <% } %>
                             </div>
                             <div class="container my-4">
-                                <p class="heading-gen"><span class="karla-heavy">Description:</span></p>
+                                <p class="heading-gen"><span class="karla-heavy fw-bold">Description:</span></p>
                                 <p>
                                     <% if(business.description != '' && business.description != null){ %>
                                         <%=business.description%>
@@ -45,10 +47,10 @@
                             <p class="h3 yeseva-one my-1"><%=trainer.firstName%> <%=trainer.lastName%></p>
                         </div>
                         <div class="container">
-                            <p class="heading-gen"><span class="karla-heavy">Certifications:</span></p><span><%=trainer.certifications%></span>
+                            <p class="heading-gen"><span class="karla-heavy fw-bold">Certifications:</span></p><span><%=trainer.certifications%></span>
                         </div>
                         <div class="container my-4">
-                            <p class="heading-gen"><span class="karla-heavy">Get to Know the Trainer:</span></p>
+                            <p class="heading-gen"><span class="karla-heavy fw-bold">Get to Know the Trainer:</span></p>
                             <p>
                                 <% if(trainer.intro != '' && trainer.intro != null){ %>
                                     <%=trainer.intro%>

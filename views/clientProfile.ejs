@@ -52,8 +52,8 @@
 
             <div class="resource-form">
                 <div id="tab2" class="tabR-two-htm">
-                    <div id="dogSection" class="my-3">
-                        <h3><%=userName%>'s Dogs:</h3>
+                    <div id="dogSection" class="mt-3">
+                        <h3 class="mb-3 karla-heavy fw-bold" style="font-size: 24px;"><%=userName%>'s Dogs:</h3>
                         <% for(let i = 0; i < dogs.length; i++){ %>
                             <%- include('templates/dog', {dog: dogs[i]}) %>
                         <%} %>
