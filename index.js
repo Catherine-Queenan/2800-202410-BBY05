@@ -1039,6 +1039,7 @@ app.post('/program/:programId/edit', async(req, res) => {
 		},
 		discount: req.body.discounts,
 		hours: req.body.hours,
+		sessions: req.body.sessions,
 		description: req.body.description
 	}
 
