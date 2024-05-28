@@ -1,30 +1,32 @@
 <%- include("templates/header") %>
-<div class="container">
-    <p class="h5">Hire Request</span> from <%=alert.clientName%></p>
-    <p>They are interest in enrolling their dog <span class="karla-heavy"><%=alert.dogName%></span> in the <span class="karla-heavy"><%=alert.programName%> program</span></p>
-    <form method="post">
+<div class="profile-container my-4 mx-4">
+    <h1 class="text-center mb-4 yeseva-one">Hire Request</span> from <%=alert.clientName%></h1>
+    <h4 class="karla-heavy">They are interest in enrolling their dog <span class="fw-bold"><%=alert.dogName%></span> in the <span class="fw-bold"><%=alert.programName%> Program</span></h4>
+    <form method="post" class="my-3 d-flex justify-content-between">
         <%- include('templates/button', {action:'/resolveAlert/' + alert._id,xClasses:'',xAttributes:'name=resolve value=accept',content:'Accept Request'}) %>
-        <%- include('templates/button', {action:'/resolveAlert/' + alert._id,xClasses:'',xAttributes:'name=resolve value=reject',content:'Reject'}) %>
+        <%- include('templates/button', {action:'/resolveAlert/' + alert._id,xClasses:'btn-danger',xAttributes:'name=resolve value=reject',content:'Reject'}) %>
     </form>
-    <div class="card">
-        <div class="card-title">
-            <p class="h4 karla-heavy">Client Address: <%=address%></p>
-            <%- include('templates/defaultingPic', {picId: 'dogPic', pic: dog.dogPic}) %>
-            <p class="h5"><%=alert.dogName%></p>
+    <div class="card m-2 smallShadow" style="cursor:default">
+        <div class="card-title m-3">
+            <p class="h4 karla-heavy"><span class="fw-bold">Client Address: </span><%=address%></p>
+            <div class="d-flex justify-content-center m-2">
+                <%- include('templates/defaultingPic', {picId: 'dogPic', pic: dog.dogPic}) %>
+            </div>
+            <h5 class="card-title h4 text-center yeseva-one"><%=alert.dogName%></h5>
         </div>
-        <div class="card-body">
-            <p>Breed: <%=dog.breed%></p>
+        <div class="karla-heavy ms-3 me-3">
+            <p><span class="fw-bold">Breed: </span><%=dog.breed%></p>
 
             <% if(dog.neuteredStatus == ''){ %>
-                <p>Neutered Status: Unneutered</p>
+                <p><span class="fw-bold">Neutered Status: </span>Unneutered</p>
             <% } else { %>
-                <p>Neutered Status: Neutered</p>
+                <p><span class="fw-bold">Neutered Status: </span>Neutered</p>
             <% } %>
 
-            <p>Sex: <%=dog.sex%></p>
-            <p> Weight: <%=dog.weight%> lb</p>
+            <p><span class="fw-bold">Sex: </span><%=dog.sex%></p>
+            <p><span class="fw-bold">Weight: </span><%=dog.weight%> lb</p>
 
-            <p>Special Alerts: <%=dog.specialAlerts%></p>
+            <p><span class="fw-bold">Special Alerts: </span><%=dog.specialAlerts%></p>
         </div>
     </div>
 </div>

@@ -26,26 +26,26 @@
     
     <div id="confirmationModal" class="modal fade" tabindex="-1" role="dialog">
         <div class="modal-dialog" role="document">
-          <div class="modal-content">
+          <div class="modal-content whiteBackground">
             <div class="modal-header">
               <div class="modal-title ">
-                <span class="h2">Confirm Registration</span>
+                <span class="h2 fw-bold">Confirm Registration</span>
               </div>
             </div>
             <div class="modal-body">
-                <p>Are you sure you want to register your dog for the following program?</p>
-                <p>Dog:</p>
+                <p class="fw-bold">Are you sure you want to register your dog for the following program?</p>
+                <p class="my-3 fw-bold" style="font-size:20px; text-align:start;">Dog:</p>
                 <div id="dogConfirmation">
 
                 </div>
-                <p>Program:</p>
-                <div class="card">
+                <p class="my-3 fw-bold" style="font-size:20px; text-align:start;">Program:</p>
+                <div class="card m-2 smallShadow" style="background-color:#20133541; color:#201335; border-radius:1px;">
                 <%- include('templates/clientViewProgram', {program: program})%>
             </div>
             </div>
-            <div class="modal-footer">
-                <%- include('templates/button', {action:'',xClasses:'',xAttributes:'type=button data-bs-dismiss=modal', content:'Cancel'}) %>
-                <%- include('templates/button', {action:'',xClasses:'',xAttributes:'id=confirmRegister type=button' , content:'Confrim'}) %>
+            <div class="modal-footer d-flex justify-content-between">
+                <%- include('templates/button', {action:'',xClasses:'btn-danger',xAttributes:'type=button data-bs-dismiss=modal', content:'Cancel'}) %>
+                <%- include('templates/button', {action:'',xClasses:'',xAttributes:'id=confirmRegister type=button' , content:'Confirm'}) %>
             </div>
           </div>
         </div>
