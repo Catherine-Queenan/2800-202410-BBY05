@@ -456,7 +456,8 @@ app.post('/submitSignup/:type', async (req, res) => {
 			phone: user.phone,
 			password: hashPass,
 			userType: 'client',
-			unreadAlerts: 0
+			unreadAlerts: 0,
+            emailNotifications: true //DELETE THIS MAYBE
 		});
 
 		//Update the session for the now logged in user
@@ -704,34 +705,52 @@ async function sendReminderEmails() {
 //setInterval(sendReminderEmails, 15 * 60 * 1000);
 
 // This function sends other types of emails. Right now I'm adding it so that you can send appointment information. (but you can parse anything you want, really.)
-async function sendEmail(to, subject, eventTitle, eventDate, eventStartTime, eventEndTime) {
-    ejs.renderFile('./views/reminderEmail.ejs', { 
-        eventTitle: eventTitle,
-        eventDate: eventDate,
-        eventStartTime: eventStartTime,
-        eventEndTime: eventEndTime
-    }, (err, str) => {
-        if (err) {
-            console.error('Error rendering email template', err);
-            return;
-        }
-        
-        const mailOptions = {
-            from: autoreply_email,
-            to: to,
-            subject: subject,
-            html: str
-        };
+const sendEmail = async (to, subject, eventTitle, eventDate, eventStartTime, eventEndTime, db) => {
+    try {
+        console.log('Rendering email template...');
+        const str = await ejs.renderFile('./views/reminderEmail.ejs', { 
+            eventTitle: eventTitle,
+            eventDate: eventDate,
+            eventStartTime: eventStartTime,
+            eventEndTime: eventEndTime
+        });
 
-        try {
-            transporter.sendMail(mailOptions);
-            // console.log(`Email sent to ${to}`);
-        } catch (error) {
-            console.error(`Error sending email to ${to}:`, error); 
-            throw error;
+        console.log('Filtering recipients...');
+        var recipients = [];
+        for (let email of to) {
+            const user = await appUserCollection.find({email: email}).toArray();
+            console.log(user);
+            if (user) {
+                const emailNotifications = user[0].emailNotifications;
+                console.log(`User: ${email}, emailNotifications: ${emailNotifications}`);
+                if (emailNotifications === true || emailNotifications === undefined) {
+                    recipients.push(email);
+                }
+            } else {
+                console.log(`User not found: ${email}`);
+            }
         }
-    });
-}
+
+        console.log('Recipients:', recipients);
+
+        if (recipients.length > 0) {
+            const mailOptions = {
+                from: autoreply_email,
+                to: recipients,
+                subject: subject,
+                html: str
+            };
+
+            console.log('Sending email...');
+            const info = await transporter.sendMail(mailOptions);
+            console.log(`Email sent: ${info.response}`);
+        } else {
+            console.log('No recipients with email notifications enabled.');
+        }
+    } catch (error) {
+        console.error('Error sending email:', error);
+    }
+};
 
 // Sets up a queue so that emails can be sent even if the app is closed
 // This doesn't work :(
@@ -968,64 +987,88 @@ app.get('/profile', sessionValidation, async(req, res) => {
 
 //Profile Editting (both client and business)
 app.post('/profile/edit/:editType', sessionValidation, upload.array('accountUpload', 1), async(req, res) => {
-	const userdb = await getdb(req.session.userdb);
+    const userdb = await getdb(req.session.userdb);
 
-	//Edit client profile
-	if(req.params.editType == 'clientProfile'){
+    // Edit client profile
+    if (req.params.editType === 'clientProfile') {
+        // Grab current image id
+        let user = await userdb.collection('info').find({ email: req.session.email }).project({ profilePic: 1 }).toArray();
 
-		//grab current image id
-		let user = await userdb.collection('info').find({email: req.session.email}).project({profilePic: 1}).toArray();	
+        // Image id is updated with a newly uploaded image or kept the same
+        if (req.files.length !== 0) {
+            await deleteUploadedImage(user[0].profilePic);
+            req.body.profilePic = await uploadImage(req.files[0], "clientAccountAvatars");
+        } else {
+            req.body.profilePic = user[0].profilePic;
+        }
 
-		//Image id is updated with a newly upload image or kept the same
-		if(req.files.length != 0){
-			await deleteUploadedImage(user[0].profilePic);
-			req.body.profilePic = await uploadImage(req.files[0], "clientAccountAvatars");
-		} else {
-			req.body.profilePic = user[0].profilePic;
-		}
+        // Handle email notifications checkbox value
+        req.body.emailNotifications = req.body.emailNotifications === 'on';
 
-		//Update the database
-		await userdb.collection('info').updateOne({email: req.session.email}, {$set: req.body});
+        // Update the database
+        await appUserCollection.updateOne({ email: req.session.email }, { $set: { 
+            firstName: req.body.firstName,
+            lastName: req.body.lastName,
+            phone: req.body.phone,
+            profilePic: req.body.profilePic,
+            emailNotifications: req.body.emailNotifications
+        }});
 
-		//Return to profile
-		res.redirect('/profile');
+        // Return to profile
+        res.redirect('/profile');
+    } else if (req.params.editType == 'businessDetails') {
+        // Grab current logo id
+        let business = await userdb.collection('info').find({ companyName: req.session.name }).toArray();
 
-	//Edit business profile -> business details
-	} else if (req.params.editType == 'businessDetails'){
+        // Logo id is updated with a newly uploaded logo or kept the same
+        if (req.files.length != 0) {
+            await deleteUploadedImage(business[0].logo);
+            req.body.logo = await uploadImage(req.files[0], "businessLogos");
+        } else {
+            req.body.logo = business[0].logo;
+        }
 
-		//Grab current logo id
-		let business = await userdb.collection('info').find({companyName: req.session.name}).toArray();
+        // Update database
+        await userdb.collection('info').updateOne({ companyName: req.session.name }, { $set: req.body });
 
-		//Logo id is updated with a newly upload logo or kept the same
-		if(req.files.length != 0){
-			await deleteUploadedImage(business[0].logo);
-			req.body.logo = await uploadImage(req.files[0], "businessLogos");
-		} else {
-			req.body.logo = business[0].logo;
-		}		
+        // Return to profile, business details tab
+        res.redirect('/profile?tab=business');
 
-		//update database
-		await userdb.collection('info').updateOne({companyName: req.session.name}, {$set: req.body});
+    // Edit business profile -> trainer profile
+    } else if (req.params.editType == 'trainer') {
+        // Grab current profile pic id
+        let trainer = await userdb.collection('trainer').find({ companyName: req.session.name }).project({ trainerPic: 1 }).toArray();
 
-		//Return to profile, business details tab
-		res.redirect('/profile?tab=business');
+        // Profile pic id is updated with a newly uploaded Profile pic or kept the same
+        if (req.files.length != 0) {
+            await deleteUploadedImage(trainer[0].trainerPic);
+            req.body.trainerPic = await uploadImage(req.files[0], "trainerAvatars");
+        } else {
+            req.body.trainerPic = trainer[0].trainerPic;
+        }
 
-	//Edit business profile -> trainer profile
-	} else if(req.params.editType == 'trainer'){
+        // Update database
+        await userdb.collection('trainer').updateOne({ companyName: req.session.name }, { $set: req.body });
 
-		//Grab current profile pic id
-		let trainer = await userdb.collection('trainer').find({companyName: req.session.name}).project({trainerPic: 1}).toArray();
+        // Return to profile, trainer profile tab
+        res.redirect('/profile?tab=trainer');
 
-		//Profile pic id is updated with a newly upload Profile pic or kept the same
-		if(req.files.length != 0){
-			await deleteUploadedImage(trainer[0].trainerPic);
-			req.body.trainerPic = await uploadImage(req.files[0], "trainerAvatars");
-		} else {
-			req.body.trainerPic - trainer[0].trainerPic;
-		}
+    // Edit business profile -> Programs (can only add a program from profile page)
+    } else if (req.params.editType == 'addProgram') {
+        // Set up program from submitted information
+        let program = {
+            name: req.body.name,
+            pricing: {
+                priceType: req.body.priceType,
+                price: req.body.price
+            },
+            discount: req.body.discounts,
+            hours: req.body.hours,
+            description: req.body.description
+        };
 
-		//Update database
-		await userdb.collection('trainer').updateOne({companyName: req.session.name}, {$set: req.body});
+        // Insert program into database
+        await userdb.collection('programs').insertOne(program);
 
 		//Return to profile, trainer profile tab
 		res.redirect('/profile?tab=trainer');
@@ -1301,14 +1344,19 @@ app.post('/dog/:dogId/editVaccines', uploadFields, async (req, res) => {
 
 //Show specific dog
 app.get('/dog/:dogId', async(req, res) => {
+
+	if(req.session.userType === 'business') {
+		res.redirect('/dogView');
+	}
+
 	const userdb = await getdb(req.session.userdb);
 
 	//Use the dog document id to find the specific dog
 	let dogId =  ObjectId.createFromHexString(req.params.dogId);
-	let dogRecord = await userdb.collection('dogs').find({_id: dogId}).toArray();
+	let dogRecord = await userdb.collection('dogs').find({_id: dogId}).toArray();	
 
 	//If there is a dog pic attached to this dog, create a link to it
-	if(dogRecord[0].dogPic != ''){
+	if(dogRecord[0].dogPic != '') {
 		dogRecord[0].dogPic = cloudinary.url(dogRecord[0].dogPic);
 	}
 
@@ -1753,13 +1801,16 @@ app.post('/addEvent', async (req, res) => {
         event.title,
         startDate.toDateString(),
         startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        endDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        endDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        userdb
     );
 
     res.redirect('/calendar');
 });
 
 app.post('/updateEvent', async (req, res) => {
+	// Checks if previous page was a Calendar or Session
+	const calOrSess = req.body.calOrSess;
 	const userdb = await getdb(req.session.userdb);
 	const date = req.body.calModDate;
 	const startNew = date + "T" + req.body.calModStartHH + ":" + req.body.calModStartMM + ":00";
@@ -1800,11 +1851,18 @@ app.post('/updateEvent', async (req, res) => {
 	// let eventID = req.body.calModEventID;
 	// console.log(eventID);
 	// await userdb.collection('eventSource').updateOne({ _id: eventID }, { $set: {eventNew} });
-
-	res.redirect('/calendar');
+	if (calOrSess == 'calendar') {
+		res.redirect('/calendar');
+		return;
+	} else if (calOrSess == 'session') {
+		res.redirect('/sessionList');
+	}
 });
 
 app.post('/removeEvent', async (req, res) => {
+	// Checks if previous page was a Calendar or Session
+	const calOrSess = req.body.calOrSess;
+
 	const userdb = await getdb(req.session.userdb);
 
 	// Delete by _id, but doesn't work
@@ -1824,7 +1882,12 @@ app.post('/removeEvent', async (req, res) => {
 		client: calEmail,
 		info: calInfo
 	});
-	res.redirect('/calendar');
+	if (calOrSess == 'calendar') {
+		res.redirect('/calendar');
+		return;
+	} else if (calOrSess == 'session') {
+		res.redirect('/sessionList');
+	}
 });
 
 // ----------------- MESSAGING SECTION STARTS HERE -------------------
@@ -1972,10 +2035,13 @@ app.get('/alerts/view/:alert', async(req, res) => {
 });
 
 
-app.get('/clientList', async (req, res) => {
-	// console.log(req.session.name);
-	clientList = await appUserCollection.find({companyName: null, userType: 'client'}).project({email: 1, firstName: 1, lastName: 1}).toArray();
-	// console.log(clientList.length);
+app.get('/clientList', businessAuthorization, async (req, res) => {
+	console.log(req.session.userType);
+	// get the list of clients that are added to the logged in dog trainer
+	// !Currently, the companyName is set to null because there is no system for business view user pages at the time of writing.!
+	clientList = await appUserCollection.find({companyName: null, userType: 'client'}).project({_id: 1, email: 1, firstName: 1, lastName: 1}).toArray();
+	const ids = clientList.map(item => item._id.toString());
+	console.log(ids);
 	res.render('clientList', {clientArray: clientList, loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
 });
 
@@ -2032,6 +2098,21 @@ app.get('/clientProfile/:id', async (req, res) => {
 	// console.log(dogs);
 
 	res.render('viewingClientProfile', {targetClient: targetClient, pfpUrl: pfpUrl, dogs: dogs, loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
+});
+
+app.get('/dogView', businessAuthorization, async (req, res) => {
+	res.send('safe');
+});
+
+// ----------------- SESSIONS SECTION STARTS HERE -------------------
+
+app.get('/sessionList', async (req, res) => {
+	if ( req.session.userType == 'business') {
+		res.render('sessionsBusiness', {loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
+		return;
+	} else if (req.session.userType == 'client') {
+		res.render('sessionsClient', {loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
+	}
 });
 
 app.use(express.static(__dirname + "/public"));

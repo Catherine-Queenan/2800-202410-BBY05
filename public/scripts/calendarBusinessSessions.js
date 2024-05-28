@@ -1,15 +1,17 @@
+// Displays the previously hidden calendar
+const calendarShow = document.getElementById('calendar');
+calendarShow.classList.add('bg-light', 'py-3', 'rounded');
+calendarShow.classList.remove('d-none');
+
 document.addEventListener('DOMContentLoaded', function () {
 	var calendarEl = document.getElementById('calendar');
 	var calendar = new FullCalendar.Calendar(calendarEl, {
 		timeZone: 'local',
-		initialView: 'dayGridMonth',
+		initialView: 'listWeek',
 		headerToolbar: {
-			left: 'dayGridMonth,timeGridWeek,timeGridDay',
-			center: 'title',
+			left: 'title',
 			right: 'prev,next today'
 		},
-		aspectRatio: 1,
-		contentHeight: 'auto',
 		events: '/events',
 		eventColor: '#FFA05C',
 		eventClick: function(info) {
@@ -31,7 +33,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			let modalBody = `
 			<div class="mb-3">
 				<label for="calModTitle" class="form-label h5 modal-heading">Session Title</label>
-				<input type="text" class="form-control d-none" name="calOrSess" value="calendar">
+				<input type="text" class="form-control d-none" name="calOrSess" value="session">
 				<input type="text" class="form-control d-none" name="calModEventID" id="calModEventID">
 				<input type="text" class="form-control d-none" name="calModDate" value="${info.event.start.toLocaleDateString("en-CA")}">
 				<input type="text" class="form-control d-none" name="calModTitleOrig" id="calModTitleOrig" value="${modTitle}">
@@ -60,7 +62,7 @@ document.addEventListener('DOMContentLoaded', function () {
 						<option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option>
 						<option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option>
 					</select>
-					<span class="input-group-text whiteBackground">:</span>
+					<span class="input-group-text">:</span>
 					<select class="form-select" disabled name="calModStartMM" id="calModStartMM">
 						<option selected>${modStartMM}</option>
 						<option value="00">00</option>
@@ -82,7 +84,7 @@ document.addEventListener('DOMContentLoaded', function () {
 						<option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option>
 						<option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option>
 					</select>
-					<span class="input-group-text whiteBackground">:</span>
+					<span class="input-group-text">:</span>
 					<select class="form-select" disabled name="calModEndMM" id="calModEndMM">
 						<option selected>${modEndMM}</option>
 						<option value="00">00</option>
@@ -235,146 +237,8 @@ document.addEventListener('DOMContentLoaded', function () {
 						console.error("Error: ", error);
 					}
 				});
-
 			}
 			getThisEvent();
-
-			modal.show();
-		},
-		dateClick: function(info) {
-
-			// Modal header
-			modViewTitle.innerText = 'Add a session for '+info.date.toLocaleDateString("en-CA");
-			var selectedDate = info.date.toLocaleDateString("en-CA");
-			var modalBody = `
-			<div class="mb-3">
-				<label for="calModTitle" class="form-label h5 modal-heading">Title of session</label>
-				<input type="text" class="form-control auto-resize" name="calModTitle" id="calModTitle">
-				<input type="text" class="form-control-plaintext d-none" name="calModDate" value="${selectedDate}">
-			</div>
-			<div class="mb-3">
-				<label for="calModStart" class="form-label h5 modal-heading">Start Time</label>
-				<div class="input-group" id="calModStart">
-					<select class="form-select" name="calModStartHH" id="calModStartHH">
-						<option selected>00</option><option value="01">1</option><option value="02">2</option><option value="03">3</option>
-						<option value="04">4</option><option value="05">5</option><option value="06">6</option><option value="07">7</option>
-						<option value="08">8</option><option value="09">9</option><option value="10">10</option><option value="11">11</option>
-						<option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option>
-						<option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option>
-						<option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option>
-					</select>
-					<span class="input-group-text whiteBackground">:</span>
-					<select class="form-select" name="calModStartMM" id="calModStartMM">
-						<option selected>00</option>
-						<option value="15">15</option>
-						<option value="30">30</option>
-						<option value="45">45</option>
-					</select>
-				</div>		
-			</div>
-
-			<div class="mb-3">
-				<label for="calModEnd" class="form-label h5 modal-heading">End Time</label>
-				<div class="input-group" id="calModEnd">
-					<select class="form-select" name="calModEndHH" id="calModEndHH">
-						<option selected>00</option><option value="01">1</option><option value="02">2</option><option value="03">3</option>
-						<option value="04">4</option><option value="05">5</option><option value="06">6</option><option value="07">7</option>
-						<option value="08">8</option><option value="09">9</option><option value="10">10</option><option value="11">11</option>
-						<option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option>
-						<option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option>
-						<option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option>
-					</select>
-					<span class="input-group-text whiteBackground">:</span>
-					<select class="form-select" name="calModEndMM" id="calModEndMM">
-						<option selected>00</option>
-						<option value="15">15</option>
-						<option value="30">30</option>
-						<option value="45">45</option>
-					</select>
-				</div>
-			</div>
-
-			<div class="mb-3">
-				<label for="calModClient" class="form-label h5 modal-heading">Client</label>
-				<div class="input-group">
-					<select class="form-select" id="calModClient" name="calModClient">
-					</select>
-				</div>
-			</div>
-
-			<div class="mb-3">
-				<label for="calModInfo" class="form-label h5 modal-heading">Info</label>
-				<div class="input-group">
-					<textarea class="form-control auto-resize" name="calModInfo" id="calModInfo"></textarea>
-				</div>
-			</div>
-
-			<div class="modal-footer">
-				<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
-				<button formaction="/addEvent" class="btn btn-primary" id="addButton">Add Session</button>
-			</div>
-			`;
-			modBod.innerHTML = modalBody;
-
-			async function getClients() {
-				try {
-					let res = await axios.post('/getClients');
-					let clients = res.data;
-					console.log("clients: " + clients);
-
-					let modClient = document.getElementById('calModClient');
-					if (clients && clients.length > 0) {
-						for (let i = 0; i < clients.length; i++) {
-							let clientItem = document.createElement('option');
-							clientItem.innerText = clients[i].email;
-							modClient.appendChild(clientItem);
-						}
-					}
-				} catch (error) {
-					console.error(error);
-				}
-			}
-			getClients();
-
-			// The following code is for validing if the input fields are blank
-			// and if the end time is after the start time
-			// Disables the add Session button if it fails any of these checks
-			const titleInput = document.getElementById('calModTitle');
-			const clientSelect = document.getElementById('calModClient');
-			const startHHSelect = document.getElementById('calModStartHH');
-			const startMMSelect = document.getElementById('calModStartMM');
-			const endHHSelect = document.getElementById('calModEndHH');
-			const endMMSelect = document.getElementById('calModEndMM');
-			const addButton = document.getElementById('addButton');
-
-			function validateForm() {
-				const title = titleInput.value.trim();
-				const client = clientSelect.value;
-				const startHH = parseInt(startHHSelect.value, 10);
-				const startMM = parseInt(startMMSelect.value, 10);
-				const endHH = parseInt(endHHSelect.value, 10);
-				const endMM = parseInt(endMMSelect.value, 10);
-		
-				const startTime = startHH * 60 + startMM;
-				const endTime = endHH * 60 + endMM;
-		
-				const isTitleValid = title !== '';
-				const isClientValid = client !== '';
-				const isTimeValid = endTime > startTime;
-		
-				addButton.disabled = !(isTitleValid && isClientValid && isTimeValid);
-			}
-
-			// Event listeners for form validation
-			titleInput.addEventListener('input', validateForm);
-			clientSelect.addEventListener('change', validateForm);
-			startHHSelect.addEventListener('change', validateForm);
-			startMMSelect.addEventListener('change', validateForm);
-			endHHSelect.addEventListener('change', validateForm);
-			endMMSelect.addEventListener('change', validateForm);
-		
-			// Initial validation check
-			validateForm();
 
 			modal.show();
 		}
@@ -431,7 +295,6 @@ document.addEventListener('DOMContentLoaded', function () {
 			}
 		}
 	}
-
 });
 
 // Grabs the modal from /calendar
