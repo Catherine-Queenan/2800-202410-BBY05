@@ -112,6 +112,9 @@
 
   .card {
     border:none;
+    background-color:#20133541;
+    color:#201335;
+    border-radius:1px;
   }
 
   /* Forms */
@@ -1065,6 +1068,10 @@
 
   .orange {
     color: #FFA05C;
+  }
+
+  .orangeBackgroundFade {
+    background-color: #ffa05c8e !important;
   }
 
   .violetBackground {

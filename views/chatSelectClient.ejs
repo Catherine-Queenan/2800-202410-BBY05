@@ -1,7 +1,7 @@
 <%- include("templates/header") %>
 	<div class="profile-container my-4 mx-4">
 		<h1 class="text-center my-3 yeseva-one">Clients</h1>
-		<ul style="list-style-type:none; background-color:#F0F1FA !important" class="d-flex justify-content-center">
+		<ul style="list-style-type:none;" class="d-flex justify-content-center align-items-center">
 			<% for (let i = 0; i < clients.length; i++)  { %>
 				<%- include('templates/clients', {clients: clients[i]}) %>
 			<% } %>
