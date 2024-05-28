@@ -1,11 +1,18 @@
 <%- include("templates/header") %>
-Are you sure you want to delete your account?
-<form method="get">
-    <%- include('templates/button', {action:'/profile',xClasses:'',xAttributes:'',content:'No. Take me back'}) %>
-</form>
-
-<form method="post">
-    <%- include('templates/button', {action:'/deleteAccount',xClasses:'',xAttributes:'',content:'I am sure'}) %>
-</form>
-
+<div class="profile-container my-4 mx-4">
+    <h1 class="text-center yeseva-one">Are You Sure You Want to Delete Your Account?</h1>
+    <div class="text-center">
+        <p class="karla-heavy fw-bold">This action is irreversible and all your data will be lost.</p>
+    </div>
+    <div class="my-3 d-flex justify-content-center">
+        <form method="get" class="mx-4">
+            <%- include('templates/button', {action:'/profile',xClasses:'btn-primary',xAttributes:'',content:'No. Take me back'}) %>
+        </form>
+    </div>
+    <div class="my-3 d-flex justify-content-center">    
+        <form method="post" class="mt-5">
+            <%- include('templates/button', {action:'/deleteAccount',xClasses:'btn-danger',xAttributes:'',content:'Yes. I am sure'}) %>
+        </form>
+    </div>
+</div>
 <%- include("templates/footerCopyright") %>

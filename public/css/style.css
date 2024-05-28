@@ -115,6 +115,27 @@
   }
 
   /* Forms */
+    /* Styling for table */
+
+    .table {
+      width: 100%; /* Set table width to 100% */
+      border-collapse: collapse; /* Collapse table borders */
+    }
+
+    .table th {
+      background-color: #201335ee; /* White background for heading row */
+      color: #FEF6C3; /* Text color */
+      border: 2px solid #F0F1FA; /* Border */
+      padding: 8px; /* Padding */
+    }
+    .table td {
+      background-color: #2013351d; /* Transparent background for table data cells */
+      color: #201335; /* Text color */
+      border: 2px solid #F0F1FA; /* Border */
+      padding: 8px; /* Padding */
+    }
+    /* End of table styling */
+
     /* Styling for the radio buttons */
     .form-check-input {
       /* Hide the default radio button */
