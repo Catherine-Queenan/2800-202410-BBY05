@@ -1,5 +1,7 @@
 let lastMessageTimestamp = null;
 
+const receiverIdentifier = document.getElementById('receiver').value;
+
 async function fetchMessages() {
 	const response = await fetch('/messagesClient');
 	const { senderMessages, receiverMessages } = await response.json();
