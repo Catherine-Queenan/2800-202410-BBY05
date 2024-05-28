@@ -1,19 +1,19 @@
-<div class="card p-2">
-    <div class="card-title">
+<div class="card m-2 smallShadow" style="background-color:#20133541; color:#201335; border-radius:1px;">
+    <div class="card-title m-3">
         <% if(business.logo == '' || business.logo == null){ %> 
             <img src="/images/DefaultAvatar.png" alt="..." class="rounded-circle" style="width: 60px; height: 60px; object-fit: cover;">
             
         <% } else { %>
             <img src="<%= business.logo %>" alt="..." class="rounded-circle" style="width: 60px; height: 60px; object-fit: cover;">
            <% } %>
-        <a href="/viewBusiness/<%=business.companyName%>"><span class="h4"><%=business.companyName%></span></a>
+        <a href="/viewBusiness/<%=business.companyName%>"><span class="h4 yeseva-one"><%=business.companyName%></span></a>
     </div>
-    <div class="card-body">
-        <p>Trainer: <%=trainer.firstName%> <%=trainer.lastName%></p>
-        Services:
+    <div class="card-body karla-heavy">
+        <p><span class="fw-bold">Trainer: </span><%=trainer.firstName%> <%=trainer.lastName%></p>
+        <p><span class="fw-bold">Services: </span>
         <input class="searchString" type="hidden" value="<%=business.searchString%>">
         <% for(let i=0; i < business.services.length; i++){ %>
-            <span class="border p-1 mx-1"><%=business.services[i]%></span>
+            <span class="karla-heavy p-1 mx-1 serviceIndv"><%=business.services[i]%></span>
         <% } %>
     </div>
 </div>

@@ -1,17 +1,18 @@
 
-    <div class="card-title">
-        <p class="h3"><%=program.name%></p>
+<div class="card-title m-3">
+    <h1 class="h1 mb-3"><%=program.name%></h1>
         
-        <span class="karla-heavy"><%=program.pricing.priceType%>:</span><span>$<%=program.pricing.price%></span>
-        <p><span class="karla-heavy">Hours:</span> <%=program.hours%></p>
-        <p class="karla-heavy">Program Description</p>
+        <p><span class="karla-heavy fw-bold"><%=program.pricing.priceType%>: </span><span>$<%=program.pricing.price%></span></p>
+        <p><span class="karla-heavy fw-bold">Hours:</span> <%=program.hours%></p>
+        <p><span class="karla-heavy fw-bold">Session Count:</span> <%=program.sessions%></p>
     </div> 
 
-    <div class="card-body">
+    <div class="card-body karla-heavy m-3">
+        <p class="karla-heavy fw-bold"  style="font-size:17px;">Program Description: </p>
         <p><%=program.description%></p>
         <% if(program.discounts != '' && program.discounts != null){ %>
             <div>
-                <p>Available Discounts</p>
+                <p class="karla-heavy fw-bold">Available Discounts: </p>
                 <p><%=program.discount%></p>
             </div>
         <% } %>

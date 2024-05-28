@@ -1,10 +1,12 @@
-<div class="card" id="<%=dog._id%>Card" name="">
-    <div>
+<div class="card m-2 smallShadow" style="background-color:#20133541; color:#201335; border-radius:1px;" id="<%=dog._id%>Card" name="">
+    <div class="d-flex justify-content-center m-2">
         <%- include('defaultingPic', {picId:'', pic:dog.dogPic})%>
-        <span class="h4"><%=dog.dogName%></span>
+    </div>
+    <div class="d-flex justify-content-center">
+        <span class="card-title h4 text-center yeseva-one"><%=dog.dogName%></span>
     </div>
     
-    <div class="buttons">
+    <div class="buttons d-flex justify-content-center mb-2">
     <%- include('button', {action:'',xClasses:'selectDogButton',xAttributes:'type=button id=select' + dog._id + ' value=' + dog._id, content:'Select'}) %>
     </div>
 </div>

@@ -1,9 +1,12 @@
-<div class="card" style="width: 18rem;">
-  <%- include('defaultingPic', {pic: dog.dogPic, picId: dog._id + 'OldPic'})%>
+<div class="card m-2 smallShadow" style="background-color:#20133541; color:#201335; border-radius:1px;">
+  <div class="d-flex justify-content-center m-2">
+    <%- include('defaultingPic', {pic: dog.dogPic, picId: dog._id + 'OldPic'})%>
+  </div>
     <div class="card-body">
-      <a href="/dog/<%=dog._id%>"> <h5 class="card-title"><%=dog.dogName%></h5></a>
-      <form>
-    <%- include('button', {action:'/dog/' + dog._id,xClasses:'seeMore',xAttributes:'',content:'See More'}) %>
-  </form>
+      <a href="/dog/<%=dog._id%>"> <h5 class="card-title h4 text-center yeseva-one"><%=dog.dogName%></h5></a>
+      <p class="karla-heavy fw-bold text-center">(<%=dog.breed%>)</p>
+      <form class="d-flex justify-content-center">
+        <%- include('button', {action:'/dog/' + dog._id,xClasses:'seeMore',xAttributes:'',content:'See More'}) %>
+      </form>
     </div>
   </div>

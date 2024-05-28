@@ -199,7 +199,7 @@ function isAdmin(req) {
 function adminAuthorization(req, res, next) {
 	if (!isAdmin(req)) {
 		res.status(403);
-		res.render('errorMessage', { error: 'Not Authorized - 403', loggedIn: isValidSession(req), userType: req.session.userType });
+		res.render('errorMessage', { error: 'Not Authorized - 403', loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts });
 	} else {
 		next();
 	}
@@ -208,7 +208,7 @@ function adminAuthorization(req, res, next) {
 function clientAuthorization(req, res, next) {
 	if (!isClient(req)) {
 		res.status(403);
-		res.render('errorMessage', { error: 'Not Authorized - 403', loggedIn: isValidSession(req), userType: req.session.userType });
+		res.render('errorMessage', { error: 'Not Authorized - 403', loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts });
 	} else {
 		next();
 	}
@@ -217,7 +217,7 @@ function clientAuthorization(req, res, next) {
 function businessAuthorization(req, res, next) {
 	if (!isBusiness(req)) {
 		res.status(403);
-		res.render('errorMessage', { error: 'Not Authorized - 403', loggedIn: isValidSession(req), userType: req.session.userType });
+		res.render('errorMessage', { error: 'Not Authorized - 403', loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts });
 	} else {
 		next();
 	}
@@ -339,6 +339,7 @@ async function downloadAndDecryptFile(filePath) {
 }
 
 // Example usage
+<<<<<<< HEAD
 (async () => {
     try {
         const filePath = 'pdfs/Budd_Evin_bordatella.pdf';
@@ -353,6 +354,22 @@ async function downloadAndDecryptFile(filePath) {
         console.error('Error decrypting file:', error);
     }
 })();
+=======
+//(async () => {
+//    try {
+//        const filePath = 'pdfs/Budd_Evin_bordatella.pdf'; //This should be loaded from the database
+//        const decryptedFileBuffer = await downloadAndDecryptFile(filePath);
+//        console.log('File decrypted successfully');
+//        
+//        // Save the decrypted file to disk
+//        const outputPath = path.join(__dirname, 'decrypted_contract.pdf');
+//        fs.writeFileSync(outputPath, decryptedFileBuffer);
+//        console.log(`File saved successfully to ${outputPath}`);
+//    } catch (error) {
+//        console.error('Error decrypting file:', error);
+//    }
+//})();
+>>>>>>> 047985ec8db79dc9954d6b21efdcfa568cc35509
 
 //Upload files to Google Cloud
 async function uploadFileToGoogleCloud(fileBuffer, fileName) {
@@ -480,6 +497,7 @@ app.post('/submitSignup/:type', async (req, res) => {
 				lastName: Joi.string().pattern(/^[a-zA-Z\s]*$/).max(20).required(),
 				email: Joi.string().email().required(),
 				phone: Joi.string().pattern(/^[0-9\s]*$/).length(10).required(),
+				address: Joi.string().pattern(/^[0-9a-zA-Z',\-&*@\s]*$/).required(),
 				password: Joi.string().max(20).min(2).required()
 			}
 		);
@@ -490,6 +508,7 @@ app.post('/submitSignup/:type', async (req, res) => {
 			lastName: req.body.lastName,
 			email: req.body.email,
 			phone: req.body.phone,
+			address: req.body.address,
 			password: req.body.password
 		};
 
@@ -504,7 +523,7 @@ app.post('/submitSignup/:type', async (req, res) => {
 		}
 
 		//Hash entered password for storing
-		var hashPass = await bcrypt.hash(user.password, saltRounds);
+		let hashPass = await bcrypt.hash(user.password, saltRounds);
 
 		//Store new user info in the appdb
 		await appUserCollection.insertOne({
@@ -515,7 +534,8 @@ app.post('/submitSignup/:type', async (req, res) => {
 			phone: user.phone,
 			password: hashPass,
 			userType: 'client',
-			unreadAlerts: 0
+			unreadAlerts: 0,
+            emailNotifications: true //DELETE THIS MAYBE
 		});
 
 		//Update the session for the now logged in user
@@ -527,14 +547,15 @@ app.post('/submitSignup/:type', async (req, res) => {
 		req.session.unreadAlerts = 0;
 
 		await setUserDatabase(req);
-		const userdb = await getdb(req.session.userdb);
+		const userdb = appdb.db(req.session.userdb);
 
 		//Store client information in client collection
 		await userdb.collection('info').insertOne({
 			email: user.email,
 			firstName: user.firstName,
 			lastName: user.lastName,
-			phone: user.phone
+			phone: user.phone,
+			address: user.address
 		});
 
 	//Submits info for business side forms
@@ -612,7 +633,7 @@ app.post('/submitSignup/:type', async (req, res) => {
 		req.session.unreadAlerts = 0;
 
 		await setUserDatabase(req);
-		const userdb = await getdb(req.session.userdb);
+		const userdb = appdb.db(req.session.userdb);
 
 		//Store business information in client collection
 		await userdb.collection('info').insertOne({
@@ -735,7 +756,7 @@ function sendResetMail(emailAddress, resetToken) {
 
 // This function sets up the reminder emails to be sent. Sets up sending an email an hour before, and 24 hours before the appointment.
 async function sendReminderEmails() {
-	const userdb = await getdb(req.session.userdb);
+	const userdb = appdb.db(req.session.userdb);
     const now = new Date();
 
     const events = await userdb.collection('eventSource').find({
@@ -762,34 +783,52 @@ async function sendReminderEmails() {
 //setInterval(sendReminderEmails, 15 * 60 * 1000);
 
 // This function sends other types of emails. Right now I'm adding it so that you can send appointment information. (but you can parse anything you want, really.)
-async function sendEmail(to, subject, eventTitle, eventDate, eventStartTime, eventEndTime) {
-    ejs.renderFile('./views/reminderEmail.ejs', { 
-        eventTitle: eventTitle,
-        eventDate: eventDate,
-        eventStartTime: eventStartTime,
-        eventEndTime: eventEndTime
-    }, (err, str) => {
-        if (err) {
-            console.error('Error rendering email template', err);
-            return;
-        }
-        
-        const mailOptions = {
-            from: autoreply_email,
-            to: to,
-            subject: subject,
-            html: str
-        };
+const sendEmail = async (to, subject, eventTitle, eventDate, eventStartTime, eventEndTime, db) => {
+    try {
+        console.log('Rendering email template...');
+        const str = await ejs.renderFile('./views/reminderEmail.ejs', { 
+            eventTitle: eventTitle,
+            eventDate: eventDate,
+            eventStartTime: eventStartTime,
+            eventEndTime: eventEndTime
+        });
 
-        try {
-            transporter.sendMail(mailOptions);
-            // console.log(`Email sent to ${to}`);
-        } catch (error) {
-            console.error(`Error sending email to ${to}:`, error); 
-            throw error;
+        console.log('Filtering recipients...');
+        var recipients = [];
+        for (let email of to) {
+            const user = await appUserCollection.find({email: email}).toArray();
+            console.log(user);
+            if (user) {
+                const emailNotifications = user[0].emailNotifications;
+                console.log(`User: ${email}, emailNotifications: ${emailNotifications}`);
+                if (emailNotifications === true || emailNotifications === undefined) {
+                    recipients.push(email);
+                }
+            } else {
+                console.log(`User not found: ${email}`);
+            }
         }
-    });
-}
+
+        console.log('Recipients:', recipients);
+
+        if (recipients.length > 0) {
+            const mailOptions = {
+                from: autoreply_email,
+                to: recipients,
+                subject: subject,
+                html: str
+            };
+
+            console.log('Sending email...');
+            const info = await transporter.sendMail(mailOptions);
+            console.log(`Email sent: ${info.response}`);
+        } else {
+            console.log('No recipients with email notifications enabled.');
+        }
+    } catch (error) {
+        console.error('Error sending email:', error);
+    }
+};
 
 // Sets up a queue so that emails can be sent even if the app is closed
 // This doesn't work :(
@@ -899,7 +938,7 @@ app.get('/resetPassword/:token', async (req, res) => {
 
 	// This detects if we couldn't find the token in any user
 	if (clientUser == null) {
-		res.render('errorMessage', { error: 'Token expired or invalid.', loggedIn: false, userType: null, unreadAlerts: 0})
+		res.render('errorMessage', { errorTitle: 'Cannot find Token', errorMessage: 'Invalid or Expired Token', loggedIn: false, userType: null, unreadAlerts: 0})
 		return;
 	}
 
@@ -966,7 +1005,7 @@ app.get('/logout', (req, res) => {
 //Client user profile page
 app.get('/profile', sessionValidation, async(req, res) => {
 
-	const userdb = await getdb(req.session.userdb);
+	const userdb = appdb.db(req.session.userdb);
 
 	//upload the info of the user
 	let user = await userdb.collection('info').findOne();
@@ -979,7 +1018,10 @@ app.get('/profile', sessionValidation, async(req, res) => {
 		}
 
 		//Gather dogs and their images if they have one
-		let dogs = await userdb.collection('dogs').find({}).toArray();
+		let [dogs, outstandingBalance] = await Promise.all([
+			userdb.collection('dogs').find({}).toArray(),
+			userdb.collection('outstandingBalance').find({}).toArray()
+		]);
 		for(let i = 0; i < dogs.length; i++){
 			let pic = dogs[i].dogPic;
 			if(pic != '' && pic != null){
@@ -987,8 +1029,11 @@ app.get('/profile', sessionValidation, async(req, res) => {
 			}
 		}
 
+		//Unhash client address
+
+
 		//Render client profile page
-		res.render('clientProfile', {loggedIn: isValidSession(req), user: user, dogs: dogs, userName: req.session.name, userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
+		res.render('clientProfile', {loggedIn: isValidSession(req), user: user, dogs: dogs, records: outstandingBalance, userName: req.session.name, userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
 		return;
 
 	//Business user profile
@@ -1019,15 +1064,31 @@ app.get('/profile', sessionValidation, async(req, res) => {
 });
 
 //Profile Editting (both client and business)
+<<<<<<< HEAD
+app.post('/profile/edit/:editType', sessionValidation, upload.array('accountUpload', 1), async(req, res) => {
+    const userdb = appdb.db(req.session.userdb);
+=======
 app.post('/profile/edit/:editType', sessionValidation, upload.array('accountUpload', 2), async(req, res) => {
 	const userdb = await getdb(req.session.userdb);
+>>>>>>> ddd21b00dc15bfa5a77c499c3b4a09f3cdd2325c
 
-	//Edit client profile
-	if(req.params.editType == 'clientProfile'){
+    // Edit client profile
+    if (req.params.editType === 'clientProfile') {
+        // Grab current image id
+        let user = await userdb.collection('info').find({ email: req.session.email }).project({ profilePic: 1 }).toArray();
 
-		//grab current image id
-		let user = await userdb.collection('info').find({email: req.session.email}).project({profilePic: 1}).toArray();	
+        // Image id is updated with a newly uploaded image or kept the same
+        if (req.files.length !== 0) {
+            await deleteUploadedImage(user[0].profilePic);
+            req.body.profilePic = await uploadImage(req.files[0], "clientAccountAvatars");
+        } else {
+            req.body.profilePic = user[0].profilePic;
+        }
 
+<<<<<<< HEAD
+        // Handle email notifications checkbox value
+        req.body.emailNotifications = req.body.emailNotifications === 'on';
+=======
 		//Image id is updated with a newly upload image or kept the same
 		if(req.files.length != 0 && req.files[0]){
 			await deleteUploadedImage(user[0].profilePic);
@@ -1035,19 +1096,38 @@ app.post('/profile/edit/:editType', sessionValidation, upload.array('accountUplo
 		} else {
 			req.body.profilePic = user[0].profilePic;
 		}
+>>>>>>> ddd21b00dc15bfa5a77c499c3b4a09f3cdd2325c
 
-		//Update the database
-		await userdb.collection('info').updateOne({email: req.session.email}, {$set: req.body});
+        // Update the database
+        await appUserCollection.updateOne({ email: req.session.email }, { $set: { 
+            firstName: req.body.firstName,
+            lastName: req.body.lastName,
+            phone: req.body.phone,
+            profilePic: req.body.profilePic,
+            emailNotifications: req.body.emailNotifications
+        }});
 
-		//Return to profile
-		res.redirect('/profile');
+        // Return to profile
+        res.redirect('/profile');
+    } else if (req.params.editType == 'businessDetails') {
+        // Grab current logo id
+        let business = await userdb.collection('info').find({ companyName: req.session.name }).toArray();
 
-	//Edit business profile -> business details
-	} else if (req.params.editType == 'businessDetails'){
+        // Logo id is updated with a newly uploaded logo or kept the same
+        if (req.files.length != 0) {
+            await deleteUploadedImage(business[0].logo);
+            req.body.logo = await uploadImage(req.files[0], "businessLogos");
+        } else {
+            req.body.logo = business[0].logo;
+        }
 
-		//Grab current logo id
-		let business = await userdb.collection('info').find({companyName: req.session.name}).toArray();
+        // Update database
+        await userdb.collection('info').updateOne({ companyName: req.session.name }, { $set: req.body });
 
+<<<<<<< HEAD
+        // Return to profile, business details tab
+        res.redirect('/profile?tab=business');
+=======
 		//Logo id is updated with a newly upload logo or kept the same
 		if(req.files.length != 0){
 			if(req.files.length < 2){
@@ -1087,29 +1167,43 @@ app.post('/profile/edit/:editType', sessionValidation, upload.array('accountUplo
 		}
 
 		
+>>>>>>> ddd21b00dc15bfa5a77c499c3b4a09f3cdd2325c
 
-		//update database
-		await userdb.collection('info').updateOne({companyName: req.session.name}, {$set: req.body});
+    // Edit business profile -> trainer profile
+    } else if (req.params.editType == 'trainer') {
+        // Grab current profile pic id
+        let trainer = await userdb.collection('trainer').find({ companyName: req.session.name }).project({ trainerPic: 1 }).toArray();
 
-		//Return to profile, business details tab
-		res.redirect('/profile?tab=business');
+        // Profile pic id is updated with a newly uploaded Profile pic or kept the same
+        if (req.files.length != 0) {
+            await deleteUploadedImage(trainer[0].trainerPic);
+            req.body.trainerPic = await uploadImage(req.files[0], "trainerAvatars");
+        } else {
+            req.body.trainerPic = trainer[0].trainerPic;
+        }
 
-	//Edit business profile -> trainer profile
-	} else if(req.params.editType == 'trainer'){
+        // Update database
+        await userdb.collection('trainer').updateOne({ companyName: req.session.name }, { $set: req.body });
 
-		//Grab current profile pic id
-		let trainer = await userdb.collection('trainer').find({companyName: req.session.name}).project({trainerPic: 1}).toArray();
+        // Return to profile, trainer profile tab
+        res.redirect('/profile?tab=trainer');
 
-		//Profile pic id is updated with a newly upload Profile pic or kept the same
-		if(req.files.length != 0){
-			await deleteUploadedImage(trainer[0].trainerPic);
-			req.body.trainerPic = await uploadImage(req.files[0], "trainerAvatars");
-		} else {
-			req.body.trainerPic - trainer[0].trainerPic;
-		}
+    // Edit business profile -> Programs (can only add a program from profile page)
+    } else if (req.params.editType == 'addProgram') {
+        // Set up program from submitted information
+        let program = {
+            name: req.body.name,
+            pricing: {
+                priceType: req.body.priceType,
+                price: req.body.price
+            },
+            discount: req.body.discounts,
+            hours: req.body.hours,
+            description: req.body.description
+        };
 
-		//Update database
-		await userdb.collection('trainer').updateOne({companyName: req.session.name}, {$set: req.body});
+        // Insert program into database
+        await userdb.collection('programs').insertOne(program);
 
 		//Return to profile, trainer profile tab
 		res.redirect('/profile?tab=trainer');
@@ -1122,10 +1216,11 @@ app.post('/profile/edit/:editType', sessionValidation, upload.array('accountUplo
 			name: req.body.name,
 			pricing: {
 				priceType: req.body.priceType,
-				price: req.body.price
+				price: req.body.price.toFixed(2)
 			},
 			discount: req.body.discounts,
 			hours: req.body.hours,
+			sessions: req.body.sessions,
 			description: req.body.description
 		}
 
@@ -1140,7 +1235,7 @@ app.post('/profile/edit/:editType', sessionValidation, upload.array('accountUplo
 
 //Display specific program
 app.get('/program/:programId', async(req, res) => {
-	const userdb = await getdb(req.session.userdb);
+	const userdb = appdb.db(req.session.userdb);
 
 	//Use program id to access program
 	let programId =  ObjectId.createFromHexString(req.params.programId);
@@ -1152,7 +1247,7 @@ app.get('/program/:programId', async(req, res) => {
 
 //Edit specific program
 app.post('/program/:programId/edit', async(req, res) => {
-	const userdb = await getdb(req.session.userdb);
+	const userdb = appdb.db(req.session.userdb);
 
 	//Set up program with submitted info
 	let = program = {
@@ -1163,6 +1258,7 @@ app.post('/program/:programId/edit', async(req, res) => {
 		},
 		discount: req.body.discounts,
 		hours: req.body.hours,
+		sessions: req.body.sessions,
 		description: req.body.description
 	}
 
@@ -1181,11 +1277,12 @@ app.get('/addDog', (req, res) => {
 
 //Adds the dog to the database
 app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
-    const userdb = await getdb(req.session.userdb);
+    const userdb = appdb.db(req.session.userdb);
   
 	var schema = Joi.object(
 		{
 			dogName: Joi.string().pattern(/^[a-zA-Z\s\'\-]*$/).max(20),
+			dogBreed: Joi.string().pattern(/^[a-zA-Z\s\'\-]*$/).max(40),
 			specialAlerts: Joi.string().pattern(/^[A-Za-z0-9 _.,!"'()#;:\s]*$/).allow(null, '')
 		}
 	);
@@ -1194,7 +1291,7 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
         req.body.specialAlerts = '';
     }
 
-    let validationRes = schema.validate({ dogName: req.body.dogName, specialAlerts: req.body.specialAlerts });
+    let validationRes = schema.validate({ dogName: req.body.dogName, dogBreed: req.body.dogBreed, specialAlerts: req.body.specialAlerts });
     // Deals with errors from validation
     if (validationRes.error != null) {
         let doc = '<body><p>Invalid Dog</p><br><a href="/addDog">Try again</a></body>';
@@ -1272,6 +1369,7 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
     }
 
     // Stores sex, birthday, weight, specialAlerts of the dog
+	dog.breed = req.body.dogBreed;
     dog.sex = req.body.sex;
     dog.birthday = req.body.birthday;
     dog.weight = req.body.weight;
@@ -1320,7 +1418,7 @@ const uploadFields = upload.fields([
 
 // Route to handle updating vaccination records
 app.post('/dog/:dogId/editVaccines', uploadFields, async (req, res) => {
-  const userdb = await getdb(req.session.userdb);
+  const userdb = appdb.db(req.session.userdb);
   const dogId = req.params.dogId;
 
   let dog = await userdb.collection('dogs').findOne({ _id: new ObjectId(dogId) });
@@ -1377,14 +1475,19 @@ app.post('/dog/:dogId/editVaccines', uploadFields, async (req, res) => {
 
 //Show specific dog
 app.get('/dog/:dogId', async(req, res) => {
-	const userdb = await getdb(req.session.userdb);
+
+	if(req.session.userType === 'business') {
+		res.redirect('/dogView');
+	}
+
+	const userdb = appdb.db(req.session.userdb);
 
 	//Use the dog document id to find the specific dog
 	let dogId =  ObjectId.createFromHexString(req.params.dogId);
-	let dogRecord = await userdb.collection('dogs').find({_id: dogId}).toArray();
+	let dogRecord = await userdb.collection('dogs').find({_id: dogId}).toArray();	
 
 	//If there is a dog pic attached to this dog, create a link to it
-	if(dogRecord[0].dogPic != ''){
+	if(dogRecord[0].dogPic != '') {
 		dogRecord[0].dogPic = cloudinary.url(dogRecord[0].dogPic);
 	}
 
@@ -1394,7 +1497,7 @@ app.get('/dog/:dogId', async(req, res) => {
 
 //Edit specific dog
 app.post('/dog/:dogId/edit',upload.single('dogUpload'), async(req, res) => {
-	const userdb = await getdb(req.session.userdb);
+	const userdb = appdb.db(req.session.userdb);
 
 	//Create the Id object from the dog id
 	let dogId =  ObjectId.createFromHexString(req.params.dogId);
@@ -1420,7 +1523,7 @@ app.post('/dog/:dogId/edit',upload.single('dogUpload'), async(req, res) => {
 
 //Delete specific dog
 app.post('/dog/:dogId/delete',upload.single('dogUpload'), async(req, res) => {
-	const userdb = await getdb(req.session.userdb);
+	const userdb = appdb.db(req.session.userdb);
 
 	//Create the Id object from the dog id
 	let dogId =  ObjectId.createFromHexString(req.params.dogId);
@@ -1445,14 +1548,14 @@ app.get('/accountDeletion', (req, res) => {
 });
 
 app.post('/deleteAccount', async (req, res) => {
-	const userdb = await getdb(req.session.userdb);
+	const userdb = appdb.db(req.session.userdb);
 	// Store the email
 	let email = req.session.email;
 
 	// Logic for business accounts and clients (safe coding)
 	if (req.session.userType == 'client') {
 		if (req.session.trainerdb) {
-			const trainerdb = await getdb(req.session.trainerdb);
+			const trainerdb = appdb.db(req.session.trainerdb);
 			await trainerdb.collection('clients').deleteOne({email: email});
 		}
 		await appUserCollection.deleteMany({email: email, userType: 'client'});
@@ -1555,7 +1658,7 @@ app.get('/viewBusiness/:company', async(req, res) => {
 });
 
 app.get('/viewBusiness/:company/register/:program', async(req, res) => {
-	const userdb = await getdb(req.session.userdb);
+	const userdb = appdb.db(req.session.userdb);
 
 	//Connect to the specific business' database
 	let db = mongodb_businessdb + '-' + req.params.company.replaceAll(/\s/g, "");
@@ -1595,7 +1698,7 @@ app.get('/viewBusiness/:company/register/:program', async(req, res) => {
 
 
 app.post('/viewBusiness/:company/register/:program/submitRegister', async(req, res) => {
-	const userdb = await getdb(req.session.userdb);
+	const userdb = appdb.db(req.session.userdb);
 
 	let db = mongodb_businessdb + '-' + req.params.company.replaceAll(/\s/g, "");
 	let businessdbAccess = new MongoClient(`mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/${db}?retryWrites=true`);
@@ -1603,7 +1706,6 @@ app.post('/viewBusiness/:company/register/:program/submitRegister', async(req, r
 	
 	let dogId = ObjectId.createFromHexString(req.body.selectedDog);
 	let programId = ObjectId.createFromHexString(req.params.program);
-
 
 	let [program, dog, companyEmail] = await Promise.all([
 		tempBusiness.collection('programs').find({_id: programId}).project({name: 1}).toArray(),
@@ -1626,11 +1728,78 @@ app.post('/viewBusiness/:company/register/:program/submitRegister', async(req, r
 		tempBusiness.collection('alerts').insertOne(request),
 		appUserCollection.updateOne({email: companyEmail, userType:'business'}, {$inc:{unreadAlerts: 1}})
 	]);
+
+	res.redirect('/viewBusiness/' + req.params.company);
 	
-	// CHANGE LATER TEMPORARY CODE TO AUTO HIRE THE TRAINER FOR NOW
-	const companyName = await tempBusiness.collection('info').find().project({companyName: 1}).toArray();
-	res.redirect('/addTrainer/' + companyName[0].companyName);
+	// // CHANGE LATER TEMPORARY CODE TO AUTO HIRE THE TRAINER FOR NOW
+	// const companyName = await tempBusiness.collection('info').find().project({companyName: 1}).toArray();
+	// res.redirect('/addTrainer/' + companyName[0].companyName);
 	// res.redirect('/findTrainer');
+});
+
+app.post('/resolveAlert/:alert', async(req, res) => {
+	//Create an id for the alert
+	let alertId = ObjectId.createFromHexString(req.params.alert);
+
+	//Find the trainer database
+	const userdb = appdb.db(req.session.userdb);
+
+	if(req.body.resolve == 'accept'){
+		//Retrive the whole alert and create the database name for the client from it
+		let alert = await userdb.collection('alerts').find({_id: alertId}).toArray();
+		let clientEmail = alert[0].clientEmail.replaceAll('.', '');
+
+		//Find client hiring
+		const clientdb = await getdb('client-' + clientEmail);
+
+		//Get the client's information and check if this is a new client or not
+		let client = await clientdb.collection('info').find({}).project({email: 1, firstName: 1, lastName: 1, phone: 1}).toArray();
+		let check = await userdb.collection('clients').find({email: client[0].email}).project({_id: 1, email: 1}).toArray();
+
+		//Update that the client is with your business
+		appUserCollection.updateOne({email: client[0].email}, {$set: {companyName: req.session.name}});
+
+		if (check.length == 0) {
+			await userdb.collection('clients').insertOne({
+				email: client[0].email,
+				firstName: client[0].firstName,
+				lastName: client[0].lastName,
+				phone: client[0].phone
+			});
+		}
+
+		//Update the client's outstanding balance
+		let program = await userdb.collection('programs').find({_id: alert[0].program}).toArray();
+		let price;
+		if(program[0].pricing.priceType == 'Hourly Rate'){
+			price = (program[0].hours * program[0].pricing.price).toFixed(2);
+		} else {
+			price = program[0].pricing.price;
+		}
+
+		let balance = {
+			dogName: alert[0].dogName,
+			programName: alert[0].programName,
+			credits: program[0].sessions,
+			outstandingBalance: price
+		};
+
+		let registration = {
+			trainer: req.session.name,
+			program: alert[0].programName,
+			dog: alert[0].dog,
+			price: price
+		}
+
+		await Promise.all([
+			clientdb.collection('outstandingBalance').insertOne(balance),
+			clientdb.collection('registrations').insertOne(registration)
+		]);
+		
+	}
+	
+	userdb.collection('alerts').deleteOne({_id: alertId});
+	res.redirect('/alerts')
 });
 
 
@@ -1640,8 +1809,8 @@ app.get('/addTrainer/:trainer', async (req, res) => {
 	await appUserCollection.updateOne({email: req.session.email}, {$set: { companyName: trainer}});
 	await setTrainerDatabase(req);
 
-	const userdb = await getdb(req.session.userdb);
-	const trainerdb = await getdb(req.session.trainerdb);
+	const userdb = appdb.db(req.session.userdb);
+	const trainerdb = appdb.db(req.session.trainerdb);
 
 	let client = await userdb.collection('info').find().project({email: 1, firstName: 1, lastName: 1, phone: 1}).toArray();
 	let check = await trainerdb.collection('clients').find({email: client[0].email}).project({_id: 1, email: 1}).toArray();
@@ -1662,13 +1831,13 @@ app.get('/addTrainer/:trainer', async (req, res) => {
 async function getUserEvents(req) {
 	let userEvents;
 	if (req.session.userType == 'business') {
-		const userdb = await getdb(req.session.userdb);
+		const userdb = appdb.db(req.session.userdb);
 		userEvents = await userdb.collection('eventSource').find().project({ title: 1, start: 1, end: 1 }).toArray();
 	} else if (req.session.userType == 'client') {
 		if (!req.session.trainerdb) {
 			userEvents = null;
 		} else {
-			const trainerdb = await getdb(req.session.trainerdb);
+			const trainerdb = appdb.db(req.session.trainerdb);
 			let email = req.session.email;
 			userEvents = await trainerdb.collection('eventSource').find({client: email}).project({ title: 1, start: 1, end: 1 }).toArray();
 		}
@@ -1693,7 +1862,7 @@ app.get('/events', async (req, res) => {
 
 app.post('/filteredEvents', async (req, res) => {
 	const clientEmail = req.body.data;
-	const userdb = await getdb(req.session.userdb);
+	const userdb = appdb.db(req.session.userdb);
 	const filteredEvents = await userdb.collection('eventSource').find({client: clientEmail}).project({ title: 1, start: 1, end: 1 }).toArray();
 	res.json(filteredEvents);
 })
@@ -1706,10 +1875,10 @@ app.post('/getThisEvent', async (req, res) => {
 	}
 	let result;
 	if (isBusiness(req)) {
-		const userdb = await getdb(req.session.userdb);
+		const userdb = appdb.db(req.session.userdb);
 		result = await userdb.collection('eventSource').find(event).project({_id: 1, client: 1, info: 1}).toArray();
 	} else if (isClient(req)) {
-		const trainerdb = await getdb(req.session.trainerdb);
+		const trainerdb = appdb.db(req.session.trainerdb);
 		result = await trainerdb.collection('eventSource').find(event).project({_id: 1, trainer: 1, info: 1}).toArray();
 	}
 	
@@ -1718,13 +1887,13 @@ app.post('/getThisEvent', async (req, res) => {
 
 // Returns client list to the calendar
 app.post('/getClients', async (req, res) => {
-	const userdb = await getdb(req.session.userdb);
+	const userdb = appdb.db(req.session.userdb);
 	const clientList = await userdb.collection('clients').find().project({ email: 1, _id: 1 }).toArray();
 	res.json(clientList);
 });
 
 app.post('/addEvent', async (req, res) => {
-    const userdb = await getdb(req.session.userdb);
+    const userdb = appdb.db(req.session.userdb);
     const date = req.body.calModDate;
     const startDateStr = date + "T" + req.body.calModStartHH + ":" + req.body.calModStartMM + ":00";
     const endDateStr = date + "T" + req.body.calModEndHH + ":" + req.body.calModEndMM + ":00";
@@ -1765,14 +1934,17 @@ app.post('/addEvent', async (req, res) => {
         event.title,
         startDate.toDateString(),
         startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        endDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        endDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        userdb
     );
 
     res.redirect('/calendar');
 });
 
 app.post('/updateEvent', async (req, res) => {
-	const userdb = await getdb(req.session.userdb);
+	// Checks if previous page was a Calendar or Session
+	const calOrSess = req.body.calOrSess;
+	const userdb = appdb.db(req.session.userdb);
 	const date = req.body.calModDate;
 	const startNew = date + "T" + req.body.calModStartHH + ":" + req.body.calModStartMM + ":00";
 	const endNew = date + "T" + req.body.calModEndHH + ":" + req.body.calModEndMM + ":00";
@@ -1812,12 +1984,19 @@ app.post('/updateEvent', async (req, res) => {
 	// let eventID = req.body.calModEventID;
 	// console.log(eventID);
 	// await userdb.collection('eventSource').updateOne({ _id: eventID }, { $set: {eventNew} });
-
-	res.redirect('/calendar');
+	if (calOrSess == 'calendar') {
+		res.redirect('/calendar');
+		return;
+	} else if (calOrSess == 'session') {
+		res.redirect('/sessionList');
+	}
 });
 
 app.post('/removeEvent', async (req, res) => {
-	const userdb = await getdb(req.session.userdb);
+	// Checks if previous page was a Calendar or Session
+	const calOrSess = req.body.calOrSess;
+
+	const userdb = appdb.db(req.session.userdb);
 
 	// Delete by _id, but doesn't work
 	// let eventID = req.body.calModEventID;
@@ -1836,13 +2015,18 @@ app.post('/removeEvent', async (req, res) => {
 		client: calEmail,
 		info: calInfo
 	});
-	res.redirect('/calendar');
+	if (calOrSess == 'calendar') {
+		res.redirect('/calendar');
+		return;
+	} else if (calOrSess == 'session') {
+		res.redirect('/sessionList');
+	}
 });
 
 // ----------------- MESSAGING SECTION STARTS HERE -------------------
 
 app.get('/chatSelectClient', async (req, res) => {
-	const userdb = await getdb(req.session.userdb);
+	const userdb = appdb.db(req.session.userdb);
 	if (isClient(req)) {
 		res.redirect('/chat/client');
 		return;
@@ -1860,22 +2044,22 @@ app.get('/chat/:type', async (req, res) => {
 		return;
 	} else if (isBusiness(req)) {
 		setClientDatabase(req, type);
-		const clientdb = await getdb(req.session.clientdb);
+		const clientdb = appdb.db(req.session.clientdb);
 		const receiver = await clientdb.collection('info').find().project({email: 1}).toArray();
 		res.render('chatBusiness', { loggedIn: isValidSession(req), userType: req.session.userType, clientParam: type, receiver: receiver[0].email, unreadAlerts: req.session.unreadAlerts });
 	}
 });
 
 app.get('/messagesClient', async (req, res) => {
-	const userdb = await getdb(req.session.userdb);
-	const trainerdb = await getdb(req.session.trainerdb);
+	const userdb = appdb.db(req.session.userdb);
+	const trainerdb = appdb.db(req.session.trainerdb);
 	const senderMsgList = await userdb.collection('messages').find().sort({ createdAt: 1 }).limit(25).toArray();
 	const receiverMsgList = await trainerdb.collection('messages').find().sort({ createdAt: 1 }).limit(25).toArray();
 	res.json({ senderMessages: senderMsgList, receiverMessages: receiverMsgList });
 });
 
 app.post('/messagesClient', async (req, res) => {
-	const userdb = await getdb(req.session.userdb);
+	const userdb = appdb.db(req.session.userdb);
 	const { text } = req.body;
 	const sender = req.session.email;
 	const trainer = await appUserCollection.find({ email: sender }).project({ companyName: 1 }).toArray();
@@ -1886,16 +2070,16 @@ app.post('/messagesClient', async (req, res) => {
 });
 
 app.get('/messagesBusiness/:client', async (req, res) => {
-	const userdb = await getdb(req.session.userdb);
-	const clientdb = await getdb(req.session.clientdb);
+	const userdb = appdb.db(req.session.userdb);
+	const clientdb = appdb.db(req.session.clientdb);
 	const senderMsgList = await userdb.collection('messages').find().sort({ createdAt: 1 }).limit(25).toArray();
 	const receiverMsgList = await clientdb.collection('messages').find().sort({ createdAt: 1 }).limit(25).toArray();
 	res.json({ senderMessages: senderMsgList, receiverMessages: receiverMsgList });
 });
 
 app.post('/messagesBusiness/:client', async (req, res) => {
-	const userdb = await getdb(req.session.userdb);
-	const clientdb = await getdb(req.session.clientdb);
+	const userdb = appdb.db(req.session.userdb);
+	const clientdb = appdb.db(req.session.clientdb);
 	const { text } = req.body;
 	const client = await clientdb.collection('info').find().project({email: 1}).toArray();
 	const receiver = client[0].email;
@@ -1941,7 +2125,7 @@ app.post('/messagesBusiness/:client', async (req, res) => {
 // ----------------- ALERTS SECTION STARTS HERE -------------------
 
 app.get('/alerts', async(req, res)=>{
-	const userdb = await getdb(req.session.userdb);
+	const userdb = appdb.db(req.session.userdb);
 	if(req.session.userType == 'business'){
 
 		let [alerts] = await Promise.all([
@@ -1957,7 +2141,7 @@ app.get('/alerts', async(req, res)=>{
 });
 
 app.get('/alerts/view/:alert', async(req, res) => {
-	const userdb = await getdb(req.session.userdb);
+	const userdb = appdb.db(req.session.userdb);
 	if(req.session.userType == 'business'){
 		appUserCollection.updateOne({email: req.session.email}, {$set:{unreadAlerts: 0}});
 		let alertId = ObjectId.createFromHexString(req.params.alert);
@@ -1968,23 +2152,40 @@ app.get('/alerts/view/:alert', async(req, res) => {
 		let clientdbAccess = new MongoClient(`mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/${db}?retryWrites=true`);
 		let clientInfo = clientdbAccess.db(db);
 
-		let dog = await clientInfo.collection('dogs').find({_id: alert[0].dog}).toArray();
+		let [dog, address] = await Promise.all([
+			clientInfo.collection('dogs').find({_id: alert[0].dog}).toArray(),
+			clientInfo.collection('info').find({}).project({address: 1}).toArray()
+		]);
+
 		if(dog[0].dogPic != '' && dog[0].dogPic != null){
 			dog[0].dogPic = cloudinary.url(dog[0].dogPic);
 		}
 
-		res.render('hireAlertView', {loggedIn: isValidSession(req), userType: req.session.userType, alert: alert[0], dog: dog[0], unreadAlerts: req.session.unreadAlerts});
+		res.render('hireAlertView', {loggedIn: isValidSession(req), userType: req.session.userType, alert: alert[0], dog: dog[0], address: address[0].address, unreadAlerts: req.session.unreadAlerts});
 	} else {
 		res.redirect('/');
 	}
 });
 
 
-app.get('/clientList', async (req, res) => {
-	// console.log(req.session.name);
-	clientList = await appUserCollection.find({companyName: null, userType: 'client'}).project({email: 1, firstName: 1, lastName: 1}).toArray();
-	// console.log(clientList.length);
-	res.render('clientList', {clientArray: clientList, loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
+app.get('/clientList', businessAuthorization, async (req, res) => {
+	// console.log(req.session.userType);
+	// get the list of clients that are added to the logged in dog trainer
+	// !Currently, the companyName is set to null because there is no system for business view user pages at the time of writing.!
+	// clientList = await appUserCollection.find({companyName: null, userType: 'client'}).project({_id: 1, email: 1, firstName: 1, lastName: 1}).toArray();
+	const userdb = appdb.db(req.session.userdb);
+	const clientList = await userdb.collection('clients').find().project({email: 1}).toArray();
+	// console.log(clientList);
+	let clientListArray = [];
+	clientList.forEach((client) => {
+		clientListArray.push(client.email);
+	});
+	// console.log(clientListArray);
+	const userClientList = await appUserCollection.find({email: {$in: clientListArray}}).project({_id: 1, email: 1, firstName: 1, lastName: 1}).toArray();
+	// console.log(userClientList);
+	// const ids = userClientList.map(item => item._id.toString());
+	// console.log(ids);
+	res.render('clientList', {clientArray: userClientList, loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
 });
 
 app.get('/clientProfile/:id', async (req, res) => {
@@ -2013,7 +2214,7 @@ app.get('/clientProfile/:id', async (req, res) => {
 	// const dbName = mongodb_clientdb + '-' + emailParsed;
 
 	setClientDatabase(req, email);
-	const clientdb = await getdb(req.session.clientdb);
+	const clientdb = appdb.db(req.session.clientdb);
 
 	// set the databases
 	const clientdbInfo = clientdb.collection('info');
@@ -2040,6 +2241,21 @@ app.get('/clientProfile/:id', async (req, res) => {
 	// console.log(dogs);
 
 	res.render('viewingClientProfile', {targetClient: targetClient, pfpUrl: pfpUrl, dogs: dogs, loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
+});
+
+app.get('/dogView', businessAuthorization, async (req, res) => {
+	res.send('safe');
+});
+
+// ----------------- SESSIONS SECTION STARTS HERE -------------------
+
+app.get('/sessionList', async (req, res) => {
+	if ( req.session.userType == 'business') {
+		res.render('sessionsBusiness', {loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
+		return;
+	} else if (req.session.userType == 'client') {
+		res.render('sessionsClient', {loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
+	}
 });
 
 app.use(express.static(__dirname + "/public"));

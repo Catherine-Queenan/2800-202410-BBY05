@@ -1,15 +1,42 @@
 <%- include("templates/header") %>
 
-
-
-<div>
-    <ul>
-        <% let i=0; %>
-        <%for (i = 0; i < clientArray.length; i++) { %>
-            <%- include('clientCards', {client: clientArray[i]} ) %>
-        <% } %>
-    </ul>
-    
+<div class="profile-container my-4 mx-4">
+    <h1 class="text-center my-4 yeseva-one">Clients</h1>
+    <div class="heading-gen py-3">
+        <!-- Search Bar -->
+        <input type="text" id="searchInput" placeholder="&#x2315; Search">
+        <!-- Div containing list of cards -->
+        <div>
+            <!-- This id is necessary. Cards are placed at this id.  -->
+            <ul id="clientListing"></ul>
+        </div>
+    </div>
 </div>
 
 <%- include("templates/footerCopyright") %>
+
+<!-- This script includes the client searching DOM logic -->
+<script type="text/javascript" src="/scripts/clientSearch.js"></script>
+
+<!-- This script is responsible for handling the client array conversion to the JS -->
+<script>
+    let clientListSize = "<%= clientArray.length%>";
+    const clients = '<%- JSON.stringify(clientArray) %>';
+    clientsParsed = JSON.parse(clients);
+</script>
+
+<template id="clientCardTemplate">
+    <li>
+        <div class="card m-2 smallShadow" style="background-color:#20133541; color:#201335; border-radius:1px">
+            <div class="d-flex justify-content-center m-2">
+            <div class="card-body">
+                <h5 class="card-title h4 text-center yeseva-one">[firstNamePlaceholder] [lastNamePlaceholder]</h5>
+                <p class="karla-heavy fw-bold text-center">[emailPlaceholder]</p>
+                <form method="get" class="d-flex justify-content-center">
+                    <%- include('templates/button', {action:'/',xClasses:'profileLink btn btn-primary',xAttributes:'id=profileLink',content:'View Profile'}) %>
+                </form>
+            </div>
+            </div>
+        </div>
+    </li>
+</template>
