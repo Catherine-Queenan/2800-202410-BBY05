@@ -123,12 +123,6 @@ const transporter = nodemailer.createTransport({
 	}
 });
 
-// Passes a variable called 'currentUrl' to whatever page we're on.
-app.use((req, res, next) => {
-    res.locals.currentUrl = req.originalUrl; // I don't think we're doing any internal routing, but for safety, I'm using originalUrl instead of url to prevent issues in the future.
-    next();
-});
-
 app.use(session({
 	secret: node_session_secret,
 	store: mongoStore, //default is memory store 
@@ -356,6 +350,27 @@ async function deleteUploadedImage(id){
 		});
 	}
 }
+
+// Passes a variable called 'currentUrl' to whatever page we're on.
+// It's now middleware to also set trainer information.
+app.use(async (req, res, next) => {
+    res.locals.currentUrl = req.originalUrl; // I don't think we're doing any internal routing, but for safety, I'm using originalUrl instead of url to prevent issues in the future.
+    if (req.session.userType === 'client') {
+        let user = await appUserCollection.findOne({ email: req.session.email });
+        if (user && user.companyName) {
+            let trainer = await appUserCollection.findOne({ companyName: user.companyName, userType: 'business' });
+            res.locals.trainerAssigned = true;
+            res.locals.trainer = {
+                name: trainer.companyName || '',
+                email: trainer.email || ''
+            };
+        } else {
+            res.locals.trainerAssigned = false;
+        }
+    }
+    next();
+});
+
 
 // TODO: Add access to pages and create a check for the user type and authorization
 // status to determine what footer and navbar to display
