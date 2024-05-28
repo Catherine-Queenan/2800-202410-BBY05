@@ -1,16 +1,19 @@
 <%- include("templates/header") %>
-    <div class="container">
+<div class="profile-container my-4 mx-4">
         <%- include('templates/button', {action:'',xClasses:'',xAttributes:'id=registerDog type=button disabled', content:'Register Dog'}) %>
         <%- include('templates/clientViewProgram', {program: program})%>
-
-        <p class="h2">Selected Dog:</p>
-        <div id="selectedDog">
-           <p>No Dog Selected</p>
+        <div class="heading-gen my-3">
+        <p class="h2 purple">Selected Dog:</p>
+            <div id="selectedDog">
+            <p class="karla-heavy fw-bold">No Dog Selected</p>
+            </div>
         </div>
-        <p class="h2">Select dog:</p>
-        <% for(let i=0; i < dogs.length; i++){ %>
-            <%- include('templates/dogToTrainClient', {dog: dogs[i]}) %>
-        <% } %>
+        <div class="heading-gen my-3">
+            <p class="h2 purple">Select dog:</p>
+            <% for(let i=0; i < dogs.length; i++){ %>
+                <%- include('templates/dogToTrainClient', {dog: dogs[i]}) %>
+            <% } %>
+        </div>
     </div>
 
     <form id="selectDogForm" method="post" action="<%=currentUrl.replace('?', '')%>/submitRegister">

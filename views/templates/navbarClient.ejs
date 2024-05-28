@@ -34,8 +34,12 @@
 		  </li>
 		  <li class="nav-item">
 			<div class="d-flex flex-column align-items-center">
-			  <%- include('icon', {iconPath: '/icons/Client.png', altText: 'Trainer', action: '/chat/client', theClass: '', theAttributes: 'style= width:30px; height:30px;'}) %>
-			  <a href="/"><span class="yeseva-one">Trainer</span></a>
+			  <%- include('icon', {iconPath: '/icons/Mail.png', altText: 'Inbox', action: '/chat/client', theClass: '', theAttributes: 'style= width:30px; height:30px;'}) %>
+			  <span class="position-absolute top-30 start-90 badge rounded-pill orangeBackground purple" style="transform:translate(75%,-50%) !important; font-weight:800; cursor:pointer;">
+				  9
+				<span class="visually-hidden">unread messages</span>
+			  </span>
+			  <a href="/chat/client"><span class="yeseva-one">Messages</span></a>
 			</div>
 		  </li>
 		</ul>
@@ -62,6 +66,12 @@
 				<div class="d-flex align-items-center">
 				  <%- include('icon', {iconPath: '/icons/Resources.png', altText: 'Resources', action: '/clientResources', theClass: '', theAttributes: 'style= width:30px; height:30px;'}) %>
 				  <a href="/clientResources" class="ps-3"><span class="yeseva-one">Resources</span></a>
+				</div>
+			  </li>
+			  <li class="nav-item py-3">
+				<div class="d-flex align-items-center">
+				  <%- include('icon', {iconPath: '/icons/Client.png', altText: 'Trainer Information', action: '/', theClass: '', theAttributes: 'style= width:30px; height:30px;'}) %>
+				  <a href="/" class="ps-3"><span class="yeseva-one">Trainer Page</span></a>
 				</div>
 			  </li>
 			  <li class="nav-item py-3">
