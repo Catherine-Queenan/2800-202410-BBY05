@@ -2,7 +2,7 @@
 <div class="profile-container my-4 mx-4">
     <h1 class="text-center my-4 yeseva-one">Trainers</h1>
     <div class="heading-gen py-3">
-        <input type="text" name="search" id="trainerSearch" placeholder="Search">
+        <input type="text" name="search" id="trainerSearch" placeholder="&#x2315; Search">
     </div>
     <% for(let i = 0; i < businesses.length; i++){ %>
         <%- include('templates/trainerQuickView', {trainer: trainers[i], business: businesses[i]}) %>

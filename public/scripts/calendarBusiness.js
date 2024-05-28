@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', function () {
 						<option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option>
 						<option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option>
 					</select>
-					<span class="input-group-text">:</span>
+					<span class="input-group-text whiteBackground">:</span>
 					<select class="form-select" disabled name="calModStartMM" id="calModStartMM">
 						<option selected>${modStartMM}</option>
 						<option value="00">00</option>
@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', function () {
 						<option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option>
 						<option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option>
 					</select>
-					<span class="input-group-text">:</span>
+					<span class="input-group-text whiteBackground">:</span>
 					<select class="form-select" disabled name="calModEndMM" id="calModEndMM">
 						<option selected>${modEndMM}</option>
 						<option value="00">00</option>

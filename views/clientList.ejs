@@ -4,9 +4,7 @@
     <h1 class="text-center my-4 yeseva-one">Clients</h1>
     <div class="heading-gen py-3">
         <!-- Search Bar -->
-        <!-- Hi Catherine. If you want to make a better searchbar feel free. 
-            Just make sure the id and text attr. are the same -->
-        <input type="text" id="searchInput" placeholder="Search...">
+        <input type="text" id="searchInput" placeholder="&#x2315; Search">
         <!-- Div containing list of cards -->
         <div>
             <!-- This id is necessary. Cards are placed at this id.  -->
@@ -27,19 +25,17 @@
     clientsParsed = JSON.parse(clients);
 </script>
 
-<!-- This is the template for each person's card. -->
-<!-- As of time of writing, user profiles from a business view don't exist yet, so it redirects to '/'. -->
-<!-- putting the template in another file is added complexity. Leave it here and edit as you wish. -->
 <template id="clientCardTemplate">
     <li>
-        <div class="card" style="width: 18rem;">
+        <div class="card m-2 smallShadow" style="background-color:#20133541; color:#201335; border-radius:1px">
+            <div class="d-flex justify-content-center m-2">
             <div class="card-body">
-                <h5 class="card-title">[firstNamePlaceholder] [lastNamePlaceholder]</h5>
-                <p class="card-text">[emailPlaceholder]</p>
-                <form method="get">
-                    <%- include('templates/button', {action:'/',xClasses:'',xAttributes:'',content:'View Profile'}) %>
+                <h5 class="card-title h4 text-center yeseva-one">[firstNamePlaceholder] [lastNamePlaceholder]</h5>
+                <p class="karla-heavy fw-bold text-center">[emailPlaceholder]</p>
+                <form method="get" class="d-flex justify-content-center">
+                    <%- include('templates/button', {action:'/',xClasses:'profileLink btn btn-primary',xAttributes:'id=profileLink',content:'View Profile'}) %>
                 </form>
-                <a href="#" id="profileLink" class="btn profileLink">View Profile</a>
+            </div>
             </div>
         </div>
     </li>

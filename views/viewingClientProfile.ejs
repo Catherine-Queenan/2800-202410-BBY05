@@ -1,18 +1,45 @@
 <%- include("templates/header") %>
-<!-- pfp -->
-<div><%- include('templates/defaultingPic', {pic: pfpUrl, picId:'profilePic'})%></div> <br>
-<!-- name (first last) -->
-<div><%= targetClient.firstName %> <%= targetClient.lastName %></div> <br>
-<!-- phone number -->
-<div><%= targetClient.phone %></div> <br>
-<!-- email -->
-<div><%= targetClient.email %></div> <br>
-<!-- dogs -->
-<div id="dogSection">
-    <h3><%= targetClient.firstName %>'s Dogs:</h3>
-    <% for(let i = 0; i < dogs.length; i++){ %>
-        <%- include('templates/dog', {dog: dogs[i]}) %>
-    <%} %>
+<div class="profile-container my-4 mx-4">
+    <h1 class="text-center mb-4 yeseva-one"><%= targetClient.firstName %> <%= targetClient.lastName %></h1>
+    <div class="resource-wrap d-flex justify-content-center">
+        <div class="resource-html justify-content-center flex-fill" style="max-width:500px;">
+            <input id="tabR-1" type="radio" name="tab" class="tabR-one btn-check" checked>
+            <label for="tabR-1" class="tabR">Client</label>
+
+            <input id="tabR-2" type="radio" name="tab" class="tabR-two btn-check">
+            <label for="tabR-2" class="tabR">Dogs</label>
+
+            <div class="resource-form">
+                <div class="tabR-one-htm">
+                    <div class="my-3">
+                        <div class="d-flex justify-content-center">
+                            <%- include('templates/defaultingPic', {pic: pfpUrl, picId:'profilePic'})%>
+                        </div>
+                        <div style="font-size: 17px;">
+                            <div class="container contacts my-2">
+                                <p class="heading-gen"><span class="karla-heavy">Contact Information:</span></p>
+                                <p><span class="karla-heavy fw-bold">Email:</span> <span><%= targetClient.email %></span></p>
+                                <p><span class="karla-heavy fw-bold">Phone:</span> <span><%= targetClient.phone %></span></p>
+                                <p><span class="karla-heavy fw-bold">Address:</span> <span><%= targetClient.address %></span></p>
+                            </div>
+                            <form method="get">
+                                <%- include('templates/button', {action:'/chat/'+targetClient.email,xClasses:'',xAttributes:'',content:'Chat'}) %>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="resource-form">
+                    <div class="tabR-two-htm">
+                        <div id="dogSection">
+                            <p class="heading-gen"><span class="karla-heavy"><%= targetClient.firstName %>'s Dogs:</span></p>
+                            <% for(let i = 0; i < dogs.length; i++){ %>
+                                <%- include('templates/dog', {dog: dogs[i]}) %>
+                            <%} %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
-<!-- other buttons -->
 <%- include("templates/footerCopyright") %>
