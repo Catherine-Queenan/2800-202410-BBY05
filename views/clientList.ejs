@@ -25,20 +25,17 @@
     clientsParsed = JSON.parse(clients);
 </script>
 
-<!-- This is the template for each person's card. -->
-<!-- As of time of writing, user profiles from a business view don't exist yet, so it redirects to '/'. -->
-<!-- putting the template in another file is added complexity. Leave it here and edit as you wish. -->
 <template id="clientCardTemplate">
     <li>
-        <div class="card" style="width: 18rem;">
+        <div class="card m-2 smallShadow" style="background-color:#20133541; color:#201335; border-radius:1px">
+            <div class="d-flex justify-content-center m-2">
             <div class="card-body">
-                <h5 class="card-title">[firstNamePlaceholder] [lastNamePlaceholder]</h5>
-                <p class="card-text">[emailPlaceholder]</p>
-
-                <!-- I needed a custom button this time around -->
-                <form method="get">
-                    <%- include('templates/button', {action:'/',xClasses:'profileLink',xAttributes:'id=profileLink',content:'View Profile'}) %>
+                <h5 class="card-title h4 text-center yeseva-one">[firstNamePlaceholder] [lastNamePlaceholder]</h5>
+                <p class="karla-heavy fw-bold text-center">[emailPlaceholder]</p>
+                <form method="get" class="d-flex justify-content-center">
+                    <%- include('templates/button', {action:'/',xClasses:'profileLink btn btn-primary',xAttributes:'id=profileLink',content:'View Profile'}) %>
                 </form>
+            </div>
             </div>
         </div>
     </li>
