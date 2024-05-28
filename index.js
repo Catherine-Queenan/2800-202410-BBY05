@@ -189,7 +189,7 @@ function isAdmin(req) {
 function adminAuthorization(req, res, next) {
 	if (!isAdmin(req)) {
 		res.status(403);
-		res.render('errorMessage', { error: 'Not Authorized - 403', loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts });
+		res.render('errorMessage', { errorTitle: '403', errorMsg: 'Looks like you\'re in the doghouse! Or... you just don\'t have permission to view this page.', loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts });
 	} else {
 		next();
 	}
@@ -198,7 +198,7 @@ function adminAuthorization(req, res, next) {
 function clientAuthorization(req, res, next) {
 	if (!isClient(req)) {
 		res.status(403);
-		res.render('errorMessage', { error: 'Not Authorized - 403', loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts });
+		res.render('errorMessage', { errorTitle: '403', errorMsg: 'Looks like you\'re in the doghouse! Or... you just don\'t have permission to view this page.', loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts });
 	} else {
 		next();
 	}
@@ -207,7 +207,7 @@ function clientAuthorization(req, res, next) {
 function businessAuthorization(req, res, next) {
 	if (!isBusiness(req)) {
 		res.status(403);
-		res.render('errorMessage', { error: 'Not Authorized - 403', loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts });
+		res.render('errorMessage', { errorTitle: '403', errorMsg: 'Looks like you\'re in the doghouse! Or... you just don\'t have permission to view this page.', loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts });
 	} else {
 		next();
 	}
@@ -454,8 +454,10 @@ app.post('/submitSignup/:type', async (req, res) => {
 
 		//Deal with errors from validation
 		if (validationRes.error != null) {
-			let doc = '<p>Invalid Signup</p><br><a href="/login/clientLogin">Try again</a></body>';
-			res.send(doc);
+			console.log(validationRes.error);
+			res.render('errorMessage', {loggedIn: isValidSession(req), userType: req.session.userType, errorTitle: 'Incomplete or Invalid' , errorMsg: 'Ruh Roh! That information is invalid! Please try again.', unreadAlerts: req.session.unreadAlerts});
+			// let doc = '<p>Invalid Signup</p><br><a href="/login/clientLogin">Try again</a></body>';
+			// res.send(doc);
 			return;
 		}
 
@@ -528,8 +530,9 @@ app.post('/submitSignup/:type', async (req, res) => {
 		//Deals with errors from validation
 		if (validationRes.error != null) {
 			console.log(validationRes.error);
-			let doc = '<body><p>Invalid Signup</p><br><a href="/login/businessLogin">Try again</a></body>';
-			res.send(doc);
+			res.render('errorMessage', {loggedIn: isValidSession(req), userType: req.session.userType, errorTitle: 'Incomplete or Invalid' , errorMsg: 'Ruh Roh! That information is invalid! Please try again.', unreadAlerts: req.session.unreadAlerts});
+			// let doc = '<a href="/login/businessLogin">Try again</a>';
+			// res.send(doc);
 			return;
 		}
 
@@ -625,8 +628,9 @@ app.post('/submitLogin', async (req, res) => {
 	// 	result = await adminsCollection.find({ businessEmail: email }).project({ email: 1, password: 1, _id: 1 }).toArray();
 	// }
 	if (result.length == 0) {
-		var doc = '<p>No user found</p><br><a href="/">Try again</a>';
-		res.send(doc);
+		res.render('errorMessage', {loggedIn: isValidSession(req), userType: req.session.userType, errorTitle: 'No User Found' , errorMsg: 'Guard Dog on Duty! Trespassers Beware!', unreadAlerts: req.session.unreadAlerts});
+		// var doc = '<p>No user found</p><br><a href="/">Try again</a>';
+		// res.send(doc);
 		return;
 	}
 
@@ -653,7 +657,7 @@ app.post('/submitLogin', async (req, res) => {
 	} else {
 
 		// if the password is incorrect, say so
-		res.render('errorMessage', {loggedIn: isValidSession(req), userType: req.session.userType, error: 'Password is incorrect' , unreadAlerts: req.session.unreadAlerts});
+		res.render('errorMessage', {loggedIn: isValidSession(req), userType: req.session.userType, errorTitle: 'Password is Incorrect' , errorMsg: 'Guard Dog on Duty! No entry without the right password!', unreadAlerts: req.session.unreadAlerts});
 	}
 });
 
@@ -685,7 +689,7 @@ function sendResetMail(emailAddress, resetToken) {
 
 			// Error handling
 			if (error) {
-				res.render('errorMessge', { error: 'Email couldn\'t be sent', loggedIn: false, userType: null , unreadAlerts: 0})
+				res.render('errorMessge', { errorTitle: 'Email couldn\'t be sent', errorMsg: 'Not even this nose can find something that doesn\'t exist!', loggedIn: false, userType: null , unreadAlerts: 0})
 			}
 		});
 	});
@@ -859,7 +863,7 @@ app.post('/emailConfirmation', async (req, res) => {
 
 	// This is a custom error message for if the email is invalid
 	// This does not have anything to do with the errorMessage.ejs file, this is simply for query
-	const error = 'woof woof woof woof (not a valid email)';
+	const error = 'Invalid Email Address';
 
 	// the encodeURIComponent ensures that any special characters make it into the query if necessary
 	res.redirect(`/forgotPassword?errorMessage=${encodeURIComponent(error)}`);
@@ -875,7 +879,7 @@ app.get('/resetPassword/:token', async (req, res) => {
 
 	// This detects if we couldn't find the token in any user
 	if (clientUser == null) {
-		res.render('errorMessage', { errorTitle: 'Cannot find Token', errorMessage: 'Invalid or Expired Token', loggedIn: false, userType: null, unreadAlerts: 0})
+		res.render('errorMessage', { errorTitle: 'Invalid or Expired Token', errorMsg: 'That\'s one stale dog bone! Please try again.', loggedIn: false, userType: null, unreadAlerts: 0})
 		return;
 	}
 
@@ -1174,8 +1178,9 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
     let validationRes = schema.validate({ dogName: req.body.dogName, dogBreed: req.body.dogBreed, specialAlerts: req.body.specialAlerts });
     // Deals with errors from validation
     if (validationRes.error != null) {
-        let doc = '<body><p>Invalid Dog</p><br><a href="/addDog">Try again</a></body>';
-        res.send(doc);
+		res.render('errorMessage', {loggedIn: isValidSession(req), userType: req.session.userType, errorTitle: 'Incomplete or Invalid' , errorMsg: 'Ruh Roh! That information is invalid! Please try again.', unreadAlerts: req.session.unreadAlerts});
+        // let doc = '<body><p>Invalid Dog</p><br><a href="/addDog">Try again</a></body>';
+        // res.send(doc);
         return;
     }
 
@@ -2216,7 +2221,7 @@ app.use(express.static(__dirname + "/public"));
 
 app.get('*', (req, res) => {
 	res.status(404);
-	res.render('errorMessage', { error: 'Page not found - 404', loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
+	res.render('errorMessage', { errorTitle: '404', errorMsg: 'Looks like you\'re barking up the wrong tree!', loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
 })
 
 app.listen(port, () => {
