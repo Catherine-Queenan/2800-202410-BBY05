@@ -841,7 +841,7 @@ app.get('/resetPassword/:token', async (req, res) => {
 
 	// This detects if we couldn't find the token in any user
 	if (clientUser == null) {
-		res.render('errorMessage', { error: 'Token expired or invalid.', loggedIn: false, userType: null, unreadAlerts: 0})
+		res.render('errorMessage', { errorTitle: 'Cannot find Token', errorMessage: 'Invalid or Expired Token', loggedIn: false, userType: null, unreadAlerts: 0})
 		return;
 	}
 
@@ -1076,7 +1076,7 @@ app.post('/program/:programId/edit', async(req, res) => {
 		name: req.body.name,
 		pricing: {
 			priceType: req.body.priceType,
-			price: req.body.price.toFixed(2)
+			price: req.body.price
 		},
 		discount: req.body.discounts,
 		hours: req.body.hours,
