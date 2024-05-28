@@ -148,16 +148,20 @@ async function notificationsToAlert(req){
 
 		let currDate = new Date();
 		for(let i = 0; i < allNotifications.length; i++){
-			if(allNotifications[i] >= currDate){
+			if(allNotifications[i].date <= currDate){
 				notificationsToAlert.push({
 					dog: allNotifications[i].dog,
-					vaccine: allNotifications[i].vaccineType,
+					type: allNotifications[i].type,
+					vaccine: allNotifications[i].vaccine,
 					date:currDate
 				});
 			}
 		}
-
 		await Promise.all([
+			...notificationsToAlert.map(notif =>
+			userdb.collection('notifications').deleteOne(
+			  { vaccine: notif.vaccine, type: notif.type, dog:notif.dog })
+		  	),
 			userdb.collection('alerts').insertMany(notificationsToAlert),
 			appUserCollection.updateOne({email: req.session.email}, {$inc: {unreadAlerts: notificationsToAlert.length}})
 		]);
@@ -661,14 +665,13 @@ app.post('/submitLogin', async (req, res) => {
 		}
 		req.session.cookie.maxAge = expireTime;
 
+		await setUserDatabase(req);
+		
 		//Run any needed updates to the database for notifications
-		notificationsToAlert(req);
+		await notificationsToAlert(req);
 		cron.schedule('0 0 * * *', () => {
 			notificationsToAlert(req);
 		});
-
-		await setUserDatabase(req);
-		
 
 		res.redirect('/loggedIn'); // redirect to home page
 		return;
@@ -1285,7 +1288,7 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
 			let expirationDate = new Date(req.body[vaccine + 'Date']);
 			let weekBeforeDate = new Date(expirationDate);
             dog[vaccine] = {
-                expirationDate: expirationDate,
+                expirationDate: req.body[vaccine + 'Date'],
                 vaccineRecord: req.body[vaccine + 'Proof']
             };
 
@@ -1308,7 +1311,7 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
 		let weekBeforeDate = new Date(expirationDate);
 
         dog[req.body.vaccineCheck] = {
-            expirationDate: expirationDate,
+            expirationDate: req.body[req.body.vaccineCheck + 'Date'],
             vaccineRecord: req.body[req.body.vaccineCheck + 'Proof']
         };
 		vaccineNotifs.push({
@@ -1405,39 +1408,40 @@ app.post('/dog/:dogId/editVaccines', uploadFields, async (req, res) => {
         if (req.body[`${vaccineType}Date`]) {
 			let expirationDate = new Date(req.body[`${vaccineType}Date`]);
 			let weekBeforeDate = new Date(expirationDate);
-          	dog[vaccineType].expirationDate = expirationDate;
+          	dog[vaccineType].expirationDate = req.body[`${vaccineType}Date`];
 
 			vaccineNotifs.push({
-				vaccine: req.body[`${vaccineType}Date`],
+				dog: dog.dogName,
+				vaccine: vaccineType,
 				type: 'One week warning',
 				date: new Date(weekBeforeDate.setDate(expirationDate.getDate() - 7))
 			});
 
 			vaccineNotifs.push({
-				vaccine: req.body.vaccineCheck,
+				dog: dog.dogName,
+				vaccine: vaccineType,
 				type: 'Expired',
 				date: expirationDate
 			});
         }
 
-        // Add to vaccineRecords array
-        dog.vaccineRecords = dog.vaccineRecords || [];
-        dog.vaccineRecords.push({ fileName: file.originalname, fileUrl });
+        // // Add to vaccineRecords array
+        // dog.vaccineRecords = dog.vaccineRecords || [];
+        // dog.vaccineRecords.push({ fileName: file.originalname, fileUrl });
       }
     }
   }
  
   await Promise.all([
 	...vaccineNotifs.map(notif =>
-	  userdb.collection('notifications').updateOne(
-		{ vaccine: notif.vaccine, type: notif.type },
-		{ $set: notif }
-	  )
+	  userdb.collection('notifications').deleteOne(
+		{ vaccine: notif.vaccine, type: notif.type })
 	),
 	userdb.collection('dogs').updateOne(
 	  { _id: new ObjectId(dogId) },
 	  { $set: dog }
-	)
+	),
+	userdb.collection('notifications').insertMany(vaccineNotifs)
   ]);
   
   res.redirect('/profile');
