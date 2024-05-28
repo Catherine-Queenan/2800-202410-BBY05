@@ -138,33 +138,38 @@ async function notificationsToAlert(req){
 	if(req.session && req.session.userType == 'client'){
 		const userdb = appdb.db(req.session.userdb);
 		let allNotifications = await userdb.collection('notifications').find({}).toArray();
-		let notificationsToAlert = []
+		
+		if(allNotifications.length >= 1){
+			let notificationsToAlert = []
 
-		let currDate = new Date();
-		for(let i = 0; i < allNotifications.length; i++){
-			if(allNotifications[i].date <= currDate){
-				if(allNotifications[i].vaccine){
-					notificationsToAlert.push({
-						dog: allNotifications[i].dog,
-						dogId: allNotifications[i].dogId,
-						type: allNotifications[i].type,
-						vaccine: allNotifications[i].vaccine,
-						date:currDate,
-						alertType: allNotifications[i].notifType
-					});
+			let currDate = new Date();
+			for(let i = 0; i < allNotifications.length; i++){
+				if(allNotifications[i].date <= currDate){
+					if(allNotifications[i].vaccine){
+						notificationsToAlert.push({
+							dog: allNotifications[i].dog,
+							dogId: allNotifications[i].dogId,
+							type: allNotifications[i].type,
+							vaccine: allNotifications[i].vaccine,
+							date:currDate,
+							alertType: allNotifications[i].notifType
+						});
+					}
+					
 				}
-				
+			}
+
+			if(notificationsToAlert.length >= 1){
+				await Promise.all([
+					...notificationsToAlert.map(notif =>
+					userdb.collection('notifications').deleteOne(
+					{ vaccine: notif.vaccine, type: notif.type, dog:notif.dog })
+					),
+					userdb.collection('alerts').insertMany(notificationsToAlert),
+					appUserCollection.updateOne({email: req.session.email}, {$inc: {unreadAlerts: notificationsToAlert.length}})
+				]);
 			}
 		}
-
-		await Promise.all([
-			...notificationsToAlert.map(notif =>
-			userdb.collection('notifications').deleteOne(
-			  { vaccine: notif.vaccine, type: notif.type, dog:notif.dog })
-		  	),
-			userdb.collection('alerts').insertMany(notificationsToAlert),
-			appUserCollection.updateOne({email: req.session.email}, {$inc: {unreadAlerts: notificationsToAlert.length}})
-		]);
 	}
 }
 
@@ -1451,8 +1456,8 @@ app.post('/dog/:dogId/editVaccines', uploadFields, async (req, res) => {
           	dog[vaccineType].expirationDate = req.body[`${vaccineType}Date`];
 
 			vaccineNotifs.push({
-				dog: req.body.dogName,
-				vaccine: req.body.vaccineCheck,
+				dog: dogName,
+				vaccine: vaccineType,
 				type: 'Expired',
 				date: expirationDate,
 				notifType: 'vaccineUpdate',
@@ -1461,8 +1466,8 @@ app.post('/dog/:dogId/editVaccines', uploadFields, async (req, res) => {
 	
 			if(expirationDate > new Date()){
 				vaccineNotifs.push({
-					dog: req.body.dogName,
-					vaccine: req.body.vaccineCheck,
+					dog: dogName,
+					vaccine: vaccineType,
 					type: 'One week warning',
 					date: weekBeforeDate,
 					notifType: 'vaccineUpdate',
@@ -1482,7 +1487,7 @@ app.post('/dog/:dogId/editVaccines', uploadFields, async (req, res) => {
   await Promise.all([
 	...vaccineNotifs.map(notif =>
 	  userdb.collection('notifications').deleteOne(
-		{ vaccine: notif.vaccine, type: notif.type })
+		{ vaccine: notif.vaccine, type: notif.type, dogId: notif.dogId})
 	),
 	userdb.collection('dogs').updateOne(
 	  { _id: new ObjectId(dogId) },
