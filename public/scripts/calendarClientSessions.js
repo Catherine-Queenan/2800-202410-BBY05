@@ -7,8 +7,6 @@ document.addEventListener('DOMContentLoaded', function () {
 			left: 'title',
 			right: 'prev,next today'
 		},
-		aspectRatio: 1,
-		contentHeight: 'auto',
 		events: '/events',
 		eventColor: '#FFA05C',
 		eventClick: function(info) {

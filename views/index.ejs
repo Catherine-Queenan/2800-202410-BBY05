@@ -70,7 +70,7 @@
 						title: 'Your Upcoming Sessions',
 						content: 'Dynamically loaded content based on your upcoming sessions. Click here to view your upcoming sessions.',
 						prevClass: 'smallShadow',
-						actionOne: '/',
+						actionOne: '/sessionList',
 						classesOne: 'lg-button',
 						attributesOne: '',
 						contentOne: 'CLIENT',
@@ -79,7 +79,7 @@
 						attributesTwo: '',
 						contentTwo: 'BUSINESS',
 						imageUrl: 'images/PawPrintsFade.png',
-						divObjectId: ''
+						divObjectId: 'sessionList'
 					}) %>
 
 					<%- include('templates/homepage', { 
@@ -133,6 +133,8 @@
 				</div>
 			</div>
 		</section>
+		<script src="/scripts/calendarClientHome.js"></script>
+		<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
 	<% } else if (userType == "business") { %>
 		<%- include('templates/hero', {content: 'Welcome back to Pawfolio!'}) %>
 		<section class="py-3 py-md-5">
