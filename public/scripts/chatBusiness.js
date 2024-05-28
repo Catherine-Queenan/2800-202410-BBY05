@@ -22,11 +22,11 @@ async function fetchMessages() {
 			const messageElement = document.createElement('div');
 			messageElement.classList.add('message');
 
-			if (msg.receiver === receiverIdentifier) {
-				messageElement.classList.add('sent');
-			} else {
-				messageElement.classList.add('received');
-			}
+			// if (msg.receiver === receiverIdentifier) {
+			// 	messageElement.classList.add('sent');
+			// } else {
+			// 	messageElement.classList.add('received');
+			// }
 
 			// Format the timestamp
 			const date = new Date(msg.createdAt);
@@ -45,8 +45,10 @@ async function fetchMessages() {
 			timestampElement.classList.add('timestamp');
 			timestampElement.innerText = formattedTimestamp;
 			if (msg.receiver === receiverIdentifier) {
+				messageElement.classList.add('sent');
 				timestampElement.classList.add('sent');
 			} else {
+				messageElement.classList.add('received');
 				timestampElement.classList.add('received');
 			}
 			messageWrapper.appendChild(messageElement);
