@@ -123,12 +123,6 @@ const transporter = nodemailer.createTransport({
 	}
 });
 
-// Passes a variable called 'currentUrl' to whatever page we're on.
-app.use((req, res, next) => {
-    res.locals.currentUrl = req.originalUrl; // I don't think we're doing any internal routing, but for safety, I'm using originalUrl instead of url to prevent issues in the future.
-    next();
-});
-
 app.use(session({
 	secret: node_session_secret,
 	store: mongoStore, //default is memory store 
@@ -356,6 +350,27 @@ async function deleteUploadedImage(id){
 		});
 	}
 }
+
+// Passes a variable called 'currentUrl' to whatever page we're on.
+// It's now middleware to also set trainer information.
+app.use(async (req, res, next) => {
+    res.locals.currentUrl = req.originalUrl; // I don't think we're doing any internal routing, but for safety, I'm using originalUrl instead of url to prevent issues in the future.
+    if (req.session.userType === 'client') {
+        let user = await appUserCollection.findOne({ email: req.session.email });
+        if (user && user.companyName) {
+            let trainer = await appUserCollection.findOne({ companyName: user.companyName, userType: 'business' });
+            res.locals.trainerAssigned = true;
+            res.locals.trainer = {
+                name: trainer.companyName || '',
+                email: trainer.email || ''
+            };
+        } else {
+            res.locals.trainerAssigned = false;
+        }
+    }
+    next();
+});
+
 
 // TODO: Add access to pages and create a check for the user type and authorization
 // status to determine what footer and navbar to display
@@ -1897,6 +1912,30 @@ app.post('/removeEvent', async (req, res) => {
 
 // ----------------- MESSAGING SECTION STARTS HERE -------------------
 
+function encryptMessage(text) {
+    const algorithm = 'aes-256-cbc';
+    const key = crypto.randomBytes(32).toString('hex');
+    const iv = crypto.randomBytes(16).toString('hex');
+
+    let cipher = crypto.createCipheriv(algorithm, Buffer.from(key, 'hex'), Buffer.from(iv, 'hex'));
+    let encrypted = cipher.update(text);
+    encrypted = Buffer.concat([encrypted, cipher.final()]);
+
+    return { iv, encryptedData: encrypted.toString('hex'), key };
+}
+
+function decryptMessage(encryptedText, iv, key) {
+    const keyBuffer = Buffer.from(key, 'hex');
+    const ivBuffer = Buffer.from(iv, 'hex');
+    const encryptedTextBuffer = Buffer.from(encryptedText, 'hex');
+
+    let decipher = crypto.createDecipheriv('aes-256-cbc', keyBuffer, ivBuffer);
+    let decrypted = decipher.update(encryptedTextBuffer);
+    decrypted = Buffer.concat([decrypted, decipher.final()]);
+
+    return decrypted.toString();
+}
+
 app.get('/chatSelectClient', async (req, res) => {
 	const userdb = appdb.db(req.session.userdb);
 	if (isClient(req)) {
@@ -1926,7 +1965,16 @@ app.get('/messagesClient', async (req, res) => {
 	const userdb = appdb.db(req.session.userdb);
 	const trainerdb = appdb.db(req.session.trainerdb);
 	const senderMsgList = await userdb.collection('messages').find().sort({ createdAt: 1 }).limit(25).toArray();
-	const receiverMsgList = await trainerdb.collection('messages').find().sort({ createdAt: 1 }).limit(25).toArray();
+	const receiverMsgList = await trainerdb.collection('messages').find({receiver: req.session.email}).sort({ createdAt: 1 }).limit(25).toArray();
+
+	// Decrypt messages
+	senderMsgList.forEach(msg => {
+		msg.text = decryptMessage(msg.text, msg.iv, msg.key);
+	});
+    receiverMsgList.forEach(msg => {
+        msg.text = decryptMessage(msg.text, msg.iv, msg.key);
+    });
+
 	res.json({ senderMessages: senderMsgList, receiverMessages: receiverMsgList });
 });
 
@@ -1936,29 +1984,68 @@ app.post('/messagesClient', async (req, res) => {
 	const sender = req.session.email;
 	const trainer = await appUserCollection.find({ email: sender }).project({ companyName: 1 }).toArray();
 	const receiver = trainer[0].companyName;
-	const newMessage = { text, receiver: receiver, createdAt: new Date() };
+	const newMessage = {receiver: receiver, createdAt: new Date(), unread: true };
+
+	// Encrypt the message text before saving
+	const { iv, encryptedData, key} = encryptMessage(text);
+	newMessage.text = encryptedData;
+	newMessage.iv = iv;
+	newMessage.key = key;
+
 	await userdb.collection('messages').insertOne(newMessage);
 	res.status(201).json(newMessage);
 });
 
+app.put('/messagesClient/markRead', async (req, res) => {
+	const trainerdb = appdb.db(req.session.trainerdb);
+	await trainerdb.collection('messages').updateMany({receiver: req.session.email}, { $set: { unread: false }});
+	res.status(200).send('Messages marked as read');
+});
+
 app.get('/messagesBusiness/:client', async (req, res) => {
+	setClientDatabase(req, req.params.client);
 	const userdb = appdb.db(req.session.userdb);
 	const clientdb = appdb.db(req.session.clientdb);
-	const senderMsgList = await userdb.collection('messages').find().sort({ createdAt: 1 }).limit(25).toArray();
+	const client = await clientdb.collection('info').find().project({email: 1}).toArray();
+	const senderMsgList = await userdb.collection('messages').find({receiver: client[0].email}).sort({ createdAt: 1 }).limit(25).toArray();
 	const receiverMsgList = await clientdb.collection('messages').find().sort({ createdAt: 1 }).limit(25).toArray();
+
+	// Decrypt messages
+	senderMsgList.forEach(msg => {
+		msg.text = decryptMessage(msg.text, msg.iv, msg.key);
+	});
+    receiverMsgList.forEach(msg => {
+        msg.text = decryptMessage(msg.text, msg.iv, msg.key);
+    });
+
 	res.json({ senderMessages: senderMsgList, receiverMessages: receiverMsgList });
 });
 
 app.post('/messagesBusiness/:client', async (req, res) => {
+	setClientDatabase(req, req.params.client);
 	const userdb = appdb.db(req.session.userdb);
 	const clientdb = appdb.db(req.session.clientdb);
 	const { text } = req.body;
 	const client = await clientdb.collection('info').find().project({email: 1}).toArray();
 	const receiver = client[0].email;
-	const newMessage = { text, receiver: receiver, createdAt: new Date() };
+	const newMessage = {receiver: receiver, createdAt: new Date(), unread: true };
+
+	// Encrypt the message text before saving
+	const { iv, encryptedData, key} = encryptMessage(text);
+	newMessage.text = encryptedData;
+	newMessage.iv = iv;
+	newMessage.key = key;
+
 	await userdb.collection('messages').insertOne(newMessage);
 	res.status(201).json(newMessage);
 });
+
+app.put('/messagesBusiness/markRead/:client', async (req, res) => {
+	setClientDatabase(req, req.params.client);
+	const clientdb = appdb.db(req.session.clientdb);
+	await clientdb.collection('messages').updateMany({receiver: req.session.name}, { $set: { unread: false }});
+	res.status(200).send('Messages marked as read');
+})
 
 // app.post('/messages', async (req, res) => {
 // 	setUserDatabase(req);
