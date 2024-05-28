@@ -2048,7 +2048,9 @@ app.get('/clientList', businessAuthorization, async (req, res) => {
 		clientListArray.push(client.email);
 	});
 	// console.log(clientListArray);
-	const userClientList = await appUserCollection.find({email: {$in: clientListArray}}).project({_id: 1, email: 1, firstName: 1, lastName: 1}).toArray();
+
+														// email: {$in: clientListArray}
+	const userClientList = await appUserCollection.find({}).project({_id: 1, email: 1, firstName: 1, lastName: 1}).toArray();
 	// console.log(userClientList);
 	// const ids = userClientList.map(item => item._id.toString());
 	// console.log(ids);
@@ -2105,12 +2107,12 @@ app.get('/clientProfile/:id', async (req, res) => {
 			dogs[i].dogPic = cloudinary.url(pic);
 		}
 	}
-	// console.log(dogs);
-
-	res.render('viewingClientProfile', {targetClient: targetClient, pfpUrl: pfpUrl, dogs: dogs, loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
+	
+	
+	res.render('viewingClientProfile', {c_id: targetClient._id.toString(), targetClient: targetClient, pfpUrl: pfpUrl, dogs: dogs, loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
 });
 
-app.get('/dogView/:id', businessAuthorization, async (req, res) => {
+app.get('/clientProfile/:c_id/dogView/:d_id', businessAuthorization, async (req, res) => {
 
 	// Get a list of all clients
 	const clients = await appUserCollection.find({userType: 'client'}).project({id: 1, email: 1, firstName: 1, lastName: 1, phone: 1}).toArray();
@@ -2120,10 +2122,10 @@ app.get('/dogView/:id', businessAuthorization, async (req, res) => {
 
 	// variable to store the client
 	let targetClient;
-
+	
 	// loop through clients and find the target client to load the page with
 	for (let i = 0; i < clients.length; i++) {
-		if (ids[i] === req.params.id) {
+		if (ids[i] === req.params.c_id) {
 			targetClient = clients[i];
 		}
 	}
@@ -2134,34 +2136,28 @@ app.get('/dogView/:id', businessAuthorization, async (req, res) => {
 	setClientDatabase(req, email);
 	const clientdb = await getdb(req.session.clientdb);
 
-	// set the databases
-	// const clientdbInfo = clientdb.collection('info');
+	// set the database
 	const clientdbDogs = clientdb.collection('dogs');
 	let targetDogs = await clientdbDogs.find({}).toArray();
 
+	// map ids
 	const dogIds = targetDogs.map(item => item._id.toString());
 	
+	// look for target dog
 	let targetDog; 
 	for (let i = 0; i < targetDogs.length; i++) {
-		if (dogIds[i] = req.params.id) {
+		if (dogIds[i] = req.params.d_id) {
 			targetDog = targetDogs[i];
 		}
 	}
 
+	// parse dog image
 	let pic = targetDog.dogPic;
 	if(pic != ''){
 		targetDog.dogPic = cloudinary.url(pic);
 	}
-	
-
-	console.log(targetDog);
-
-	// EVIN PLEASE LOOK AT THE ROUTING ABOVE FOR ACCESSING THE DOGS
-	// TODAY YOU MUST FIGURE OUT A WAY TO KEEP THE ID OF USER FOR WHEN WE GET TO THIS PAGE
-	// MUST FIND THE RIGHT USERS DOG
 
 	res.render('dogProfileView', {loggedIn: isValidSession(req), userType: req.session.userType, dog: targetDog, unreadAlerts: req.session.unreadAlerts})
-	// res.send('at peace');
 });
 
 // ----------------- SESSIONS SECTION STARTS HERE -------------------
