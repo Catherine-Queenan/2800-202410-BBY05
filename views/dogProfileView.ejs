@@ -63,11 +63,6 @@
 						<label for="specialAlerts">Special Alerts</label>
 						<textarea class="form-control auto-resize dogInput" id="specialAlerts" name="specialAlerts" rows="3" disabled><%=dog.specialAlerts%></textarea>
 					</div>
-					<div class="my-3">
-					<%- include('templates/button', {action:'',xClasses:'editButton',xAttributes:'id=dogEditButton type=button value=dog',content:'Edit'}) %>
-					<%- include('templates/button', {action:'',xClasses:'cancelButton',xAttributes:'id=dogCancelButton type=button value=dog style=display:none',content:'Cancel'}) %>
-					<%- include('templates/button', {action: dog._id + '/edit',xClasses:'',xAttributes:'id=dogSaveButton style=display:none',content:'Save'}) %>
-				</div>
 				</form>
 				</div>
 				</div>
@@ -105,21 +100,11 @@
                     <%- include('templates/dateInput', {divId: 'DA2PPDateDiv', xDivAttributes:'', dateId: 'DA2PPDate',dateClass:'vaccineInput', dateName:'DA2PPDate', label:'Expiration Date', xDateAttributes:'disabled value=' + dog.DA2PP.expirationDate}) %>
                     <%- include('templates/uploadFile', {divId:'DA2PPProofDiv', xDivAttributes:'class=vaccineUpload style=display:none', fileId: 'DA2PPProof', fileName:'DA2PPUpload', label:'Provide New Proof of Vaccination', xfileAttributes: 'class=vaccineProof accept=.pdf'}) %>
                   </div>
-
-                  <div class="my-3 d-flex justify-content-between">
-                    <%- include('templates/button', {action:'',xClasses:'editButton',xAttributes:'id=vaccineEditButton type=button value=vaccine',content:'Edit'}) %>
-                    <%- include('templates/button', {action:'',xClasses:'cancelButton',xAttributes:'id=vaccineCancelButton type=button value=vaccine style=display:none',content:'Cancel'}) %>
-                    <%- include('templates/button', {action: dog._id + '/editVaccines',xClasses:'',xAttributes:'id=vaccineSaveButton style=display:none',content:'Save'}) %>
-                  </div>
                 </form>
 				</div>
 			</div>
 				</div>
 				</div>
-
-				<form id="deleteForm" class="mx-auto d-flex justify-content-center mt-3" style="min-width:500px" method="post" action="<%=dog._id%>/delete">
-					<%- include('templates/button', {action: '' , xClasses:'',xAttributes:'id=deleteDogButton type=button',content:'Delete Dog'}) %>
-				</form>
 </div>
 		<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.all.min.js"></script>
 		<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.min.css" rel="stylesheet">
@@ -140,47 +125,9 @@
 				//Vaccine Form displays and edits all vaccine related information
 				let basicForm = document.getElementById('basicInfo');
 				let vaccineForm = document.getElementById('vaccineInfo');
-
-				//Collect the buttons used on the page
-				//delete dog button
-				let deleteButton = document.getElementById('deleteDogButton');
-
-				//Edit and cancel buttons for forms
-				let editButtons = document.querySelectorAll('.editButton');
-				let cancelButtons = document.querySelectorAll('.cancelButton');
 				
 				//Toggles between the two forms
 				let toggleButton = document.getElementById('viewVaccines');
 
-				deleteButton.addEventListener('click', () =>{
-					swalWithBootstrapButtons.fire({
-						title: "Are you sure?",
-						text: "You won't be able to revert this!",
-						icon: "warning",
-						showCancelButton: true,
-						confirmButtonText: "Delete Dog",
-						cancelButtonText: "Cancel",
-						reverseButtons: true
-					}).then((result) => {
-						if (result.isConfirmed) {
-							swalWithBootstrapButtons.fire({
-								title: "Deleted!",
-								text: "Your dog has been deleted.",
-								icon: "success"
-							}).then((result) => {
-								document.getElementById('deleteForm').submit();
-							});
-						} else if (
-							/* Read more about handling dismissals below */
-							result.dismiss === Swal.DismissReason.cancel
-						) {
-							swalWithBootstrapButtons.fire({
-								title: "Cancelled",
-								text: "Delete cancelled; your dog is safe",
-								icon: "error"
-							});
-						}
-					});
-				});
 			</script>
 			<%- include("templates/footerCopyright") %>
