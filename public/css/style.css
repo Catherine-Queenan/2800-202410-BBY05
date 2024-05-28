@@ -434,7 +434,6 @@
     }
 
     .form-select:disabled {
-      width: 100%; /* Make the select element full width */
       padding: 8px; /* Add padding */
       border: 1px solid #2013353b; /* Add border */
       border-radius: 5px; /* Add border radius */
