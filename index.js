@@ -986,8 +986,13 @@ app.get('/profile', sessionValidation, async(req, res) => {
 });
 
 //Profile Editting (both client and business)
+<<<<<<< HEAD
 app.post('/profile/edit/:editType', sessionValidation, upload.array('accountUpload', 1), async(req, res) => {
     const userdb = appdb.db(req.session.userdb);
+=======
+app.post('/profile/edit/:editType', sessionValidation, upload.array('accountUpload', 2), async(req, res) => {
+	const userdb = await getdb(req.session.userdb);
+>>>>>>> ddd21b00dc15bfa5a77c499c3b4a09f3cdd2325c
 
     // Edit client profile
     if (req.params.editType === 'clientProfile') {
@@ -1002,8 +1007,18 @@ app.post('/profile/edit/:editType', sessionValidation, upload.array('accountUplo
             req.body.profilePic = user[0].profilePic;
         }
 
+<<<<<<< HEAD
         // Handle email notifications checkbox value
         req.body.emailNotifications = req.body.emailNotifications === 'on';
+=======
+		//Image id is updated with a newly upload image or kept the same
+		if(req.files.length != 0 && req.files[0]){
+			await deleteUploadedImage(user[0].profilePic);
+			req.body.profilePic = await uploadImage(req.files[0], "clientAccountAvatars");
+		} else {
+			req.body.profilePic = user[0].profilePic;
+		}
+>>>>>>> ddd21b00dc15bfa5a77c499c3b4a09f3cdd2325c
 
         // Update the database
         await appUserCollection.updateOne({ email: req.session.email }, { $set: { 
@@ -1031,8 +1046,50 @@ app.post('/profile/edit/:editType', sessionValidation, upload.array('accountUplo
         // Update database
         await userdb.collection('info').updateOne({ companyName: req.session.name }, { $set: req.body });
 
+<<<<<<< HEAD
         // Return to profile, business details tab
         res.redirect('/profile?tab=business');
+=======
+		//Logo id is updated with a newly upload logo or kept the same
+		if(req.files.length != 0){
+			if(req.files.length < 2){
+
+				let filename = req.files[0].mimetype;
+				filename = filename.split('/');
+				let fileType = filename[0];
+
+				if(fileType == 'image'){
+					await deleteUploadedImage(business[0].logo);
+					req.body.logo = await uploadImage(req.files[0], "businessLogos");
+				} else {
+					let fullFileName = `${req.session.name}_contract.pdf`;
+					let filePath = `pdfs/${fullFileName}`;
+					let fileUrl = await overwriteOrUploadFile(req.files[0].buffer, filePath);
+					req.body.contract = fileUrl;
+				}
+			} else if (req.files.length == 2){
+				for(let i = 0; i < req.files.length; i++){
+					let filename = req.files[0].mimetype;
+					filename = filename.split('/');
+					let fileType = filename[0];
+
+					if(fileType == 'image'){
+						await deleteUploadedImage(business[0].logo);
+						req.body.logo = await uploadImage(req.files[0], "businessLogos");
+					} else {
+						let fullFileName = `${req.session.name}_contract.pdf`;
+						let filePath = `pdfs/${fullFileName}`;
+						let fileUrl = await overwriteOrUploadFile(req.files[1].buffer, filePath);
+						req.body.contract = fileUrl;
+					}
+				}
+			} else {
+				req.body.logo = business[0].logo;
+			}
+		}
+
+		
+>>>>>>> ddd21b00dc15bfa5a77c499c3b4a09f3cdd2325c
 
     // Edit business profile -> trainer profile
     } else if (req.params.editType == 'trainer') {
@@ -1169,6 +1226,12 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
         dogName: req.body.dogName
     };
 
+	    // Creates documents in the dog document for each vaccine
+    let allVaccines = ['rabies', 'leptospia', 'bordatella', 'bronchiseptica', 'DA2PP'];
+    allVaccines.forEach((vaccine) => {
+        eval('dog.' + vaccine + '= {}');
+    });
+
     // this is the file management stuff
     if (req.files.length != 0) {
         // Check if the first image is an image file and upload the image if it is
@@ -1213,8 +1276,7 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
                 let fullFileName = `${lastName}_${dogName}_${vaccineType}.pdf`;
                 let filePath = `pdfs/${fullFileName}`;
                 let fileUrl = await uploadFileToGoogleCloud(req.files[i].buffer, filePath);
-                dog.vaccineRecords = dog.vaccineRecords || [];
-                dog.vaccineRecords.push({ fileName: req.files[i].originalname, fileUrl });
+                req.body[vaccineType + 'Proof'] =  fileUrl;
             }
         }
     } else {
@@ -1233,13 +1295,8 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
     dog.sex = req.body.sex;
     dog.birthday = req.body.birthday;
     dog.weight = req.body.weight;
+	dog.breed = req.body.breed;
     dog.specialAlerts = req.body.specialAlerts;
-
-    // Creates documents in the dog document for each vaccine
-    let allVaccines = ['rabies', 'leptospia', 'bordatella', 'bronchiseptica', 'DA2PP'];
-    allVaccines.forEach((vaccine) => {
-        eval('dog.' + vaccine + '= {}');
-    });
 
     // If dog has more than one vaccine, add the expiration date and pdf of the proof of vaccination to the specific vaccine document
     if (Array.isArray(req.body.vaccineCheck)) {
@@ -1292,17 +1349,17 @@ app.post('/dog/:dogId/editVaccines', uploadFields, async (req, res) => {
     return res.status(404).send('Dog not found');
   }
 
-  // Update existing fields with incoming data
-  dog.dogName = req.body.dogName || dog.dogName;
-  dog.sex = req.body.sex || dog.sex;
-  dog.birthday = req.body.birthday || dog.birthday;
-  dog.weight = req.body.weight || dog.weight;
-  dog.specialAlerts = req.body.specialAlerts || dog.specialAlerts;
+//   // Update existing fields with incoming data
+//   dog.dogName = req.body.dogName || dog.dogName;
+//   dog.sex = req.body.sex || dog.sex;
+//   dog.birthday = req.body.birthday || dog.birthday;
+//   dog.weight = req.body.weight || dog.weight;
+//   dog.specialAlerts = req.body.specialAlerts || dog.specialAlerts;
 
-  // Update the neutered status
-  if (req.body.neuteredStatus) {
-    dog.neuteredStatus = req.body.neuteredStatus;
-  }
+//   // Update the neutered status
+//   if (req.body.neuteredStatus) {
+//     dog.neuteredStatus = req.body.neuteredStatus;
+//   }
 
   const vaccineTypes = ['rabies', 'leptospia', 'bordatella', 'bronchiseptica', 'DA2PP'];
   
@@ -1330,10 +1387,6 @@ app.post('/dog/:dogId/editVaccines', uploadFields, async (req, res) => {
         if (req.body[`${vaccineType}Date`]) {
           dog[vaccineType].expirationDate = req.body[`${vaccineType}Date`];
         }
-
-        // Add to vaccineRecords array
-        dog.vaccineRecords = dog.vaccineRecords || [];
-        dog.vaccineRecords.push({ fileName: file.originalname, fileUrl });
       }
     }
   }
@@ -1560,7 +1613,9 @@ app.get('/viewBusiness/:company/register/:program', async(req, res) => {
 		}
 	}
 
-	res.render('hireTrainer', {loggedIn: isValidSession(req), userType: req.session.userType, program: program[0], dogs: dogs, unreadAlerts: req.session.unreadAlerts});
+	let contract = business.info.contract;
+
+	res.render('hireTrainer', {loggedIn: isValidSession(req), userType: req.session.userType, program: program[0], companyName:req.params.company, contract: contract, dogs: dogs, unreadAlerts: req.session.unreadAlerts});
 });
 
 
