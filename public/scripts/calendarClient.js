@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			right: 'prev,next today'
 		},
 		aspectRatio: 1,
-		contentHeights: 'auto',
+		contentHeight: 'auto',
 		events: '/events',
 		eventColor: '#FFA05C',
 		eventClick: function(info) {
