@@ -233,9 +233,28 @@ async function updateUnreadAlertsMidCode(req) {
 }
 
 //Function to check the dates of the scheduled notifications
-async function checkScheduledNotifications(){
-	const userdb = getdb(req.session.userdb);
+async function notificationsToAlert(){
+	const userdb = appdb.db(req.session.userdb);
+	let allNotifications = await userdb.collection('notifications').find({}).toArray();
+	let notificationsToAlert = []
+
+	let currDate = new Date();
+	for(let i = 0; i < allNotifications.length; i++){
+		if(allNotifications[i] >= currDate){
+			notificationsToAlert.push({
+				dog: allNotifications[i].dog,
+				vaccine: allNotifications[i].vaccineType,
+				date:currDate
+			});
+		}
+	}
+
+	await Promise.all([
+		userdb.collection('alerts').insertMany(notificationsToAlert),
+		appUserCollection.updateOne({email: req.session.email}, {$inc: {unreadAlerts: notificationsToAlert.length}})
+	]);
 }
+
 
 // Sets the database for current user
 async function setUserDatabase(req) {
