@@ -1,9 +1,9 @@
 <%- include("templates/header") %>
 	<div class="container d-flex justify-content-center align-items-center vh-50">
-		<form method='get text-center'>
-			<h1 class="display-1 yeseva-one fw-bold orange">
+		<form method='get' class="text-center">
+			<h1 class="display-1 yeseva-one orange p-5">
 			<%= errorTitle %></h1>
-			<p class="display-6 karla-heavy fw-bold orange"><%= errorMsg %></p>
+			<p class="display-6 karla-heavy fw-bold orange pb-5"><%= errorMsg %></p>
 			<%- include('templates/button', {action:'/',xClasses:'btn-primary',xAttributes:'',content:'Return to Home'}) %>
 			<!-- <button formaction='/'>Return to Home</button> -->
 		</form>
