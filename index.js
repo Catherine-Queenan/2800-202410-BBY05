@@ -1804,6 +1804,8 @@ app.post('/addEvent', async (req, res) => {
 });
 
 app.post('/updateEvent', async (req, res) => {
+	// Checks if previous page was a Calendar or Session
+	const calOrSess = req.body.calOrSess;
 	const userdb = await getdb(req.session.userdb);
 	const date = req.body.calModDate;
 	const startNew = date + "T" + req.body.calModStartHH + ":" + req.body.calModStartMM + ":00";
@@ -1844,11 +1846,18 @@ app.post('/updateEvent', async (req, res) => {
 	// let eventID = req.body.calModEventID;
 	// console.log(eventID);
 	// await userdb.collection('eventSource').updateOne({ _id: eventID }, { $set: {eventNew} });
-
-	res.redirect('/calendar');
+	if (calOrSess == 'calendar') {
+		res.redirect('/calendar');
+		return;
+	} else if (calOrSess == 'session') {
+		res.redirect('/sessionList');
+	}
 });
 
 app.post('/removeEvent', async (req, res) => {
+	// Checks if previous page was a Calendar or Session
+	const calOrSess = req.body.calOrSess;
+
 	const userdb = await getdb(req.session.userdb);
 
 	// Delete by _id, but doesn't work
@@ -1868,7 +1877,12 @@ app.post('/removeEvent', async (req, res) => {
 		client: calEmail,
 		info: calInfo
 	});
-	res.redirect('/calendar');
+	if (calOrSess == 'calendar') {
+		res.redirect('/calendar');
+		return;
+	} else if (calOrSess == 'session') {
+		res.redirect('/sessionList');
+	}
 });
 
 // ----------------- MESSAGING SECTION STARTS HERE -------------------
@@ -2076,6 +2090,17 @@ app.get('/clientProfile/:id', async (req, res) => {
 	// console.log(dogs);
 
 	res.render('viewingClientProfile', {targetClient: targetClient, pfpUrl: pfpUrl, dogs: dogs, loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
+});
+
+// ----------------- SESSIONS SECTION STARTS HERE -------------------
+
+app.get('/sessionList', async (req, res) => {
+	if ( req.session.userType == 'business') {
+		res.render('sessionsBusiness', {loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
+		return;
+	} else if (req.session.userType == 'client') {
+		res.render('sessionsClient', {loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
+	}
 });
 
 app.use(express.static(__dirname + "/public"));
