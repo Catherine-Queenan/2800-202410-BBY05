@@ -27,6 +27,7 @@
             <div class="modal-header">
               <div class="modal-title ">
                 <span class="h2">Confirm Registration</span>
+                <%- include('templates/button', {action:'',xClasses:'',xAttributes:'type=button data-bs-dismiss=modal', content:'Cancel'}) %>
               </div>
             </div>
             <div class="modal-body">
@@ -39,14 +40,30 @@
                 <div class="card">
                 <%- include('templates/clientViewProgram', {program: program})%>
                 </div>
-                <p><%=companyName%>'s <a class="karla-heavy" href="/termsAndCondition/<%=companyName%>">Terms and Conditions</a></p>
-                <div class="check-buttons my-4">
-                    <%- include('templates/checkmark', {classes: '', value:'agree', name:'agreement', id: 'termsAndConditions', label:"I have read and agree with the provided trainer's terms and conditions", xAttr:''}) %>
-                </div>
             </div>
             <div class="modal-footer">
+                <%- include('templates/button', {action:'',xClasses:'',xAttributes:'type=button data-bs-target=#termsAndConditionsModal data-bs-toggle=modal data-bs-dismiss=modal', content:'Next'}) %>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="termsAndConditionsModal" class="modal fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <div class="modal-title ">
+                <span class="h2"><%=companyName%>'s Terms and Conditions</span>
                 <%- include('templates/button', {action:'',xClasses:'',xAttributes:'type=button data-bs-dismiss=modal', content:'Cancel'}) %>
-                <%- include('templates/button', {action:'',xClasses:'',xAttributes:'id=confirmRegister type=button' , content:'Confrim'}) %>
+              </div>
+            </div>
+            <embed src="http://example.com/the.pdf" width="500" height="375" type="application/pdf">
+            <div class="check-buttons my-4">
+                <%- include('templates/checkmark', {classes: '', value:'agree', name:'agreement', id: 'termsAndConditions', label:"I have read and agree with the provided trainer's terms and conditions", xAttr:''}) %>
+            </div>
+            <div class="modal-footer">
+                <%- include('templates/button', {action:'',xClasses:'',xAttributes:'type=button data-bs-target="#conffirmationModal" data-bs-toggle="modal" data-bs-dismiss="modal"', content:'Back'}) %>
+                <%- include('templates/button', {action:'',xClasses:'',xAttributes:'id=confirmRegister type=button disabled' , content:'Confrim'}) %>
             </div>
           </div>
         </div>
@@ -66,9 +83,20 @@
 
         let modal = new bootstrap.Modal(document.getElementById('confirmationModal'));
 
-        let confrimButton = document.getElementById('confirmRegister');
-        confrimButton.addEventListener('click', ()=>{
-            selectDogForm.submit();
+        let termsAndConditionCheck = document.getElementById('termsAndConditions');
+        let confirmButton = document.getElementById('confirmRegister');
+        
+        termsAndConditionCheck.addEventListener('click', () => {
+            console.log(termsAndConditionCheck.checked)
+            confirmButton.disabled = !termsAndConditionCheck.checked;
+        })
+
+       
+        confirmButton.addEventListener('click', ()=>{
+            if(termsAndConditionCheck.checked){
+                selectDogForm.submit();
+            }
+
         });
 
         selectDogButtons.forEach((button) => {

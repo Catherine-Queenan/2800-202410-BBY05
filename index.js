@@ -958,7 +958,7 @@ app.get('/profile', sessionValidation, async(req, res) => {
 });
 
 //Profile Editting (both client and business)
-app.post('/profile/edit/:editType', sessionValidation, upload.array('accountUpload', 1), async(req, res) => {
+app.post('/profile/edit/:editType', sessionValidation, upload.array('accountUpload', 2), async(req, res) => {
 	const userdb = await getdb(req.session.userdb);
 
 	//Edit client profile
@@ -968,7 +968,7 @@ app.post('/profile/edit/:editType', sessionValidation, upload.array('accountUplo
 		let user = await userdb.collection('info').find({email: req.session.email}).project({profilePic: 1}).toArray();	
 
 		//Image id is updated with a newly upload image or kept the same
-		if(req.files.length != 0){
+		if(req.files.length != 0 && req.files[0]){
 			await deleteUploadedImage(user[0].profilePic);
 			req.body.profilePic = await uploadImage(req.files[0], "clientAccountAvatars");
 		} else {
@@ -989,11 +989,37 @@ app.post('/profile/edit/:editType', sessionValidation, upload.array('accountUplo
 
 		//Logo id is updated with a newly upload logo or kept the same
 		if(req.files.length != 0){
-			await deleteUploadedImage(business[0].logo);
-			req.body.logo = await uploadImage(req.files[0], "businessLogos");
-		} else {
-			req.body.logo = business[0].logo;
-		}		
+			if(req.files.length < 2){
+
+				let filename = req.files[0].mimetype;
+				filename = filename.split('/');
+				let fileType = filename[0];
+
+				if(fileType == 'image'){
+					await deleteUploadedImage(business[0].logo);
+					req.body.logo = await uploadImage(req.files[0], "businessLogos");
+				}
+			} else if (req.files.length == 2){
+				for(let i = 0; i < req.files.length; i++){
+					let filename = req.files[0].mimetype;
+					filename = filename.split('/');
+					let fileType = filename[0];
+
+					if(fileType == 'image'){
+						await deleteUploadedImage(business[0].logo);
+						req.body.logo = await uploadImage(req.files[0], "businessLogos");
+					} else {
+						let fullFileName = `${req.session.name}_contract.pdf`;
+						let filePath = `pdfs/${fullFileName}`;
+						let fileUrl = await overwriteOrUploadFile(file.buffer, filePath);
+					}
+				}
+			} else {
+				req.body.logo = business[0].logo;
+			}
+		}
+
+		
 
 		//update database
 		await userdb.collection('info').updateOne({companyName: req.session.name}, {$set: req.body});
