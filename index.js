@@ -1921,7 +1921,7 @@ app.get('/messagesClient', async (req, res) => {
 	const userdb = appdb.db(req.session.userdb);
 	const trainerdb = appdb.db(req.session.trainerdb);
 	const senderMsgList = await userdb.collection('messages').find().sort({ createdAt: 1 }).limit(25).toArray();
-	const receiverMsgList = await trainerdb.collection('messages').find().sort({ createdAt: 1 }).limit(25).toArray();
+	const receiverMsgList = await trainerdb.collection('messages').find({receiver: req.session.email}).sort({ createdAt: 1 }).limit(25).toArray();
 	res.json({ senderMessages: senderMsgList, receiverMessages: receiverMsgList });
 });
 
@@ -1931,15 +1931,22 @@ app.post('/messagesClient', async (req, res) => {
 	const sender = req.session.email;
 	const trainer = await appUserCollection.find({ email: sender }).project({ companyName: 1 }).toArray();
 	const receiver = trainer[0].companyName;
-	const newMessage = { text, receiver: receiver, createdAt: new Date() };
+	const newMessage = { text, receiver: receiver, createdAt: new Date(), unread: true };
 	await userdb.collection('messages').insertOne(newMessage);
 	res.status(201).json(newMessage);
+});
+
+app.put('/messagesClient/markRead', async (req, res) => {
+	const trainerdb = appdb.db(req.session.trainerdb);
+	await trainerdb.collection('messages').updateMany({receiver: req.session.email}, { $set: { unread: false }});
+	res.status(200).send('Messages marked as read');
 });
 
 app.get('/messagesBusiness/:client', async (req, res) => {
 	const userdb = appdb.db(req.session.userdb);
 	const clientdb = appdb.db(req.session.clientdb);
-	const senderMsgList = await userdb.collection('messages').find().sort({ createdAt: 1 }).limit(25).toArray();
+	const client = await clientdb.collection('info').find().project({email: 1}).toArray();
+	const senderMsgList = await userdb.collection('messages').find({receiver: client[0].email}).sort({ createdAt: 1 }).limit(25).toArray();
 	const receiverMsgList = await clientdb.collection('messages').find().sort({ createdAt: 1 }).limit(25).toArray();
 	res.json({ senderMessages: senderMsgList, receiverMessages: receiverMsgList });
 });

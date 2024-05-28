@@ -34,7 +34,19 @@ async function fetchMessages() {
 
 		// Scroll to the bottom
 		messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+		// Mark incoming messages as read
+		await markMessagesAsRead();
 	}
+}
+
+async function markMessagesAsRead() {
+	await fetch('/messagesClient/markRead', {
+		method: 'PUT',
+		headers: {
+			'Content-Type': 'application/json',
+		}
+	});
 }
 
 document.getElementById('messageForm').addEventListener('submit', async (e) => {
