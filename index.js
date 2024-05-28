@@ -138,36 +138,9 @@ app.use(session({
 	resave: true
 }));
 
-//Node-cron scheduling for notification to alert conversion
-//Function to check the dates of the scheduled notifications
-async function notificationsToAlert(){
-	const userdb = appdb.db(req.session.userdb);
-	let allNotifications = await userdb.collection('notifications').find({}).toArray();
-	let notificationsToAlert = []
-
-	let currDate = new Date();
-	for(let i = 0; i < allNotifications.length; i++){
-		if(allNotifications[i] >= currDate){
-			notificationsToAlert.push({
-				dog: allNotifications[i].dog,
-				vaccine: allNotifications[i].vaccineType,
-				date:currDate
-			});
-		}
-	}
-
-	await Promise.all([
-		userdb.collection('alerts').insertMany(notificationsToAlert),
-		appUserCollection.updateOne({email: req.session.email}, {$inc: {unreadAlerts: notificationsToAlert.length}})
-	]);
-}
-
-cron.schedule('0 0 * * *', () => {
-	notificationsToAlert();
-});
 
 //Function to check the dates of the scheduled notifications
-async function notificationsToAlert(){
+async function notificationsToAlert(req){
 	if(req.session && req.session.userType == 'client'){
 		const userdb = appdb.db(req.session.userdb);
 		let allNotifications = await userdb.collection('notifications').find({}).toArray();
@@ -689,9 +662,13 @@ app.post('/submitLogin', async (req, res) => {
 		req.session.cookie.maxAge = expireTime;
 
 		//Run any needed updates to the database for notifications
-		notificationsToAlert();
+		notificationsToAlert(req);
+		cron.schedule('0 0 * * *', () => {
+			notificationsToAlert(req);
+		});
 
 		await setUserDatabase(req);
+		
 
 		res.redirect('/loggedIn'); // redirect to home page
 		return;
