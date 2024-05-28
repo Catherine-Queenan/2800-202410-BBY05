@@ -1,0 +1,13 @@
+<li>
+    <div class="card m-2 smallShadow" style="background-color:#20133541; color:#201335; border-radius:1px;">
+        <div class="d-flex justify-content-center m-2">
+            <div class="card-body">
+                <h5 class="card-title h4 text-center yeseva-one"><%= client.firstName %> <%= client.lastName %></h5>
+                <p class="karla-heavy fw-bold text-center"><%= client.email %></p>
+                <form method="get" class="d-flex justify-content-center">
+                    <%- include('templates/button', {action:'/',xClasses:'btn btn-primary',xAttributes:'',content:'View Profile'}) %>
+                </form>
+            </div>
+        </div>
+    </div>
+</li>

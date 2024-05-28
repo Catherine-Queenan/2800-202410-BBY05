@@ -1,4 +1,9 @@
 <%- include("templates/header") %>
+<style>
+    .login-wrap {
+        min-height:1000px;
+    }
+</style>
 	<%- include("templates/loginForms", {
         login: 'Sign in', 
         signup: 'Sign up',
@@ -8,6 +13,7 @@
         lastName: 'Last Name',
         signupEmail: 'Email',
         phone: 'Phone Number',
+        address: 'Home Address',
         signupPass: 'Password',
         confirmPass: 'Confirm Password',
         type: loginType

@@ -25,7 +25,8 @@ document.addEventListener('DOMContentLoaded', () => {
         let profileLink = tempDiv.querySelector('.profileLink');
     
         // Set the href attribute of the profileLink
-        profileLink.href = `/clientProfile/${person._id}`;
+        profileLink.setAttribute('formaction', `/clientProfile/${person._id}`);
+        // profileLink.formaction = `/clientProfile/${person._id}`;
     
         // Insert the compiled template into the client listing
         document.getElementById('clientListing').insertAdjacentHTML('beforeend', tempDiv.innerHTML);
