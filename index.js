@@ -10,6 +10,10 @@ const bcrypt = require('bcrypt');
 const {Storage} = require('@google-cloud/storage');
 const {Readable} = require('stream');
 const crypto = require('crypto');
+const { pipeline } = require('stream/promises');
+
+const fs = require('fs');
+const path = require('path');
 
 const multer = require("multer");
 const stream = require("stream");
@@ -297,15 +301,72 @@ function encrypt(buffer) {
     };
 }
 
+// Function to decrypt the PDF file
+function decrypt(encrypted) {
+    const iv = Buffer.from(encrypted.iv, 'hex');
+    const encryptedText = Buffer.from(encrypted.content, 'hex');
+    const decipher = crypto.createDecipheriv(algorithm, Buffer.from(secretKey, 'utf8'), iv);
+    const decrypted = Buffer.concat([decipher.update(encryptedText), decipher.final()]);
+    return decrypted;
+}
+
+// Function to download and decrypt file from Google Cloud Storage
+async function downloadAndDecryptFile(filePath) {
+    const bucket = googleStorage.bucket(bucketName);
+    const file = bucket.file(filePath);
+
+    let encryptedBuffer = Buffer.alloc(0);
+
+    await pipeline(
+        file.createReadStream(),
+        new stream.Transform({
+            transform(chunk, encoding, callback) {
+                encryptedBuffer = Buffer.concat([encryptedBuffer, chunk]);
+                callback();
+            }
+        })
+    );
+
+    // Extract the IV and encrypted content from the buffer
+    const iv = encryptedBuffer.slice(0, 16);  // First 16 bytes are the IV
+    const encryptedContent = encryptedBuffer.slice(16);
+
+    // Decrypt the file content
+    const decipher = crypto.createDecipheriv('aes-256-ctr', Buffer.from(secretKey, 'utf8'), iv);
+    const decryptedBuffer = Buffer.concat([decipher.update(encryptedContent), decipher.final()]);
+
+    return decryptedBuffer;
+}
+
+// Example usage
+(async () => {
+    try {
+        const filePath = 'pdfs/Budd_Evin_bordatella.pdf';
+        const decryptedFileBuffer = await downloadAndDecryptFile(filePath);
+        console.log('File decrypted successfully');
+        
+        // Save the decrypted file to disk
+        const outputPath = path.join(__dirname, 'decrypted_contract.pdf');
+        fs.writeFileSync(outputPath, decryptedFileBuffer);
+        console.log(`File saved successfully to ${outputPath}`);
+    } catch (error) {
+        console.error('Error decrypting file:', error);
+    }
+})();
+
 //Upload files to Google Cloud
 async function uploadFileToGoogleCloud(fileBuffer, fileName) {
     const encryptedFile = encrypt(fileBuffer);
-    //console.log('Encrypted File:', encryptedFile); // Debugging
     const bucket = googleStorage.bucket(bucketName);
     const file = bucket.file(fileName);
+    const ivBuffer = Buffer.from(encryptedFile.iv, 'hex');
+    const encryptedBuffer = Buffer.from(encryptedFile.content, 'hex');
+
+    // Prefix the IV to the encrypted content
+    const finalBuffer = Buffer.concat([ivBuffer, encryptedBuffer]);
 
     return new Promise((resolve, reject) => {
-        const encryptedStream = Readable.from(Buffer.from(encryptedFile.content, 'hex'));
+        const encryptedStream = Readable.from(finalBuffer);
         encryptedStream.pipe(file.createWriteStream())
             .on('error', reject)
             .on('finish', () => {
