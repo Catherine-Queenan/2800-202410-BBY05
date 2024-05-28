@@ -1,6 +1,6 @@
 // Displays the previously hidden calendar
 const calendarShow = document.getElementById('calendar');
-calendarShow.classList.add('bg-light', 'py-3', 'rounded');
+calendarShow.classList.add('whiteBackground', 'rounded');
 calendarShow.classList.remove('d-none');
 
 document.addEventListener('DOMContentLoaded', function () {

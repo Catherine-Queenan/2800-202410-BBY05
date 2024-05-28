@@ -1,6 +1,6 @@
 // Displays the previously hidden sessionList
 const sessionListShow = document.getElementById('sessionList');
-sessionListShow.classList.add('bg-light', 'py-3', 'rounded');
+sessionListShow.classList.add('whiteBackground', 'py-3', 'rounded');
 sessionListShow.classList.remove('d-none');
 
 document.addEventListener('DOMContentLoaded', function () {
