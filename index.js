@@ -1985,15 +1985,31 @@ app.get('/dogView/:id', businessAuthorization, async (req, res) => {
 	// set the databases
 	// const clientdbInfo = clientdb.collection('info');
 	const clientdbDogs = clientdb.collection('dogs');
+	let targetDogs = await clientdbDogs.find({}).toArray();
 
-	console.log(clientdbDogs);
+	const dogIds = targetDogs.map(item => item._id.toString());
+	
+	let targetDog; 
+	for (let i = 0; i < targetDogs.length; i++) {
+		if (dogIds[i] = req.params.id) {
+			targetDog = targetDogs[i];
+		}
+	}
+
+	let pic = targetDog.dogPic;
+	if(pic != ''){
+		targetDog.dogPic = cloudinary.url(pic);
+	}
+	
+
+	console.log(targetDog);
 
 	// EVIN PLEASE LOOK AT THE ROUTING ABOVE FOR ACCESSING THE DOGS
 	// TODAY YOU MUST FIGURE OUT A WAY TO KEEP THE ID OF USER FOR WHEN WE GET TO THIS PAGE
 	// MUST FIND THE RIGHT USERS DOG
 
-	// res.render('dogProfileView', {loggedIn: isValidSession(req), userType: req.session.userType, dog: dogRecord[0], unreadAlerts: req.session.unreadAlerts})
-	res.send('at peace');
+	res.render('dogProfileView', {loggedIn: isValidSession(req), userType: req.session.userType, dog: targetDog, unreadAlerts: req.session.unreadAlerts})
+	// res.send('at peace');
 });
 
 app.use(express.static(__dirname + "/public"));
@@ -2001,7 +2017,7 @@ app.use(express.static(__dirname + "/public"));
 app.get('*', (req, res) => {
 	res.status(404);
 	res.render('errorMessage', { error: 'Page not found - 404', loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
-})
+});
 
 app.listen(port, () => {
 	console.log("Node application listening on port " + port);
