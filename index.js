@@ -218,7 +218,8 @@ function businessAuthorization(req, res, next) {
 		next();
 	}
 }
-//Function to call
+
+//Function to call to update the Unread Alerts icon
 async function updateUnreadAlertsMidCode(req) {
     if (req.session && req.session.email) {
         try {
@@ -229,6 +230,11 @@ async function updateUnreadAlertsMidCode(req) {
             console.error('Error updating unread alerts:', error);
         }
     }
+}
+
+//Function to check the dates of the scheduled notifications
+async function checkScheduledNotifications(){
+	const userdb = getdb(req.session.userdb);
 }
 
 // Sets the database for current user
@@ -1229,7 +1235,7 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
     }
 
     // Stores sex, birthday, weight, specialAlerts of the dog
-	dog.breed = req.body.dogBreed;
+	dog.breed = req.body.breed;
     dog.sex = req.body.sex;
     dog.birthday = req.body.birthday;
     dog.weight = req.body.weight;
@@ -1237,6 +1243,7 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
 
     // Creates documents in the dog document for each vaccine
     let allVaccines = ['rabies', 'leptospia', 'bordatella', 'bronchiseptica', 'DA2PP'];
+	let vaccineNotifs = [];
     allVaccines.forEach((vaccine) => {
         eval('dog.' + vaccine + '= {}');
     });
@@ -1244,20 +1251,56 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
     // If dog has more than one vaccine, add the expiration date and pdf of the proof of vaccination to the specific vaccine document
     if (Array.isArray(req.body.vaccineCheck)) {
         req.body.vaccineCheck.forEach((vaccine) => {
+			let expirationDate = new Date(req.body[vaccine + 'Date']);
+			let weekBeforeDate = new Date(expirationDate);
             dog[vaccine] = {
-                expirationDate: req.body[vaccine + 'Date'],
+                expirationDate: expirationDate,
                 vaccineRecord: req.body[vaccine + 'Proof']
             };
+
+			vaccineNotifs.push({
+				dog: req.body.dogName,
+				vaccine: vaccine,
+				type: 'Expired',
+				date: expirationDate
+			});
+
+			vaccineNotifs.push({
+				dog: req.body.dogName,
+				vaccine: vaccine,
+				type: 'One week warning',
+				date: new Date(weekBeforeDate.setDate(expirationDate.getDate() - 7))
+			});
         });
     } else if (req.body.vaccineCheck) {
+		let expirationDate = new Date(req.body[req.body.vaccineCheck + 'Date']);
+		let weekBeforeDate = new Date(expirationDate);
+
         dog[req.body.vaccineCheck] = {
-            expirationDate: req.body[req.body.vaccineCheck + 'Date'],
+            expirationDate: expirationDate,
             vaccineRecord: req.body[req.body.vaccineCheck + 'Proof']
         };
+		vaccineNotifs.push({
+			dog: req.body.dogName,
+			vaccine: req.body.vaccineCheck,
+			type: 'One week warning',
+			date: new Date(weekBeforeDate.setDate(expirationDate.getDate() - 7))
+		})
+
+		vaccineNotifs.push({
+			dog: req.body.dogName,
+			vaccine: req.body.vaccineCheck,
+			type: 'Expired',
+			date: expirationDate
+		})		
     }
 
     // Insert the dog into the database and return to profile
-    await userdb.collection('dogs').insertOne(dog);
+	await Promise.all([
+		userdb.collection('dogs').insertOne(dog),
+		userdb.collection('notifications').insertMany(vaccineNotifs)
+
+	]);
     res.redirect('/profile');
 });
 
@@ -1305,6 +1348,7 @@ app.post('/dog/:dogId/editVaccines', uploadFields, async (req, res) => {
   }
 
   const vaccineTypes = ['rabies', 'leptospia', 'bordatella', 'bronchiseptica', 'DA2PP'];
+  let vaccineNotifs = [];
   
   for (let vaccineType of vaccineTypes) {
     const file = req.files[`${vaccineType}Upload`] ? req.files[`${vaccineType}Upload`][0] : null;
@@ -1328,7 +1372,21 @@ app.post('/dog/:dogId/editVaccines', uploadFields, async (req, res) => {
 
         // Add or update expiration date
         if (req.body[`${vaccineType}Date`]) {
-          dog[vaccineType].expirationDate = req.body[`${vaccineType}Date`];
+			let expirationDate = new Date(req.body[`${vaccineType}Date`]);
+			let weekBeforeDate = new Date(expirationDate);
+          	dog[vaccineType].expirationDate = expirationDate;
+
+			vaccineNotifs.push({
+				vaccine: req.body[`${vaccineType}Date`],
+				type: 'One week warning',
+				date: new Date(weekBeforeDate.setDate(expirationDate.getDate() - 7))
+			});
+
+			vaccineNotifs.push({
+				vaccine: req.body.vaccineCheck,
+				type: 'Expired',
+				date: expirationDate
+			});
         }
 
         // Add to vaccineRecords array
@@ -1337,8 +1395,14 @@ app.post('/dog/:dogId/editVaccines', uploadFields, async (req, res) => {
       }
     }
   }
-
-  await userdb.collection('dogs').updateOne({ _id: new ObjectId(dogId) }, { $set: dog });
+ 
+  await Promise.all(()=>{
+	for(let i = 0; i < vaccineNotifs.length; i++){
+		userdb.collection('notifications').updateOne({vaccine: vaccineNotifs[i].vaccine, type: vaccineNotifs[i].type}, {$set: vaccineNotifs[i]});
+	}
+	userdb.collection('dogs').updateOne({ _id: new ObjectId(dogId) }, { $set: dog });
+  });
+  
   res.redirect('/profile');
 });
 
