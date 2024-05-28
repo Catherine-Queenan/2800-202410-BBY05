@@ -2039,10 +2039,20 @@ app.get('/clientList', businessAuthorization, async (req, res) => {
 	console.log(req.session.userType);
 	// get the list of clients that are added to the logged in dog trainer
 	// !Currently, the companyName is set to null because there is no system for business view user pages at the time of writing.!
-	clientList = await appUserCollection.find({companyName: null, userType: 'client'}).project({_id: 1, email: 1, firstName: 1, lastName: 1}).toArray();
-	const ids = clientList.map(item => item._id.toString());
-	console.log(ids);
-	res.render('clientList', {clientArray: clientList, loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
+	// clientList = await appUserCollection.find({companyName: null, userType: 'client'}).project({_id: 1, email: 1, firstName: 1, lastName: 1}).toArray();
+	const userdb = await getdb(req.session.userdb);
+	const clientList = await userdb.collection('clients').find().project({email: 1}).toArray();
+	// console.log(clientList);
+	let clientListArray = [];
+	clientList.forEach((client) => {
+		clientListArray.push(client.email);
+	});
+	// console.log(clientListArray);
+	const userClientList = await appUserCollection.find({email: {$in: clientListArray}}).project({_id: 1, email: 1, firstName: 1, lastName: 1}).toArray();
+	// console.log(userClientList);
+	// const ids = userClientList.map(item => item._id.toString());
+	// console.log(ids);
+	res.render('clientList', {clientArray: userClientList, loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
 });
 
 app.get('/clientProfile/:id', async (req, res) => {
