@@ -2089,6 +2089,9 @@ app.get('/clientProfile/:id', async (req, res) => {
 	const clientdbInfo = clientdb.collection('info');
 	const clientdbDogs = clientdb.collection('dogs');
 
+	targetClient = await clientdbInfo.find({}).project({_id: 1}).toArray();
+	console.log(targetClient);
+
 	//grab the array version of the pfp url
 	pfpUrlProcessing = await clientdbInfo.find({email}).project({profilePic: 1}).toArray();
 	
@@ -2108,8 +2111,8 @@ app.get('/clientProfile/:id', async (req, res) => {
 		}
 	}
 	
-	
-	res.render('viewingClientProfile', {c_id: targetClient._id.toString(), targetClient: targetClient, pfpUrl: pfpUrl, dogs: dogs, loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
+	res.send('construction');
+	// res.render('viewingClientProfile', {c_id: targetClient._id.toString(), targetClient: targetClient, pfpUrl: pfpUrl, dogs: dogs, loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
 });
 
 app.get('/clientProfile/:c_id/dogView/:d_id', businessAuthorization, async (req, res) => {
