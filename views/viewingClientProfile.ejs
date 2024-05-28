@@ -7,6 +7,9 @@
 <div><%= targetClient.phone %></div> <br>
 <!-- email -->
 <div><%= targetClient.email %></div> <br>
+<form method="get">
+    <%- include('templates/button', {action:'/chat/'+targetClient.email,xClasses:'',xAttributes:'',content:'Chat'}) %>
+</form>
 <!-- dogs -->
 <div id="dogSection">
     <h3><%= targetClient.firstName %>'s Dogs:</h3>
