@@ -1958,8 +1958,42 @@ app.get('/clientProfile/:id', async (req, res) => {
 	res.render('viewingClientProfile', {targetClient: targetClient, pfpUrl: pfpUrl, dogs: dogs, loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
 });
 
-app.get('/dogView', businessAuthorization, async (req, res) => {
-	res.send('safe');
+app.get('/dogView/:id', businessAuthorization, async (req, res) => {
+
+	// Get a list of all clients
+	const clients = await appUserCollection.find({userType: 'client'}).project({id: 1, email: 1, firstName: 1, lastName: 1, phone: 1}).toArray();
+
+	// Map their id's to a string
+	const ids = clients.map(item => item._id.toString());
+
+	// variable to store the client
+	let targetClient;
+
+	// loop through clients and find the target client to load the page with
+	for (let i = 0; i < clients.length; i++) {
+		if (ids[i] === req.params.id) {
+			targetClient = clients[i];
+		}
+	}
+
+	// used for locating the pfpUrl directory
+	const email = targetClient.email;
+
+	setClientDatabase(req, email);
+	const clientdb = await getdb(req.session.clientdb);
+
+	// set the databases
+	// const clientdbInfo = clientdb.collection('info');
+	const clientdbDogs = clientdb.collection('dogs');
+
+	console.log(clientdbDogs);
+
+	// EVIN PLEASE LOOK AT THE ROUTING ABOVE FOR ACCESSING THE DOGS
+	// TODAY YOU MUST FIGURE OUT A WAY TO KEEP THE ID OF USER FOR WHEN WE GET TO THIS PAGE
+	// MUST FIND THE RIGHT USERS DOG
+
+	// res.render('dogProfileView', {loggedIn: isValidSession(req), userType: req.session.userType, dog: dogRecord[0], unreadAlerts: req.session.unreadAlerts})
+	res.send('at peace');
 });
 
 app.use(express.static(__dirname + "/public"));

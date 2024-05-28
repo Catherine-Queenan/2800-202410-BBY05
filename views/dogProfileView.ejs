@@ -1,0 +1,186 @@
+<%- include("templates/header") %>
+	<div class="profile-container my-4 mx-3">
+		<%- include('templates/linkButton', {page: '/profile', content: "Back"}) %>
+		<h1 class="text-center my-4 yeseva-one"><%=dog.dogName%></h1>
+		<div class="d-flex justify-content-center">
+			<%- include('templates/defaultingPic', {pic: dog.dogPic, picId: 'dogPic'})%>
+		</div>
+		<div class="resource-wrap d-flex justify-content-center">
+			<div class="resource-html justify-content-center flex-fill" style="max-width:500px;">
+				<input id="tabR-1" type="radio" name="tab" class="tabR-one btn-check" checked>
+				<label for="tabR-1" class="tabR">Dog Profile</label>
+				<input id="tabR-2" type="radio" name="tab" class="tabR-two btn-check">
+				<label for="tabR-2" class="tabR">Vaccination Records</label>
+			<div class="resource-form">
+				<div class="tabR-one-htm">
+			<form class="my-3" id="basicInfo" method="post" enctype="multipart/form-data">
+				<%- include('templates/uploadFile', {divId:'newDogPic', xDivAttributes:'style=display:none', fileId:'dogUpload',fileName:'dogUpload', label:'Upload a New Photo:', xfileAttributes:'accept=.png,.jpg'}) %>
+					<div class="form-group">
+						<label for="dogName">Name:</label>
+						<input class="dogInput" type="text" id="dogName" name="dogName" value="<%=dog.dogName%>" required disabled>
+					</div>
+					
+					<div class="check-buttons mb-4 mt-2">
+						<% if (dog.neuteredStatus == 'neutered') {%>
+							<%- include('templates/checkmark', {classes: 'dogInput', value:'neutered', name:'neuteredStatus', id: 'neuteredStatus', label:'Neutered', xAttr:'checked disabled'}) %>
+						<% } else { %>
+							<%- include('templates/checkmark', {classes: 'dogInput', value:'neutered', name:'neuteredStatus', id: 'neuteredStatus', label:'Neutered', xAttr:'disabled'}) %>
+						<%}%>
+					</div>
+					<div class="radio-buttons mb-4">
+						<% if(dog.sex == 'M') { %>
+						<div class="form-check" style="max-width:fit-content;">
+							<input class="form-check-input dogInput" type="radio" name="sex" value="M" id="sexM" checked disabled>
+							<label class="form-check-label" for="sexM">Male</label>
+						</div>
+					
+						<div class="form-check" style="max-width:fit-content;">
+							<input class="form-check-input dogInput" type="radio" name="sex" value="F" id="sexF" disabled>
+							<label class="form-check-label" for="sexF">Female</label>
+						</div>
+						<%} else {%> 
+						<div class="form-check" style="max-width:fit-content;">
+							<input class="form-check-input dogInput" type="radio" name="sex" value="M" id="sexM" disabled>
+							<label class="form-check-label" for="sexM">Male</label>
+						</div>
+					
+						<div class="form-check" style="max-width:fit-content;">
+							<input class="form-check-input dogInput" type="radio" name="sex" value="F" id="sexF" checked disabled>
+							<label class="form-check-label" for="sexF">Female</label>
+						</div>
+					
+						<%}%>
+					</div>
+					
+					<%- include('templates/dateInput', {divId: 'birthdayDateDiv', xDivAttributes:'', dateId: 'birthday',dateClass:'dogInput', dateName:'birthday', label:'Birthday', xDateAttributes:'value=' + dog.birthday + ' required disabled'}) %>
+						
+					<div class="form-group">
+						<label for="weight">Weight (lb):</label>
+						<input class="dogInput" type="number" id="weight" name="weight" min="0" value="<%=dog.weight%>" disabled>
+					</div>
+						
+					<div class="form-group">
+						<label for="specialAlerts">Special Alerts</label>
+						<textarea class="form-control auto-resize dogInput" id="specialAlerts" name="specialAlerts" rows="3" disabled><%=dog.specialAlerts%></textarea>
+					</div>
+					<div class="my-3">
+					<%- include('templates/button', {action:'',xClasses:'editButton',xAttributes:'id=dogEditButton type=button value=dog',content:'Edit'}) %>
+					<%- include('templates/button', {action:'',xClasses:'cancelButton',xAttributes:'id=dogCancelButton type=button value=dog style=display:none',content:'Cancel'}) %>
+					<%- include('templates/button', {action: dog._id + '/edit',xClasses:'',xAttributes:'id=dogSaveButton style=display:none',content:'Save'}) %>
+				</div>
+				</form>
+				</div>
+				</div>
+				
+				<div class="resource-form">
+					<div class="tabR-two-htm">
+
+				<form class="my-3" id="vaccineInfo" method="post" action="/dog/<%= dog._id %>/editVaccines" enctype="multipart/form-data">
+                  <div class="my-3 py-2">
+                    <h5 style="font-weight:700;">Rabies</h5>
+                    <%- include('templates/dateInput', {divId: 'rabiesDateDiv', xDivAttributes:'', dateId: 'rabiesDate',dateClass:'vaccineInput', dateName:'rabiesDate', label:'Expiration Date', xDateAttributes:'disabled value=' + dog.rabies.expirationDate}) %>
+                    <%- include('templates/uploadFile', {divId:'rabiesProofDiv', xDivAttributes:'class=vaccineUpload style=display:none', fileId: 'rabiesProof', fileName:'rabiesUpload', label:'Please Provide a Vaccination Record for Proof', xfileAttributes: 'class=vaccineProof accept=.pdf'}) %>
+                  </div>
+
+                  <div class="my-3 py-2">
+                    <h5 style="font-weight:700;">Leptospia</h5>
+                    <%- include('templates/dateInput', {divId: 'leptospiaDateDiv', xDivAttributes:'', dateId: 'leptospiaDate',dateClass:'vaccineInput', dateName:'leptospiaDate', label:'Expiration Date', xDateAttributes:'disabled value=' + dog.leptospia.expirationDate}) %>
+                    <%- include('templates/uploadFile', {divId:'leptospiaProofDiv', xDivAttributes:'class=vaccineUpload style=display:none', fileId: 'leptospiaProof', fileName:'leptospiaUpload', label:'Provide New Proof of Vaccination', xfileAttributes: 'class=vaccineProof accept=.pdf'}) %>
+                  </div>
+
+                  <div class="my-3 py-2">
+                    <h5 style="font-weight:700;">Bordatella</h5>
+                    <%- include('templates/dateInput', {divId: 'bordatellaDateDiv', xDivAttributes:'', dateId: 'bordatellaDate',dateClass:'vaccineInput', dateName:'bordatellaDate', label:'Expiration Date', xDateAttributes:'disabled value=' + dog.bordatella.expirationDate}) %>
+                    <%- include('templates/uploadFile', {divId:'bordatellaProofDiv', xDivAttributes:'class=vaccineUpload style=display:none', fileId: 'bordatellaProof', fileName:'bordatellaUpload', label:'Provide New Proof of Vaccination', xfileAttributes: 'class=vaccineProof accept=.pdf'}) %>
+                  </div>
+
+                  <div class="my-3 py-2">
+                    <h5 style="font-weight:700;">Bronchiseptica</h5>
+                    <%- include('templates/dateInput', {divId: 'bronchisepticaDateDiv', xDivAttributes:'', dateId: 'bronchisepticaDate',dateClass:'vaccineInput', dateName:'bronchisepticaDate', label:'Expiration Date', xDateAttributes:'disabled value=' + dog.bronchiseptica.expirationDate}) %>
+                    <%- include('templates/uploadFile', {divId:'bronchisepticaProofDiv', xDivAttributes:'class=vaccineUpload style=display:none', fileId: 'bronchisepticaProof', fileName:'bronchisepticaUpload', label:'Provide New Proof of Vaccination', xfileAttributes: 'class=vaccineProof accept=.pdf'}) %>
+                  </div>
+
+                  <div class="my-3 py-2">
+                    <h5 style="font-weight:700;">DA2PP</h5>
+                    <%- include('templates/dateInput', {divId: 'DA2PPDateDiv', xDivAttributes:'', dateId: 'DA2PPDate',dateClass:'vaccineInput', dateName:'DA2PPDate', label:'Expiration Date', xDateAttributes:'disabled value=' + dog.DA2PP.expirationDate}) %>
+                    <%- include('templates/uploadFile', {divId:'DA2PPProofDiv', xDivAttributes:'class=vaccineUpload style=display:none', fileId: 'DA2PPProof', fileName:'DA2PPUpload', label:'Provide New Proof of Vaccination', xfileAttributes: 'class=vaccineProof accept=.pdf'}) %>
+                  </div>
+
+                  <div class="my-3 d-flex justify-content-between">
+                    <%- include('templates/button', {action:'',xClasses:'editButton',xAttributes:'id=vaccineEditButton type=button value=vaccine',content:'Edit'}) %>
+                    <%- include('templates/button', {action:'',xClasses:'cancelButton',xAttributes:'id=vaccineCancelButton type=button value=vaccine style=display:none',content:'Cancel'}) %>
+                    <%- include('templates/button', {action: dog._id + '/editVaccines',xClasses:'',xAttributes:'id=vaccineSaveButton style=display:none',content:'Save'}) %>
+                  </div>
+                </form>
+				</div>
+			</div>
+				</div>
+				</div>
+
+				<form id="deleteForm" class="mx-auto d-flex justify-content-center mt-3" style="min-width:500px" method="post" action="<%=dog._id%>/delete">
+					<%- include('templates/button', {action: '' , xClasses:'',xAttributes:'id=deleteDogButton type=button',content:'Delete Dog'}) %>
+				</form>
+</div>
+		<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.all.min.js"></script>
+		<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.min.css" rel="stylesheet">
+			<script>
+				//Sweet alert button template
+				const swalWithBootstrapButtons = Swal.mixin({
+					customClass: {
+						confirmButton: "btn btn-main",
+						cancelButton: "btn btn-secondary"
+					},
+					buttonsStyling: false
+				});
+
+				//Identify what form to show on page
+				var page = 'basic';
+
+				//Basic Form displays and edits all basic information
+				//Vaccine Form displays and edits all vaccine related information
+				let basicForm = document.getElementById('basicInfo');
+				let vaccineForm = document.getElementById('vaccineInfo');
+
+				//Collect the buttons used on the page
+				//delete dog button
+				let deleteButton = document.getElementById('deleteDogButton');
+
+				//Edit and cancel buttons for forms
+				let editButtons = document.querySelectorAll('.editButton');
+				let cancelButtons = document.querySelectorAll('.cancelButton');
+				
+				//Toggles between the two forms
+				let toggleButton = document.getElementById('viewVaccines');
+
+				deleteButton.addEventListener('click', () =>{
+					swalWithBootstrapButtons.fire({
+						title: "Are you sure?",
+						text: "You won't be able to revert this!",
+						icon: "warning",
+						showCancelButton: true,
+						confirmButtonText: "Delete Dog",
+						cancelButtonText: "Cancel",
+						reverseButtons: true
+					}).then((result) => {
+						if (result.isConfirmed) {
+							swalWithBootstrapButtons.fire({
+								title: "Deleted!",
+								text: "Your dog has been deleted.",
+								icon: "success"
+							}).then((result) => {
+								document.getElementById('deleteForm').submit();
+							});
+						} else if (
+							/* Read more about handling dismissals below */
+							result.dismiss === Swal.DismissReason.cancel
+						) {
+							swalWithBootstrapButtons.fire({
+								title: "Cancelled",
+								text: "Delete cancelled; your dog is safe",
+								icon: "error"
+							});
+						}
+					});
+				});
+			</script>
+			<%- include("templates/footerCopyright") %>
