@@ -10,11 +10,8 @@
 	</form>
 </div>
 
-<input type="text" class="form-control-plaintext d-none" name="clientParam" id="clientParam" value="<%= clientParam %>">
-
-<script>
-	const receiverIdentifier = '<%= receiver %>';
-</script>
+<input type="text" class="d-none" name="clientParam" id="clientParam" value="<%= clientParam %>">
+<input type="text" class="d-none" id="receiver" value="<%= receiver %>">
 
 <script src="/scripts/chatBusiness.js"></script>
 <%- include("templates/footerCopyright") %>
