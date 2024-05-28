@@ -998,6 +998,11 @@ app.post('/profile/edit/:editType', sessionValidation, upload.array('accountUplo
 				if(fileType == 'image'){
 					await deleteUploadedImage(business[0].logo);
 					req.body.logo = await uploadImage(req.files[0], "businessLogos");
+				} else {
+					let fullFileName = `${req.session.name}_contract.pdf`;
+					let filePath = `pdfs/${fullFileName}`;
+					let fileUrl = await overwriteOrUploadFile(req.files[0].buffer, filePath);
+					req.body.contract = fileUrl;
 				}
 			} else if (req.files.length == 2){
 				for(let i = 0; i < req.files.length; i++){
@@ -1011,7 +1016,8 @@ app.post('/profile/edit/:editType', sessionValidation, upload.array('accountUplo
 					} else {
 						let fullFileName = `${req.session.name}_contract.pdf`;
 						let filePath = `pdfs/${fullFileName}`;
-						let fileUrl = await overwriteOrUploadFile(file.buffer, filePath);
+						let fileUrl = await overwriteOrUploadFile(req.files[1].buffer, filePath);
+						req.body.contract = fileUrl;
 					}
 				}
 			} else {
@@ -1521,7 +1527,9 @@ app.get('/viewBusiness/:company/register/:program', async(req, res) => {
 		}
 	}
 
-	res.render('hireTrainer', {loggedIn: isValidSession(req), userType: req.session.userType, program: program[0], companyName:req.params.company, dogs: dogs, unreadAlerts: req.session.unreadAlerts});
+	let contract = business.info.contract;
+
+	res.render('hireTrainer', {loggedIn: isValidSession(req), userType: req.session.userType, program: program[0], companyName:req.params.company, contract: contract, dogs: dogs, unreadAlerts: req.session.unreadAlerts});
 });
 
 
