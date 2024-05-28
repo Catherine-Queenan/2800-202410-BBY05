@@ -1943,6 +1943,7 @@ app.put('/messagesClient/markRead', async (req, res) => {
 });
 
 app.get('/messagesBusiness/:client', async (req, res) => {
+	setClientDatabase(req, req.params.client);
 	const userdb = appdb.db(req.session.userdb);
 	const clientdb = appdb.db(req.session.clientdb);
 	const client = await clientdb.collection('info').find().project({email: 1}).toArray();
@@ -1952,15 +1953,23 @@ app.get('/messagesBusiness/:client', async (req, res) => {
 });
 
 app.post('/messagesBusiness/:client', async (req, res) => {
+	setClientDatabase(req, req.params.client);
 	const userdb = appdb.db(req.session.userdb);
 	const clientdb = appdb.db(req.session.clientdb);
 	const { text } = req.body;
 	const client = await clientdb.collection('info').find().project({email: 1}).toArray();
 	const receiver = client[0].email;
-	const newMessage = { text, receiver: receiver, createdAt: new Date() };
+	const newMessage = { text, receiver: receiver, createdAt: new Date(), unread: true };
 	await userdb.collection('messages').insertOne(newMessage);
 	res.status(201).json(newMessage);
 });
+
+app.put('/messagesBusiness/markRead/:client', async (req, res) => {
+	setClientDatabase(req, req.params.client);
+	const clientdb = appdb.db(req.session.clientdb);
+	await clientdb.collection('messages').updateMany({receiver: req.session.name}, { $set: { unread: false }});
+	res.status(200).send('Messages marked as read');
+})
 
 // app.post('/messages', async (req, res) => {
 // 	setUserDatabase(req);

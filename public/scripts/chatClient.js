@@ -14,6 +14,9 @@ async function fetchMessages() {
 		messagesDiv.innerHTML = '';
 
 		allMessages.forEach(msg => {
+			const messageWrapper = document.createElement('div');
+			messageWrapper.classList.add('message-wrapper');
+
 			const messageElement = document.createElement('div');
 			messageElement.classList.add('message');
 
@@ -23,10 +26,31 @@ async function fetchMessages() {
 				messageElement.classList.add('received');
 			}
 
+			// Format the timestamp
+			const date = new Date(msg.createdAt);
+			const formattedTimestamp = date.toLocaleString('en-CA', {
+				month: 'short',
+				day: 'numeric',
+				hour: 'numeric',
+				minute: 'numeric',
+				hour12: true
+			});
+
 			messageElement.innerHTML = `
 				<div class='msgText'>${msg.text}</div>
 			`;
-			messagesDiv.appendChild(messageElement);
+
+			const timestampElement = document.createElement('div');
+			timestampElement.classList.add('timestamp');
+			timestampElement.innerText = formattedTimestamp;
+			if (msg.receiver === receiverIdentifier) {
+				timestampElement.classList.add('sent');
+			} else {
+				timestampElement.classList.add('received');
+			}
+			messageWrapper.appendChild(messageElement);
+			messageWrapper.appendChild(timestampElement);
+			messagesDiv.appendChild(messageWrapper);
 		});
 
 		// Update the timestamp of the latest message
