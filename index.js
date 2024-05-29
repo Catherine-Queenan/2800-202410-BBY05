@@ -197,13 +197,12 @@ async function updateUnreadMessages(req, res, next) {
 			const trainerdb = appdb.db(req.session.trainerdb);
 			const unreadMessages = await trainerdb.collection('messages').find({receiver: req.session.email, unread: true}).toArray();
 			req.session.unreadMessages = unreadMessages.length;
-			console.log("Unread Messages: ", unreadMessages);
 		} catch (error) {
 			console.error("Error updating unread messages:", error);
 		}
 	} else if (isValidSession(req) && isBusiness(req)) { //if trainer
 		try {
-			const userdb = app.db(req.session.userdb);
+			const userdb = appdb.db(req.session.userdb);
 			const clients = await userdb.collection('clients').find().project({email:1}).toArray();
 			let unreadMessages = 0;
 			if (clients.length > 0) {
@@ -215,7 +214,6 @@ async function updateUnreadMessages(req, res, next) {
 				}
 			}
 			req.session.unreadMessages = unreadMessages;
-			console.log("Unread Messages: ", unreadMessages);
 		} catch (error) {
 			console.error("Error updating unread messages:", error);
 		}
@@ -312,13 +310,12 @@ async function updateUnreadMessagesMidCode(req) {
 			const trainerdb = appdb.db(req.session.trainerdb);
 			const unreadMessages = await trainerdb.collection('messages').find({receiver: req.session.email, unread: true}).toArray();
 			req.session.unreadMessages = unreadMessages.length;
-			console.log("Unread Messages: ", unreadMessages);
 		} catch (error) {
 			console.error("Error updating unread messages:", error);
 		}
 	} else if (isValidSession(req) && isBusiness(req)) { //if trainer
 		try {
-			const userdb = app.db(req.session.userdb);
+			const userdb = appdb.db(req.session.userdb);
 			const clients = await userdb.collection('clients').find().project({email:1}).toArray();
 			let unreadMessages = 0;
 			if (clients.length > 0) {
@@ -330,7 +327,6 @@ async function updateUnreadMessagesMidCode(req) {
 				}
 			}
 			req.session.unreadMessages = unreadMessages;
-			console.log("Unread Messages: ", unreadMessages);
 		} catch (error) {
 			console.error("Error updating unread messages:", error);
 		}
@@ -2154,7 +2150,7 @@ app.get('/chatSelectClient', async (req, res) => {
 });
 
 app.get('/chat/:type', async (req, res) => {
-	updateUnreadMessagesMidCode(req);
+	req.session.unreadMessages = 0;
 	const type = req.params.type;
 	if (type == 'client') {
 		const receiver = await appUserCollection.find({email: req.session.email}).project({companyName: 1}).toArray();
