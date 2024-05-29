@@ -22,12 +22,12 @@
 <script>
     let clientListSize = "<%= clientArray.length%>";
     const clients = '<%- JSON.stringify(clientArray) %>';
-    clientsParsed = JSON.parse(clients);
+    let clientsParsed = JSON.parse(clients);
 </script>
 
 <template id="clientCardTemplate">
     <li>
-        <div class="card m-2 smallShadow" style="background-color:#20133541; color:#201335; border-radius:1px">
+        <div class="card m-4 smallShadow" style="background-color:#20133541; color:#201335; border-radius:1px">
             <div class="d-flex justify-content-center m-2">
             <div class="card-body">
                 <h5 class="card-title h4 text-center yeseva-one">[firstNamePlaceholder] [lastNamePlaceholder]</h5>
@@ -35,6 +35,7 @@
                 <form method="get" class="d-flex justify-content-center">
                     <%- include('templates/button', {action:'/',xClasses:'profileLink btn btn-primary',xAttributes:'id=profileLink',content:'View Profile'}) %>
                 </form>
+                <div class="dogsContainer"></div>
             </div>
             </div>
         </div>
