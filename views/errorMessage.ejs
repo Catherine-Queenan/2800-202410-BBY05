@@ -1,9 +1,13 @@
 <%- include("templates/header") %>
-	<div class="container">
-		<form method='get'>
-		<%= error %><br>
-		<%- include('templates/button', {action:'/',xClasses:'',xAttributes:'',content:'Return to Home'}) %>
-		<!-- <button formaction='/'>Return to Home</button> -->
+	<div class="container d-flex justify-content-center align-items-center vh-50">
+		<form method='get' class="text-center">
+			<h1 class="display-1 yeseva-one orange p-5">
+			<%= errorTitle %></h1>
+			<img src="/images/errorDog.png" alt="ErrorDog" class="img-fluid">
+			<p class="display-6 karla-heavy fw-bold orange pb-5"><%= errorMsg %></p>
+			
+			<%- include('templates/button', {action:'/',xClasses:'btn-primary',xAttributes:'',content:'Return to Home'}) %>
+			<!-- <button formaction='/'>Return to Home</button> -->
 		</form>
 	</div>
 <%- include("templates/footerCopyright") %>

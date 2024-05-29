@@ -18,24 +18,3 @@ document.addEventListener('DOMContentLoaded', function () {
 	});
 	calendar.render();
 });
-
-// Displays the previously hidden calendar
-const calendarShow = document.getElementById('calendar');
-calendarShow.classList.add('whiteBackground', 'py-3', 'rounded');
-calendarShow.classList.remove('d-none');
-
-document.addEventListener('DOMContentLoaded', function () {
-	var calendarEl = document.getElementById('calendar');
-	var calendar = new FullCalendar.Calendar(calendarEl, {
-		timeZone: 'local',
-		initialView: 'dayGridMonth',
-		headerToolbar: {
-			left: 'title',
-			right: 'prev,next today'
-		},
-		events: '/events',
-		eventColor: '#FFA05C'
-
-	});
-	calendar.render();
-});

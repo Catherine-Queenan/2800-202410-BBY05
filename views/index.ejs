@@ -1,212 +1,230 @@
 <%- include("templates/header") %>
 <link href="/css/calendar.css" rel="stylesheet">
 <div>
-	<% if (!loggedIn) { %>
-		<%- include('templates/hero', {content: 'Canine-Centered Connections... Where pet professionals and pet owners come together'}) %>
-		<!-- Navigational Previews using BootStrap cards-->
-		<section class="py-3 py-md-5">
-			<div class="container overflow-visible">
-				<div class="row gy-5">
-					
-					<%- include('templates/clientPreview', { 
-						title: 'Sign In or Sign Up', 
-						content: 'Join our community of passionate animal professionals and pet owners. Connecting and scheduling made easy, by pet people, for pet people.',
-						prevClass: 'offset-3 offset-sm-4 offset-md-6 upperShadow',
-						actionOne: '/login/clientLogin',
-						classesOne: 'lg-button',
-						attributesOne: '',
-						contentOne: 'CLIENT',
-						actionTwo: '/login/businessLogin',
-						classesTwo: 'lg-button',
-						attributesTwo: '',
-						contentTwo: 'BUSINESS',
-						justify: '',
-						imageUrl: 'images/PawPrintsFade.png'
-					}) %>
+    <% if (!loggedIn) { %>
+        <%- include('templates/hero', {content: 'Canine-Centered Connections... Where pet professionals and pet owners come together'}) %>
+        <!-- Navigational Previews using BootStrap cards-->
+        <section class="py-3 py-md-5">
+            <div class="container overflow-visible">
+                <div class="row gy-5">
+                    <%- include('templates/clientPreview', { 
+                        title: 'Sign In or Sign Up', 
+                        content: 'Join our community of passionate animal professionals and pet owners. Connecting and scheduling made easy, by pet people, for pet people.',
+                        prevClass: 'offset-3 offset-sm-4 offset-md-6 upperShadow',
+                        actionOne: '/login/clientLogin',
+                        classesOne: 'lg-button',
+                        attributesOne: '',
+                        contentOne: 'CLIENT',
+                        actionTwo: '/login/businessLogin',
+                        classesTwo: 'lg-button',
+                        attributesTwo: '',
+                        contentTwo: 'BUSINESS',
+                        justify: '',
+                        imageUrl: 'images/PawPrintsFade.png'
+                    }) %>
 
-					<%- include('templates/clientPreview', { 
-						title: 'Finding a Trainer', 
-						content: 'With our network of trainers, finding the perfect one for you is just a paw trick away! Learn more about what we require from our trainers.',
-						prevClass: 'lowerShadow',
-						actionOne: '/FAQ',
-						classesOne: '',
-						attributesOne: '',
-						contentOne: 'Learn More',
-						actionTwo: '/findTrainer',
-						classesTwo: '',
-						attributesTwo: '',
-						contentTwo: 'Find a Trainer',
-						justify: '',
-						imageUrl: 'images/PawTrickFade.png'
-					}) %>
+                    <%- include('templates/clientPreview', { 
+                        title: 'Finding a Trainer', 
+                        content: 'With our network of trainers, finding the perfect one for you is just a paw trick away! Learn more about what we require from our trainers.',
+                        prevClass: 'lowerShadow',
+                        actionOne: '/FAQ',
+                        classesOne: '',
+                        attributesOne: '',
+                        contentOne: 'Learn More',
+                        actionTwo: '/findTrainer',
+                        classesTwo: '',
+                        attributesTwo: '',
+                        contentTwo: 'Find a Trainer',
+                        justify: '',
+                        imageUrl: 'images/PawTrickFade.png'
+                    }) %>
 
-					<%- include('templates/clientPreview', { 
-						title: 'Helpful Resources', 
-						content: 'Thinking about getting a dog? Looking for helpful care guides or canine enrichment ideas? Browse our curated articles, videos, and more!',
-						prevClass: 'offset-3 offset-sm-4 offset-md-6 upperShadow',
-						actionOne: '/clientResources',
-						classesOne: '',
-						attributesOne: '',
-						contentOne: 'All Resources',
-						actionTwo: '/FAQ',
-						classesTwo: '',
-						attributesTwo: '',
-						contentTwo: 'Learn More',
-						justify: '',
-						imageUrl: 'images/PupReadFade.png'
-					}) %>
+                    <%- include('templates/clientPreview', { 
+                        title: 'Helpful Resources', 
+                        content: 'Thinking about getting a dog? Looking for helpful care guides or canine enrichment ideas? Browse our curated articles, videos, and more!',
+                        prevClass: 'offset-3 offset-sm-4 offset-md-6 upperShadow',
+                        actionOne: '/clientResources',
+                        classesOne: '',
+                        attributesOne: '',
+                        contentOne: 'All Resources',
+                        actionTwo: '/FAQ',
+                        classesTwo: '',
+                        attributesTwo: '',
+                        contentTwo: 'Learn More',
+                        justify: '',
+                        imageUrl: 'images/PupReadFade.png'
+                    }) %>
 
-				</div>
-			</div>
-		</section> 
-	<% } else if (userType == "client") { %>
-		<%- include('templates/hero', {content: 'Welcome back to Pawfolio!'}) %>
-		<section class="py-3 py-md-5">
-			<div class="container overflow-visible">
-				<div class="row gy-5">
-					<!--TODO make an if-else to load either "upcoming sessions"
-						or "find a trainer" based on if a trainer is assigned.-->
-					<%- include('templates/homepage', { 
-						title: 'Your Upcoming Sessions',
-						content: 'Dynamically loaded content based on your upcoming sessions. Click here to view your upcoming sessions.',
-						prevClass: 'smallShadow',
-						actionOne: '/',
-						classesOne: 'lg-button',
-						attributesOne: '',
-						contentOne: 'CLIENT',
-						actionTwo: '/login/businessLogin',
-						classesTwo: 'lg-button',
-						attributesTwo: '',
-						contentTwo: 'BUSINESS',
-						imageUrl: 'images/PawPrintsFade.png',
-						divObjectId: ''
-					}) %>
+                </div>
+            </div>
+        </section> 
+    <% } else if (userType == "client") { %>
+        <%- include('templates/hero', {content: 'Welcome back to Pawfolio!'}) %>
+        <section class="py-3 py-md-5">
+            <div class="container overflow-visible">
+                <div class="row gy-5">
+                    <% if (trainerAssigned) { %>
 
-					<%- include('templates/homepage', { 
-						title: 'Find a Trainer', 
-						content: 'Click here to add a trainer',
-						prevClass: 'smallShadow',
-						actionOne: '/findTrainer',
-						classesOne: '',
-						attributesOne: '',
-						contentOne: 'Learn More',
-						actionTwo: '/',
-						classesTwo: '',
-						attributesTwo: '',
-						contentTwo: 'Find a Trainer',
-						imageUrl: 'images/PawTrickFade.png',
-						divObjectId: ''
-					}) %>
+                        <%- include('templates/homepage', { 
+                            title: 'Your Upcoming Sessions',
+                            content: '',
+                            prevClass: 'smallShadow',
+                            actionOne: '/sessionList',
+                            classesOne: 'lg-button',
+                            attributesOne: '',
+                            contentOne: 'CLIENT',
+                            actionTwo: '/login/businessLogin',
+                            classesTwo: 'lg-button',
+                            attributesTwo: '',
+                            contentTwo: 'BUSINESS',
+                            imageUrl: 'images/PawPrintsFade.png',
+                            divObjectId: 'sessionList'
+                        }) %>
 
-					<%- include('templates/homepage', { 
-						title: 'Your Dogs', 
-						content: 'Dynamically loaded dog profiles from database',
-						prevClass: 'smallShadow',
-						actionOne: '/profile',
-						classesOne: '',
-						attributesOne: '',
-						contentOne: 'All Resources',
-						actionTwo: '/',
-						classesTwo: '',
-						attributesTwo: '',
-						contentTwo: 'Trusted Professionals',
-						imageUrl: 'images/DogBackdrop.png',
-						divObjectId: ''
-					}) %>
+                        <%- include('templates/homepage', { 
+                            title: 'Your Trainer',
+                            content: '',
+                            prevClass: 'smallShadow',
+                            actionOne: '/viewBusiness/' + trainer.name.replace(/\s+/g, ''),
+                            classesOne: 'lg-button',
+                            attributesOne: '',
+                            contentOne: 'View Trainer',
+                            actionTwo: '',
+                            classesTwo: '',
+                            attributesTwo: '',
+                            contentTwo: '',
+                            imageUrl: 'images/PawPrintsFade.png',
+                            divObjectId: 'trainer'
+                        }) %>
+                    <% } else { %>
+                        <%- include('templates/homepage', { 
+                            title: 'Find a Trainer', 
+                            content: 'Click here to add a trainer',
+                            prevClass: 'smallShadow',
+                            actionOne: '/findTrainer',
+                            classesOne: '',
+                            attributesOne: '',
+                            contentOne: 'Find a Trainer',
+                            actionTwo: '',
+                            classesTwo: '',
+                            attributesTwo: '',
+                            contentTwo: '',
+                            imageUrl: 'images/PawTrickFade.png',
+                            divObjectId: ''
+                        }) %>
+                    <% } %>
 
-					<%- include('templates/clientPreview', { 
-						title: 'Helpful Resources', 
-						content: 'Thinking about getting a dog? Looking for helpful care guides or canine enrichment ideas? Browse our curated articles, videos, and more!',
-						prevClass: 'smallShadow',
-						actionOne: '/clientResources',
-						classesOne: '',
-						attributesOne: '',
-						contentOne: 'All Resources',
-						actionTwo: '/',
-						classesTwo: '',
-						attributesTwo: '',
-						contentTwo: 'Trusted Professionals',
-						justify: 'justify-content-center',
-						imageUrl: 'images/PupReadFade.png'
-					}) %>
+                    <%- include('templates/homepage', { 
+                        title: 'Your Dogs', 
+                        content: 'Dynamically loaded dog profiles from database',
+                        prevClass: 'smallShadow',
+                        actionOne: '/profile',
+                        classesOne: '',
+                        attributesOne: '',
+                        contentOne: 'All Resources',
+                        actionTwo: '',
+                        classesTwo: '',
+                        attributesTwo: '',
+                        contentTwo: 'Trusted Professionals',
+                        imageUrl: 'images/DogBackdrop.png',
+                        divObjectId: ''
+                    }) %>
 
-				</div>
-			</div>
-		</section>
-	<% } else if (userType == "business") { %>
-		<%- include('templates/hero', {content: 'Welcome back to Pawfolio!'}) %>
-		<section class="py-3 py-md-5">
-			<div class="container overflow-visible">
-				<div class="row gy-5">
-					<%- include('templates/homepage', { 
-						title: 'Today\'s Sessions',
-						content: 'Dynamically loaded content based on your upcoming sessions. Click here to view your upcoming sessions.',
-						prevClass: 'smallShadow',
-						actionOne: '/',
-						classesOne: 'lg-button',
-						attributesOne: '',
-						contentOne: 'CLIENT',
-						actionTwo: '/login/businessLogin',
-						classesTwo: 'lg-button',
-						attributesTwo: '',
-						contentTwo: 'BUSINESS',
-						imageUrl: 'images/PawPrintsFade.png',
-						divObjectId: ''
-					}) %>
+                    <%- include('templates/clientPreview', { 
+                        title: 'Helpful Resources', 
+                        content: 'Thinking about getting a dog? Looking for helpful care guides or canine enrichment ideas? Browse our curated articles, videos, and more!',
+                        prevClass: 'smallShadow',
+                        actionOne: '/clientResources',
+                        classesOne: '',
+                        attributesOne: '',
+                        contentOne: 'All Resources',
+                        actionTwo: '',
+                        classesTwo: '',
+                        attributesTwo: '',
+                        contentTwo: 'Trusted Professionals',
+                        justify: 'justify-content-center',
+                        imageUrl: 'images/PupReadFade.png'
+                    }) %>
 
-					<%- include('templates/homepage', { 
-						title: 'Inbox', 
-						content: 'Dynamically loaded content based on inbox messages.',
-						prevClass: 'smallShadow',
-						actionOne: '/chatSelectClient',
-						classesOne: '',
-						attributesOne: '',
-						contentOne: 'Learn More',
-						actionTwo: '/',
-						classesTwo: '',
-						attributesTwo: '',
-						contentTwo: 'Find a Trainer',
-						imageUrl: 'images/PawTrickFade.png',
-						divObjectId: ''
-					}) %>
+                </div>
+            </div>
+        </section>
+        <script src="/scripts/calendarClientHome.js"></script>
+        <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
+    <% } else if (userType == "business") { %>
+        <%- include('templates/hero', {content: 'Welcome back to Pawfolio!'}) %>
+        <section class="py-3 py-md-5">
+            <div class="container overflow-visible">
+                <div class="row gy-5">
+                    <%- include('templates/homepage', { 
+                        title: 'This Week\'s Sessions',
+                        content: '',
+                        prevClass: 'smallShadow',
+                        actionOne: '/sessionList',
+                        classesOne: 'lg-button',
+                        attributesOne: '',
+                        contentOne: 'CLIENT',
+                        actionTwo: '/login/businessLogin',
+                        classesTwo: 'lg-button',
+                        attributesTwo: '',
+                        contentTwo: 'BUSINESS',
+                        imageUrl: 'images/PawPrintsFade.png',
+                        divObjectId: 'sessionList'
+                    }) %>
 
-					<%- include('templates/homepage', { 
-						title: 'Clients', 
-						content: 'Dynamically loaded client profiles from database',
-						prevClass: 'smallShadow',
-						actionOne: '/',
-						classesOne: '',
-						attributesOne: '',
-						contentOne: 'All Resources',
-						actionTwo: '/',
-						classesTwo: '',
-						attributesTwo: '',
-						contentTwo: 'Trusted Professionals',
-						imageUrl: 'images/DogBackdrop.png',
-						divObjectId: ''
-					}) %>
+                    <%- include('templates/homepage', { 
+                        title: 'Inbox', 
+                        content: 'Dynamically loaded content based on inbox messages.',
+                        prevClass: 'smallShadow',
+                        actionOne: '/chatSelectClient',
+                        classesOne: '',
+                        attributesOne: '',
+                        contentOne: 'Learn More',
+                        actionTwo: '',
+                        classesTwo: '',
+                        attributesTwo: '',
+                        contentTwo: 'Find a Trainer',
+                        imageUrl: 'images/PawTrickFade.png',
+                        divObjectId: ''
+                    }) %>
 
-					<%- include('templates/homepage', { 
-						title: 'Calendar', 
-						content: 'Dynamically loaded calender view of the current week.',
-						prevClass: 'smallShadow',
-						actionOne: '/calendar',
-						classesOne: '',
-						attributesOne: '',
-						contentOne: 'All Resources',
-						actionTwo: '/',
-						classesTwo: '',
-						attributesTwo: '',
-						contentTwo: 'Trusted Professionals',
-						imageUrl: 'images/DogBackdrop.png',
-						divObjectId: 'calendar'
-					}) %>
-				</div>
-			</div>
-		</section>
-		<script src="/scripts/calendarBusinessHome.js"></script>
-		<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
-	<% } %>
+                    <%- include('templates/homepage', { 
+                        title: 'Clients', 
+                        content: 'Dynamically loaded client profiles from database',
+                        prevClass: 'smallShadow',
+                        actionOne: '/clientList',
+                        classesOne: '',
+                        attributesOne: '',
+                        contentOne: 'All Resources',
+                        actionTwo: '',
+                        classesTwo: '',
+                        attributesTwo: '',
+                        contentTwo: 'Trusted Professionals',
+                        imageUrl: 'images/DogBackdrop.png',
+                        divObjectId: ''
+                    }) %>
+
+                    <%- include('templates/homepage', { 
+                        title: 'Booking Calendar', 
+                        content: '',
+                        prevClass: 'smallShadow',
+                        actionOne: '/calendar',
+                        classesOne: '',
+                        attributesOne: '',
+                        contentOne: 'All Resources',
+                        actionTwo: '',
+                        classesTwo: '',
+                        attributesTwo: '',
+                        contentTwo: 'Trusted Professionals',
+                        imageUrl: 'images/DogBackdrop.png',
+                        divObjectId: 'calendar'
+                    }) %>
+                </div>
+            </div>
+        </section>
+        <script src="/scripts/calendarBusinessHome.js"></script>
+        <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
+    <% } %>
 </div>
 
 <%- include("templates/footerCopyright") %>

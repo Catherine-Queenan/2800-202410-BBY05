@@ -1,16 +1,19 @@
 <%- include("templates/header") %>
-    <div class="container">
+<div class="profile-container my-4 mx-4">
         <%- include('templates/button', {action:'',xClasses:'',xAttributes:'id=registerDog type=button disabled', content:'Register Dog'}) %>
         <%- include('templates/clientViewProgram', {program: program})%>
-
-        <p class="h2">Selected Dog:</p>
-        <div id="selectedDog">
-           <p>No Dog Selected</p>
+        <div class="heading-gen my-3">
+        <p class="h2 purple">Selected Dog:</p>
+            <div id="selectedDog">
+            <p class="karla-heavy fw-bold">No Dog Selected</p>
+            </div>
         </div>
-        <p class="h2">Select dog:</p>
-        <% for(let i=0; i < dogs.length; i++){ %>
-            <%- include('templates/dogToTrainClient', {dog: dogs[i]}) %>
-        <% } %>
+        <div class="heading-gen my-3">
+            <p class="h2 purple">Select dog:</p>
+            <% for(let i=0; i < dogs.length; i++){ %>
+                <%- include('templates/dogToTrainClient', {dog: dogs[i]}) %>
+            <% } %>
+        </div>
     </div>
 
     <form id="selectDogForm" method="post" action="<%=currentUrl.replace('?', '')%>/submitRegister">
@@ -23,24 +26,26 @@
     
     <div id="confirmationModal" class="modal fade"  aria-hidden="true" tabindex="-1">
         <div class="modal-dialog" role="document">
-          <div class="modal-content">
+          <div class="modal-content whiteBackground">
             <div class="modal-header">
               <div class="modal-title ">
-                <span class="h2">Confirm Registration</span>
-                <%- include('templates/button', {action:'',xClasses:'',xAttributes:'type=button data-bs-dismiss=modal', content:'Cancel'}) %>
+                <span class="h2 fw-bold">Confirm Registration</span>
               </div>
             </div>
             <div class="modal-body">
-                <p>Are you sure you want to register your dog for the following program?</p>
-                <p>Dog:</p>
+                <p class="fw-bold">Are you sure you want to register your dog for the following program?</p>
+                <p class="my-3 fw-bold" style="font-size:20px; text-align:start;">Dog:</p>
                 <div id="dogConfirmation">
 
                 </div>
-                <p>Program:</p>
-                <div class="card">
+                <p class="my-3 fw-bold" style="font-size:20px; text-align:start;">Program:</p>
+                <div class="card m-2 smallShadow" style="background-color:#20133541; color:#201335; border-radius:1px;">
                 <%- include('templates/clientViewProgram', {program: program})%>
                 </div>
             </div>
+            <div class="modal-footer d-flex justify-content-between">
+                <%- include('templates/button', {action:'',xClasses:'btn-danger',xAttributes:'type=button data-bs-dismiss=modal', content:'Cancel'}) %>
+                <%- include('templates/button', {action:'',xClasses:'',xAttributes:'id=confirmRegister type=button' , content:'Confirm'}) %>
             <div class="modal-footer">
                 <%- include('templates/button', {action:'',xClasses:'',xAttributes:'type=button data-bs-dismiss=modal id=nextModalButton', content:'Next'}) %>
             </div>
