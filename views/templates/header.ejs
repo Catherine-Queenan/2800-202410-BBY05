@@ -23,15 +23,15 @@
 	<!--If statements to determine which navbar to load based on authentication and authorization-->
 	
 	<% if (!loggedIn) { %>
-		<%- include("navbarEmpty") %>
-	<% } else if (userType == "client") { %>
-		<%- include("navbarClient", {alerts: unreadAlerts}) %>
+        <%- include("navbarEmpty") %>
+    <% } else if (userType == "client") { %>
+		<%- include("navbarClient", {alerts: unreadAlerts, messages: unreadMessages}) %>
 	<% } else if (userType == "business") { %>
-		<% if(currentUrl === '/') { %>
-			<%- include("navbarBusinessHome", {alerts: unreadAlerts}) %>
-		<% } else { %>
-			<%- include("navbarBusiness", {alerts: unreadAlerts}) %>
-		<% } %>
+        <% if(currentUrl === '/') { %>
+            <%- include("navbarBusinessHome", {alerts: unreadAlerts}) %>
+        <% } else { %>
+            <%- include("navbarBusiness", {alerts: unreadAlerts, messages: unreadMessages}) %>
+        <% } %>
 	<% } %>
 
 	
