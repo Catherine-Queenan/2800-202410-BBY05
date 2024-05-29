@@ -2248,41 +2248,28 @@ app.put('/messagesBusiness/markRead/:client', async (req, res) => {
 	const clientdb = appdb.db(req.session.clientdb);
 	await clientdb.collection('messages').updateMany({receiver: req.session.name}, { $set: { unread: false }});
 	res.status(200).send('Messages marked as read');
-})
+});
 
-// app.post('/messages', async (req, res) => {
-// 	setUserDatabase(req);
-// 	const { text } = req.body;
-// 	let sender, receiver;
-// 	if (isClient(req)) {
-// 		sender = req.session.email;
-// 		const trainer = await appUserCollection.find({ email: sender }).project({ companyName: 1 }).toArray();
-// 		receiver = trainer[0].companyName;
-// 	} else if (isBusiness(req)) {
-// 		sender = req.session.name;
-// 		const client = await clientdb.collection('info').find().project({email: 1}).toArray();
-// 		receiver = client[0].email;
-// 	}
-	
-// 	const newMessage = { text, receiver: receiver, createdAt: new Date() };
-// 	await userdb.collection('messages').insertOne(newMessage);
-// 	res.status(201).json(newMessage);
-// });
-
-// app.get('/messages', async (req, res) => {
-// 	setUserDatabase(req);
-// 	let senderMsgList, receiverMsgList;
-// 	senderMsgList = await userdb.collection('messages').find().sort({ createdAt: 1 }).limit(25).toArray();
-// 	if (isClient(req)) {
-// 		setTrainerDatabase(req);
-// 		receiverMsgList = await trainerdb.collection('messages').find().sort({ createdAt: 1 }).limit(25).toArray();
-// 	} else if (isBusiness(req)) {
-
-// 		receiverMsgList = await clientdb.collection('messages').find().sort({ createdAt: 1 }).limit(25).toArray();
-// 	}
-	
-// 	res.json({ senderMessages: senderMsgList, receiverMessages: receiverMsgList });
-// });
+app.get('/messagesPreview' , async (req, res) => {
+	const userdb = appdb.db(req.session.userdb);
+	const clients = await userdb.collection('clients').find().toArray();
+	let clientArray = [];
+	if (clients.length > 0) {
+		for (let i = 0; i < clients.length; i++) {
+			setClientDatabase(req, clients[i].email);
+			const clientdb = appdb.db(req.session.clientdb);
+			const clientInfo = await clientdb.collection('info').find().toArray();
+			const clientMessages = await clientdb.collection('messages').find({unread: true}).toArray();
+			if (clientMessages.length > 0) {
+				clientArray.push({
+					email: clientInfo[0].email,
+					msgCount: clientMessages.length
+				});
+			}
+		}
+	}
+	res.json({clientMessages: clientArray});
+});
 
 // ----------------- ALERTS SECTION STARTS HERE -------------------
 
