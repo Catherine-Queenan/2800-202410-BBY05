@@ -1,214 +1,212 @@
 <%- include("templates/header") %>
 <div class="profile-container my-4 mx-4">
-        <%- include('templates/button', {action:'',xClasses:'',xAttributes:'id=registerDog type=button disabled', content:'Register Dog'}) %>
-        <%- include('templates/clientViewProgram', {program: program})%>
-        <div class="heading-gen my-3">
-        <p class="h2 purple">Selected Dog:</p>
-            <div id="selectedDog">
-            <p class="karla-heavy fw-bold">No Dog Selected</p>
-            </div>
-        </div>
-        <div class="heading-gen my-3">
-            <p class="h2 purple">Select dog:</p>
-            <% for(let i=0; i < dogs.length; i++){ %>
-                <%- include('templates/dogToTrainClient', {dog: dogs[i]}) %>
-            <% } %>
-        </div>
-    </div>
+		<%- include('templates/button', {action:'',xClasses:'',xAttributes:'id=registerDog type=button disabled', content:'Register Dog'}) %>
+		<%- include('templates/clientViewProgram', {program: program})%>
+		<div class="heading-gen my-3">
+		<p class="h2 purple">Selected Dog:</p>
+			<div id="selectedDog">
+			<p class="karla-heavy fw-bold">No Dog Selected</p>
+			</div>
+		</div>
+		<div class="heading-gen my-3">
+			<p class="h2 purple">Select dog:</p>
+			<% for(let i=0; i < dogs.length; i++){ %>
+				<%- include('templates/dogToTrainClient', {dog: dogs[i]}) %>
+			<% } %>
+		</div>
+	</div>
 
-    <form id="selectDogForm" method="post" action="<%=currentUrl.replace('?', '')%>/submitRegister">
-        <input type="hidden" name="selectedDog" id="selectedDogSave">
-    </form>
+	<form id="selectDogForm" method="post" action="<%=currentUrl.replace('?', '')%>/submitRegister">
+		<input type="hidden" name="selectedDog" id="selectedDogSave">
+	</form>
 
-    <template id="deselectButton">
-        <%- include('templates/button', {action:'',xClasses:'',xAttributes:'id=deselectDogButton onclick=deselectDog(this) type=button', content:'Deselect'}) %>
-    </template>
-    
-    <div id="confirmationModal" class="modal fade"  aria-hidden="true" tabindex="-1">
-        <div class="modal-dialog" role="document">
-          <div class="modal-content whiteBackground">
-            <div class="modal-header">
-              <div class="modal-title ">
-                <span class="h2 fw-bold">Confirm Registration</span>
-              </div>
-            </div>
-            <div class="modal-body">
-                <p class="fw-bold">Are you sure you want to register your dog for the following program?</p>
-                <p class="my-3 fw-bold" style="font-size:20px; text-align:start;">Dog:</p>
-                <div id="dogConfirmation">
+	<template id="deselectButton">
+		<%- include('templates/button', {action:'',xClasses:'',xAttributes:'id=deselectDogButton onclick=deselectDog(this) type=button', content:'Deselect'}) %>
+	</template>
+	
+	<div id="confirmationModal" class="modal fade"  aria-hidden="true" tabindex="-1">
+		<div class="modal-dialog" role="document">
+		  <div class="modal-content whiteBackground">
+			<div class="modal-header">
+			  <div class="modal-title ">
+				<span class="h2 fw-bold">Confirm Registration</span>
+			  </div>
+			</div>
+			<div class="modal-body">
+				<p class="fw-bold">Are you sure you want to register your dog for the following program?</p>
+				<p class="my-3 fw-bold" style="font-size:20px; text-align:start;">Dog:</p>
+				<div id="dogConfirmation">
 
-                </div>
-                <p class="my-3 fw-bold" style="font-size:20px; text-align:start;">Program:</p>
-                <div class="card m-2 smallShadow" style="background-color:#20133541; color:#201335; border-radius:1px;">
-                <%- include('templates/clientViewProgram', {program: program})%>
-                </div>
-            </div>
-            <div class="modal-footer d-flex justify-content-between">
-                <%- include('templates/button', {action:'',xClasses:'btn-danger',xAttributes:'type=button data-bs-dismiss=modal', content:'Cancel'}) %>
-                <%- include('templates/button', {action:'',xClasses:'',xAttributes:'id=confirmRegister type=button' , content:'Confirm'}) %>
-            <div class="modal-footer">
-                <%- include('templates/button', {action:'',xClasses:'',xAttributes:'type=button data-bs-dismiss=modal id=nextModalButton', content:'Next'}) %>
-            </div>
-          </div>
-        </div>
-      </div>
+				</div>
+				<p class="my-3 fw-bold" style="font-size:20px; text-align:start;">Program:</p>
+				<div class="card m-2 smallShadow" style="background-color:#20133541; color:#201335; border-radius:1px;">
+				<%- include('templates/clientViewProgram', {program: program})%>
+				</div>
+			</div>
 
-      <div id="termsAndConditionsModal" class="modal fade" aria-hidden="true" tabindex="-1">
-        <div class="modal-dialog modal-xl" role="document">
-          <div class="modal-content">
-            <div class="modal-header">
-              <div class="modal-title ">
-                <span class="h2"><%=companyName%>'s Terms and Conditions</span>
-                <%- include('templates/button', {action:'',xClasses:'',xAttributes:'type=button data-bs-dismiss=modal', content:'Cancel'}) %>
-              </div>
-            </div>
-            <% if(contract != ''){ %>
-                <input type="hidden" value="<%=contract%>" id="bufferString">
-                <embed class="form-control" src="" id="contractPdf" style="height: 75vh"/>
-                <!-- <am src="<%=contract%>">Click to download <%=companyName%>'s Contract</a> -->
-            <% } else { %>
-                <p>This trainer has not specified any terms and conditions! Feel free to agree!</p>
-           <%  } %>
-            
-            <div class="check-buttons my-4">
-                <%- include('templates/checkmark', {classes: '', value:'agree', name:'agreement', id: 'termsAndConditions', label:"I have read and agree with the provided trainer's terms and conditions", xAttr:''}) %>
-            </div>
-            <div class="modal-footer">
-                <%- include('templates/button', {action:'',xClasses:'',xAttributes:'type=button data-bs-dismiss=modal id=backModalButton', content:'Back'}) %>
-                <%- include('templates/button', {action:'',xClasses:'',xAttributes:'id=confirmRegister type=button disabled' , content:'Confrim'}) %>
-            </div>
-          </div>
-        </div>
-      </div>
-      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+			<div class="modal-footer">
+				<%- include('templates/button', {action:'',xClasses:'',xAttributes:'type=button data-bs-dismiss=modal id=nextModalButton', content:'Next'}) %>
+			</div>
+		  </div>
+		</div>
+	  </div>
+
+	  <div id="termsAndConditionsModal" class="modal fade" aria-hidden="true" tabindex="-1">
+		<div class="modal-dialog modal-xl" role="document">
+		  <div class="modal-content">
+			<div class="modal-header">
+			  <div class="modal-title ">
+				<span class="h2"><%=companyName%>'s Terms and Conditions</span>
+				<%- include('templates/button', {action:'',xClasses:'',xAttributes:'type=button data-bs-dismiss=modal', content:'Cancel'}) %>
+			  </div>
+			</div>
+			<% if(contract != ''){ %>
+				<input type="hidden" value="<%=contract%>" id="bufferString">
+				<embed class="form-control" src="" id="contractPdf" style="height: 75vh"/>
+				<!-- <am src="<%=contract%>">Click to download <%=companyName%>'s Contract</a> -->
+			<% } else { %>
+				<p>This trainer has not specified any terms and conditions! Feel free to agree!</p>
+		   <%  } %>
+			
+			<div class="check-buttons my-4">
+				<%- include('templates/checkmark', {classes: '', value:'agree', name:'agreement', id: 'termsAndConditions', label:"I have read and agree with the provided trainer's terms and conditions", xAttr:''}) %>
+			</div>
+			<div class="modal-footer">
+				<%- include('templates/button', {action:'',xClasses:'',xAttributes:'type=button data-bs-dismiss=modal id=backModalButton', content:'Back'}) %>
+				<%- include('templates/button', {action:'',xClasses:'',xAttributes:'id=confirmRegister type=button disabled' , content:'Confrim'}) %>
+			</div>
+		  </div>
+		</div>
+	  </div>
+	  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
 		integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
 		crossorigin="anonymous"></script>
-    <script>
-        let selectDogButtons = document.querySelectorAll('.selectDogButton');
-        let deselectDogButtonTemplate = document.getElementById('deselectButton');
-        let registerButton = document.getElementById('registerDog');
+	<script>
+		let selectDogButtons = document.querySelectorAll('.selectDogButton');
+		let deselectDogButtonTemplate = document.getElementById('deselectButton');
+		let registerButton = document.getElementById('registerDog');
 
-        let selectDogForm = document.getElementById('selectDogForm');
-        let selectedDogDiv = document.getElementById('selectedDog');
+		let selectDogForm = document.getElementById('selectDogForm');
+		let selectedDogDiv = document.getElementById('selectedDog');
 
-        let nextModalButton = document.getElementById('nextModalButton');
-        let backModalButton = document.getElementById('backModalButton');
+		let nextModalButton = document.getElementById('nextModalButton');
+		let backModalButton = document.getElementById('backModalButton');
 
-        let input = document.getElementById('selectedDogSave');
+		let input = document.getElementById('selectedDogSave');
 
-        let modalConfirm = new bootstrap.Modal(document.getElementById('confirmationModal'));
-        let modalTerms = new bootstrap.Modal(document.getElementById('termsAndConditionsModal'));
+		let modalConfirm = new bootstrap.Modal(document.getElementById('confirmationModal'));
+		let modalTerms = new bootstrap.Modal(document.getElementById('termsAndConditionsModal'));
 
-        let termsAndConditionCheck = document.getElementById('termsAndConditions');
-        let confirmButton = document.getElementById('confirmRegister');
+		let termsAndConditionCheck = document.getElementById('termsAndConditions');
+		let confirmButton = document.getElementById('confirmRegister');
 
-        //Dealing the file embed of the contract
-        let bufferString = document.getElementById('bufferString').value;
-        console.log(bufferString);
-        const binaryData = atob(bufferString); // Decode the base64-encoded string
-        const byteArray = new Uint8Array(binaryData.length);
-        for (let i = 0; i < binaryData.length; i++) {
-            byteArray[i] = binaryData.charCodeAt(i);
-        }
-        console.log(byteArray);
-        let blob = new Blob([byteArray], { type: 'application/pdf' });
-        console.log(blob);
-        let contractUrl = URL.createObjectURL(blob);
-        console.log(contractUrl);
+		//Dealing the file embed of the contract
+		let bufferString = document.getElementById('bufferString').value;
+		console.log(bufferString);
+		const binaryData = atob(bufferString); // Decode the base64-encoded string
+		const byteArray = new Uint8Array(binaryData.length);
+		for (let i = 0; i < binaryData.length; i++) {
+			byteArray[i] = binaryData.charCodeAt(i);
+		}
+		console.log(byteArray);
+		let blob = new Blob([byteArray], { type: 'application/pdf' });
+		console.log(blob);
+		let contractUrl = URL.createObjectURL(blob);
+		console.log(contractUrl);
 
-        document.getElementById('contractPdf').src = contractUrl;
+		document.getElementById('contractPdf').src = contractUrl;
 
-        nextModalButton.addEventListener('click', () =>{
-            modalTerms.show();
-        });
+		nextModalButton.addEventListener('click', () =>{
+			modalTerms.show();
+		});
 
-        backModalButton.addEventListener('click', () =>{
-            modalConfirm.show();
-        });
+		backModalButton.addEventListener('click', () =>{
+			modalConfirm.show();
+		});
 
-        termsAndConditionCheck.addEventListener('click', () => {
-            console.log(termsAndConditionCheck.checked)
-            confirmButton.disabled = !termsAndConditionCheck.checked;
-        })
+		termsAndConditionCheck.addEventListener('click', () => {
+			console.log(termsAndConditionCheck.checked)
+			confirmButton.disabled = !termsAndConditionCheck.checked;
+		})
 
-       
-        confirmButton.addEventListener('click', ()=>{
-            if(termsAndConditionCheck.checked){
-                selectDogForm.submit();
-            }
+	   
+		confirmButton.addEventListener('click', ()=>{
+			if(termsAndConditionCheck.checked){
+				selectDogForm.submit();
+			}
 
-        });
+		});
 
-        selectDogButtons.forEach((button) => {
-            button.addEventListener('click', () => {
-                if(selectedDogDiv.childNodes.length > 0 && selectedDogDiv.childNodes[0].hasChildNodes()){
-                    let hiddenDogId = selectedDogDiv.firstChild.id.replace('Copy', '');
-                    let hiddenDog = document.getElementById(hiddenDogId);
-                    hiddenDog.style = 'display:block';
-                }
+		selectDogButtons.forEach((button) => {
+			button.addEventListener('click', () => {
+				if(selectedDogDiv.childNodes.length > 0 && selectedDogDiv.childNodes[0].hasChildNodes()){
+					let hiddenDogId = selectedDogDiv.firstChild.id.replace('Copy', '');
+					let hiddenDog = document.getElementById(hiddenDogId);
+					hiddenDog.style = 'display:block';
+				}
 
-                input.value = button.value;
+				input.value = button.value;
 
-                let card = document.getElementById(button.value + 'Card');
-                card.display = 'display: none';
+				let card = document.getElementById(button.value + 'Card');
+				card.display = 'display: none';
 
-                let copyCard = card.cloneNode(true);
+				let copyCard = card.cloneNode(true);
 
-                copyCard.id = button.value + 'CopyCard';
-                copyCard.querySelector('.selectDogButton').remove();
+				copyCard.id = button.value + 'CopyCard';
+				copyCard.querySelector('.selectDogButton').remove();
 
-                
-                let deselectDogButton = deselectDogButtonTemplate.content.cloneNode(true);
+				
+				let deselectDogButton = deselectDogButtonTemplate.content.cloneNode(true);
 
-                copyCard.querySelector('.buttons').appendChild(deselectDogButton);
+				copyCard.querySelector('.buttons').appendChild(deselectDogButton);
 
-                selectedDogDiv.innerHTML = '';
-                selectedDogDiv.appendChild(copyCard);
+				selectedDogDiv.innerHTML = '';
+				selectedDogDiv.appendChild(copyCard);
 
-                button.parentElement.parentElement.style = 'display: none';
-                registerButton.disabled = false;
-            });
-        });
+				button.parentElement.parentElement.style = 'display: none';
+				registerButton.disabled = false;
+			});
+		});
 
-        
-        registerButton.addEventListener('click', ()=>{
-            let modalContent = document.getElementById('dogConfirmation');
-            modalContent.innerHTML = '';
-        
-            let dog = selectedDogDiv.cloneNode(true);
-            dog.querySelector('.buttons').remove();
-            modalContent.append(dog.cloneNode(true));
+		
+		registerButton.addEventListener('click', ()=>{
+			let modalContent = document.getElementById('dogConfirmation');
+			modalContent.innerHTML = '';
+		
+			let dog = selectedDogDiv.cloneNode(true);
+			dog.querySelector('.buttons').remove();
+			modalContent.append(dog.cloneNode(true));
 
-            modalConfirm.show();
-        });
+			modalConfirm.show();
+		});
 
-        function deselectDog(button){
-            input.value = '';
-            let selectedCard = button.parentElement.parentElement;
-            let card = document.getElementById(selectedCard.id.replace('Copy', ''));
-            card.style = 'display:block';
+		function deselectDog(button){
+			input.value = '';
+			let selectedCard = button.parentElement.parentElement;
+			let card = document.getElementById(selectedCard.id.replace('Copy', ''));
+			card.style = 'display:block';
 
-            selectedCard.remove();   
-            registerButton.disabled = true;
-        }
+			selectedCard.remove();   
+			registerButton.disabled = true;
+		}
 
-        // deselectDogButton.addEventListener('click', () => {
-        //             console.log('AAAAAAAAAAAAAAAA');
+		// deselectDogButton.addEventListener('click', () => {
+		//             console.log('AAAAAAAAAAAAAAAA');
 
-        //             input.value = '';
-        //             let selectedCard = deselectedDogButtons.parentElement;
-        //             let card = document.getElementById(selectCard.value.replace('Copy', ''));
-        //             card.display = 'display:block';
+		//             input.value = '';
+		//             let selectedCard = deselectedDogButtons.parentElement;
+		//             let card = document.getElementById(selectCard.value.replace('Copy', ''));
+		//             card.display = 'display:block';
 
-        //             selectCard.remove();    
-                    
-        //             button.style = 'display: none';
-        //             let selectButton = document.getElementById('select' + button.value);
-        //             selectButton.style = 'display: inline';
-        //         });
-       
+		//             selectCard.remove();    
+					
+		//             button.style = 'display: none';
+		//             let selectButton = document.getElementById('select' + button.value);
+		//             selectButton.style = 'display: inline';
+		//         });
+	   
 
 
 
-    </script>
+	</script>
 <%- include("templates/footerCopyright") %>

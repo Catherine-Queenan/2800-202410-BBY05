@@ -180,8 +180,10 @@ async function notificationsToAlert(req){
 // Use the updateUnreadAlerts middleware for all routes
 //middleWare
 async function updateUnreadAlerts(req, res, next) {
+	console.log(req.session);
     if (req.session && req.session.email) {
         try {
+			console.log(req.session.email);
             let alerts = await appUserCollection.find({ email: req.session.email }).project({ unreadAlerts: 1 }).toArray();
             let unreadAlerts = alerts.length > 0 ? alerts[0].unreadAlerts : 0;
             req.session.unreadAlerts = unreadAlerts;
@@ -622,8 +624,8 @@ app.post('/submitSignup/:type', async (req, res) => {
 		//Stores all user inputs that a user types in from req.body
 		var user = {
 			companyName: req.body.companyName,
-			businessEmail: req.body.businessEmail,
-			businessPhone: req.body.businessPhone,
+			companyEmail: req.body.businessEmail,
+			companyPhone: req.body.businessPhone,
 			firstName: req.body.firstName,
 			lastName: req.body.lastName,
 			companyWebsite: req.body.companyWebsite,
@@ -660,11 +662,11 @@ app.post('/submitSignup/:type', async (req, res) => {
 		}
 
 		await appUserCollection.insertOne({
-			email: user.businessEmail,
+			email: user.companyEmail,
 			companyName: user.companyName,
 			firstName: user.firstName,
 			lastName: user.lastName,
-			phone: user.businessPhone,
+			phone: user.companyPhone,
 			password: user.password,
 			userType: 'business',
 			unreadAlerts: 0
@@ -684,8 +686,8 @@ app.post('/submitSignup/:type', async (req, res) => {
 		//Store business information in client collection
 		await userdb.collection('info').insertOne({
 			companyName: user.companyName,
-			email: user.businessEmail,
-			phone: user.businessPhone,
+			email: user.companyEmail,
+			phone: user.companyPhone,
 			services: user.services,
 			companyWebsite: user.companyWebsite
 		});
@@ -1216,26 +1218,6 @@ app.post('/profile/edit/:editType', sessionValidation, upload.array('accountUplo
         // Return to profile, trainer profile tab
         res.redirect('/profile?tab=trainer');
 
-    // Edit business profile -> Programs (can only add a program from profile page)
-    } else if (req.params.editType == 'addProgram') {
-        // Set up program from submitted information
-        let program = {
-            name: req.body.name,
-            pricing: {
-                priceType: req.body.priceType,
-                price: req.body.price
-            },
-            discount: req.body.discounts,
-            hours: req.body.hours,
-            description: req.body.description
-        };
-
-        // Insert program into database
-        await userdb.collection('programs').insertOne(program);
-
-		//Return to profile, trainer profile tab
-		res.redirect('/profile?tab=trainer');
-	
 	//Edit business profile -> Programs (can only add a program from profile page)
 	} else if(req.params.editType == 'addProgram'){
 
@@ -1244,7 +1226,7 @@ app.post('/profile/edit/:editType', sessionValidation, upload.array('accountUplo
 			name: req.body.name,
 			pricing: {
 				priceType: req.body.priceType,
-				price: req.body.price.toFixed(2)
+				price: parseInt(req.body.price).toFixed(2)
 			},
 			discount: req.body.discounts,
 			hours: req.body.hours,
@@ -1383,7 +1365,7 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
                 let fullFileName = `${lastName}_${dogName}_${vaccineType}.pdf`;
                 let filePath = `pdfs/${fullFileName}`;
                 let fileUrl = await uploadFileToGoogleCloud(req.files[i].buffer, filePath);
-                req.body[vaccineType + 'Proof'] =  fileUrl;
+                req.body[vaccineType + 'Proof'] =  filePath;
             }
         }
     } else {
@@ -1541,7 +1523,7 @@ app.post('/dog/:dogId/editVaccines', uploadFields, async (req, res) => {
         }
 
         // Add vaccine record URL
-        dog[vaccineType].vaccineRecord = fileUrl;
+        dog[vaccineType].vaccineRecord = filePath;
 
         // Add or update expiration date
         if (req.body[`${vaccineType}Date`]) {
@@ -1860,7 +1842,7 @@ app.post('/viewBusiness/:company/register/:program/submitRegister', async(req, r
 	companyEmail = companyEmail[0].email;
 	await Promise.all([
 		tempBusiness.collection('alerts').insertOne(request),
-		appUserCollection.updateOne({email: companyEmail, userType:'business'}, {$inc:{unreadAlerts: 1}})
+		appUserCollection.updateOne({name: req.params.company, userType:'business'}, {$inc:{unreadAlerts: 1}})
 	]);
 
 	res.redirect('/viewBusiness/' + req.params.company);
