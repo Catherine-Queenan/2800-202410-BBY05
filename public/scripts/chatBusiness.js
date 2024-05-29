@@ -2,6 +2,8 @@ let lastMessageTimestamp = null;
 
 const clientName = document.getElementById('clientParam').value;
 
+const receiverIdentifier = document.getElementById('receiver').value;
+
 async function fetchMessages() {
 	const response = await fetch('/messagesBusiness/' + clientName);
 	const { senderMessages, receiverMessages } = await response.json();

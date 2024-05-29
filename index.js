@@ -7,9 +7,15 @@ const ObjectId = require('mongodb').ObjectId;
 
 const bcrypt = require('bcrypt');
 
+const cron = require('node-cron');
+
 const {Storage} = require('@google-cloud/storage');
 const {Readable} = require('stream');
 const crypto = require('crypto');
+const { pipeline } = require('stream/promises');
+
+const fs = require('fs');
+const path = require('path');
 
 const multer = require("multer");
 const stream = require("stream");
@@ -130,11 +136,54 @@ app.use(session({
 	resave: true
 }));
 
+
+//Function to check the dates of the scheduled notifications
+async function notificationsToAlert(req){
+	if(req.session && req.session.userType == 'client'){
+		const userdb = appdb.db(req.session.userdb);
+		let allNotifications = await userdb.collection('notifications').find({}).toArray();
+		
+		if(allNotifications.length >= 1){
+			let notificationsToAlert = []
+
+			let currDate = new Date();
+			for(let i = 0; i < allNotifications.length; i++){
+				if(allNotifications[i].date <= currDate){
+					if(allNotifications[i].vaccine){
+						notificationsToAlert.push({
+							dog: allNotifications[i].dog,
+							dogId: allNotifications[i].dogId,
+							type: allNotifications[i].type,
+							vaccine: allNotifications[i].vaccine,
+							date:currDate,
+							alertType: allNotifications[i].notifType
+						});
+					}
+					
+				}
+			}
+
+			if(notificationsToAlert.length >= 1){
+				await Promise.all([
+					...notificationsToAlert.map(notif =>
+					userdb.collection('notifications').deleteOne(
+					{ vaccine: notif.vaccine, type: notif.type, dog:notif.dog })
+					),
+					userdb.collection('alerts').insertMany(notificationsToAlert),
+					appUserCollection.updateOne({email: req.session.email}, {$inc: {unreadAlerts: notificationsToAlert.length}})
+				]);
+			}
+		}
+	}
+}
+
 // Use the updateUnreadAlerts middleware for all routes
 //middleWare
 async function updateUnreadAlerts(req, res, next) {
+	// console.log(req.session);
     if (req.session && req.session.email) {
         try {
+			// console.log(req.session.email);
             let alerts = await appUserCollection.find({ email: req.session.email }).project({ unreadAlerts: 1 }).toArray();
             let unreadAlerts = alerts.length > 0 ? alerts[0].unreadAlerts : 0;
             req.session.unreadAlerts = unreadAlerts;
@@ -144,7 +193,41 @@ async function updateUnreadAlerts(req, res, next) {
     }
     next(); // Pass control to the next middleware function
 }
+
 app.use(updateUnreadAlerts);
+
+// middleware for unread direct messages
+async function updateUnreadMessages(req, res, next) {
+	if (isValidSession(req) && req.session.trainerdb) { //if Client with trainer
+		try {
+			const trainerdb = appdb.db(req.session.trainerdb);
+			const unreadMessages = await trainerdb.collection('messages').find({receiver: req.session.email, unread: true}).toArray();
+			req.session.unreadMessages = unreadMessages.length;
+		} catch (error) {
+			console.error("Error updating unread messages:", error);
+		}
+	} else if (isValidSession(req) && isBusiness(req)) { //if trainer
+		try {
+			const userdb = appdb.db(req.session.userdb);
+			const clients = await userdb.collection('clients').find().project({email:1}).toArray();
+			let unreadMessages = 0;
+			if (clients.length > 0) {
+				for (let i = 0; i < clients.length; i++) {
+					setClientDatabase(req, clients[i].email);
+					const clientdb = appdb.db(req.session.clientdb);
+					const checkMessages = await clientdb.collection('messages').find({unread: true}).toArray();
+					unreadMessages += checkMessages.length;
+				}
+			}
+			req.session.unreadMessages = unreadMessages;
+		} catch (error) {
+			console.error("Error updating unread messages:", error);
+		}
+	}
+	next();
+}
+
+app.use(updateUnreadMessages);
 
 function isClient(req) {
 	if (req.session.userType == 'client') {
@@ -212,7 +295,8 @@ function businessAuthorization(req, res, next) {
 		next();
 	}
 }
-//Function to call
+
+//Function to call to update the Unread Alerts icon
 async function updateUnreadAlertsMidCode(req) {
     if (req.session && req.session.email) {
         try {
@@ -223,6 +307,36 @@ async function updateUnreadAlertsMidCode(req) {
             console.error('Error updating unread alerts:', error);
         }
     }
+}
+
+// middleware for unread direct messages on it's own
+async function updateUnreadMessagesMidCode(req) {
+	if (isValidSession(req) && req.session.trainerdb) { //if Client with trainer
+		try {
+			const trainerdb = appdb.db(req.session.trainerdb);
+			const unreadMessages = await trainerdb.collection('messages').find({receiver: req.session.email, unread: true}).toArray();
+			req.session.unreadMessages = unreadMessages.length;
+		} catch (error) {
+			console.error("Error updating unread messages:", error);
+		}
+	} else if (isValidSession(req) && isBusiness(req)) { //if trainer
+		try {
+			const userdb = appdb.db(req.session.userdb);
+			const clients = await userdb.collection('clients').find().project({email:1}).toArray();
+			let unreadMessages = 0;
+			if (clients.length > 0) {
+				for (let i = 0; i < clients.length; i++) {
+					setClientDatabase(req, clients[i].email);
+					const clientdb = appdb.db(req.session.clientdb);
+					const checkMessages = await clientdb.collection('messages').find({unread: true}).toArray();
+					unreadMessages += checkMessages.length;
+				}
+			}
+			req.session.unreadMessages = unreadMessages;
+		} catch (error) {
+			console.error("Error updating unread messages:", error);
+		}
+	}
 }
 
 // Sets the database for current user
@@ -291,15 +405,72 @@ function encrypt(buffer) {
     };
 }
 
+// Function to decrypt the PDF file
+function decrypt(encrypted) {
+    const iv = Buffer.from(encrypted.iv, 'hex');
+    const encryptedText = Buffer.from(encrypted.content, 'hex');
+    const decipher = crypto.createDecipheriv(algorithm, Buffer.from(secretKey, 'utf8'), iv);
+    const decrypted = Buffer.concat([decipher.update(encryptedText), decipher.final()]);
+    return decrypted;
+}
+
+// Function to download and decrypt file from Google Cloud Storage
+async function downloadAndDecryptFile(filePath) {
+    const bucket = googleStorage.bucket(bucketName);
+    const file = bucket.file(filePath);
+
+    let encryptedBuffer = Buffer.alloc(0);
+
+    await pipeline(
+        file.createReadStream(),
+        new stream.Transform({
+            transform(chunk, encoding, callback) {
+                encryptedBuffer = Buffer.concat([encryptedBuffer, chunk]);
+                callback();
+            }
+        })
+    );
+
+    // Extract the IV and encrypted content from the buffer
+    const iv = encryptedBuffer.slice(0, 16);  // First 16 bytes are the IV
+    const encryptedContent = encryptedBuffer.slice(16);
+
+    // Decrypt the file content
+    const decipher = crypto.createDecipheriv('aes-256-ctr', Buffer.from(secretKey, 'utf8'), iv);
+    const decryptedBuffer = Buffer.concat([decipher.update(encryptedContent), decipher.final()]);
+
+    return decryptedBuffer;
+}
+
+// // Example usage
+// (async () => {
+//     try {
+//         const filePath = `pdfs/Budd_Evin_bordatella.pdf`;
+//         const decryptedFileBuffer = await downloadAndDecryptFile(filePath);
+//         console.log('File decrypted successfully');
+        
+//         // Save the decrypted file to disk
+//         const outputPath = path.join(__dirname, 'decrypted_contract_example.pdf');
+//         fs.writeFileSync(outputPath, decryptedFileBuffer);
+//         console.log(`File saved successfully to ${outputPath}`);
+//     } catch (error) {
+//         console.error('Error decrypting file:', error);
+//     }
+// })();
+
 //Upload files to Google Cloud
 async function uploadFileToGoogleCloud(fileBuffer, fileName) {
     const encryptedFile = encrypt(fileBuffer);
-    //console.log('Encrypted File:', encryptedFile); // Debugging
     const bucket = googleStorage.bucket(bucketName);
     const file = bucket.file(fileName);
+    const ivBuffer = Buffer.from(encryptedFile.iv, 'hex');
+    const encryptedBuffer = Buffer.from(encryptedFile.content, 'hex');
+
+    // Prefix the IV to the encrypted content
+    const finalBuffer = Buffer.concat([ivBuffer, encryptedBuffer]);
 
     return new Promise((resolve, reject) => {
-        const encryptedStream = Readable.from(Buffer.from(encryptedFile.content, 'hex'));
+        const encryptedStream = Readable.from(finalBuffer);
         encryptedStream.pipe(file.createWriteStream())
             .on('error', reject)
             .on('finish', () => {
@@ -376,27 +547,27 @@ app.use(async (req, res, next) => {
 // status to determine what footer and navbar to display
 
 app.get('/', (req, res) => {
-	res.render('index', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
+	res.render('index', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
 });
 
 app.get('/about',  (req, res) => {
-	res.render('about', {loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
+	res.render('about', {loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: 0});
 });
 
 app.get('/test', (req, res) => {
-	res.render('test', {loggedIn: true, name: 'Test User', userType: 'business', unreadAlerts: 0});
+	res.render('test', {loggedIn: true, name: 'Test User', userType: 'business', unreadAlerts: 0, unreadMessages: 0});
 });
 
 app.get('/FAQ', (req, res) => {
-	res.render('FAQ', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
+	res.render('FAQ', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: 0});
 });
 
 app.get('/clientResources', (req, res) => {
-	res.render('clientResources', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
+	res.render('clientResources', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: 0});
 });
 
 app.get('/login/:loginType', (req, res) => {
-	res.render(req.params.loginType, {loggedIn: isValidSession(req), loginType: req.params.loginType, unreadAlerts: 0});
+	res.render(req.params.loginType, {loggedIn: isValidSession(req), loginType: req.params.loginType, unreadAlerts: 0, unreadMessages: 0});
 })
 
 // I think this does nothing so I'll comment out, but delete later.
@@ -408,16 +579,16 @@ app.get('/login/:loginType', (req, res) => {
 
 //Page to choose what account to sign up for (business or client)
 app.get('/signup', (req, res) => {
-	res.render('signupChoice', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
+	res.render('signupChoice', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: 0});
 });
 
 //Renders form for business or client sign up
 app.get('/signup/:form', (req, res) => {
 	let form = req.params.form;
 	if (form == "business") {
-		res.render('signUpBusiness.ejs', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
+		res.render('signUpBusiness.ejs', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: 0});
 	} else if (form == "client") {
-		res.render('signUpClient.ejs', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
+		res.render('signUpClient.ejs', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: 0});
 	}
 });
 
@@ -455,7 +626,7 @@ app.post('/submitSignup/:type', async (req, res) => {
 		//Deal with errors from validation
 		if (validationRes.error != null) {
 			console.log(validationRes.error);
-			res.render('errorMessage', {loggedIn: isValidSession(req), userType: req.session.userType, errorTitle: 'Incomplete or Invalid' , errorMsg: 'Ruh Roh! That information is invalid! Please try again.', unreadAlerts: req.session.unreadAlerts});
+			res.render('errorMessage', {loggedIn: isValidSession(req), userType: req.session.userType, errorTitle: 'Incomplete or Invalid' , errorMsg: 'Ruh Roh! That information is invalid! Please try again.', unreadAlerts: req.session.unreadAlerts, unreadMessages: 0});
 			// let doc = '<p>Invalid Signup</p><br><a href="/login/clientLogin">Try again</a></body>';
 			// res.send(doc);
 			return;
@@ -516,8 +687,8 @@ app.post('/submitSignup/:type', async (req, res) => {
 		//Stores all user inputs that a user types in from req.body
 		var user = {
 			companyName: req.body.companyName,
-			businessEmail: req.body.businessEmail,
-			businessPhone: req.body.businessPhone,
+			companyEmail: req.body.businessEmail,
+			companyPhone: req.body.businessPhone,
 			firstName: req.body.firstName,
 			lastName: req.body.lastName,
 			companyWebsite: req.body.companyWebsite,
@@ -530,7 +701,7 @@ app.post('/submitSignup/:type', async (req, res) => {
 		//Deals with errors from validation
 		if (validationRes.error != null) {
 			console.log(validationRes.error);
-			res.render('errorMessage', {loggedIn: isValidSession(req), userType: req.session.userType, errorTitle: 'Incomplete or Invalid' , errorMsg: 'Ruh Roh! That information is invalid! Please try again.', unreadAlerts: req.session.unreadAlerts});
+			res.render('errorMessage', {loggedIn: isValidSession(req), userType: req.session.userType, errorTitle: 'Incomplete or Invalid' , errorMsg: 'Ruh Roh! That information is invalid! Please try again.', unreadAlerts: req.session.unreadAlerts, unreadMessages: 0});
 			// let doc = '<a href="/login/businessLogin">Try again</a>';
 			// res.send(doc);
 			return;
@@ -554,11 +725,11 @@ app.post('/submitSignup/:type', async (req, res) => {
 		}
 
 		await appUserCollection.insertOne({
-			email: user.businessEmail,
+			email: user.companyEmail,
 			companyName: user.companyName,
 			firstName: user.firstName,
 			lastName: user.lastName,
-			phone: user.businessPhone,
+			phone: user.companyPhone,
 			password: user.password,
 			userType: 'business',
 			unreadAlerts: 0
@@ -578,8 +749,8 @@ app.post('/submitSignup/:type', async (req, res) => {
 		//Store business information in client collection
 		await userdb.collection('info').insertOne({
 			companyName: user.companyName,
-			email: user.businessEmail,
-			phone: user.businessPhone,
+			email: user.companyEmail,
+			phone: user.companyPhone,
 			services: user.services,
 			companyWebsite: user.companyWebsite
 		});
@@ -628,7 +799,7 @@ app.post('/submitLogin', async (req, res) => {
 	// 	result = await adminsCollection.find({ businessEmail: email }).project({ email: 1, password: 1, _id: 1 }).toArray();
 	// }
 	if (result.length == 0) {
-		res.render('errorMessage', {loggedIn: isValidSession(req), userType: req.session.userType, errorTitle: 'No User Found' , errorMsg: 'Guard Dog on Duty! Trespassers Beware!', unreadAlerts: req.session.unreadAlerts});
+		res.render('errorMessage', {loggedIn: isValidSession(req), userType: req.session.userType, errorTitle: 'No User Found' , errorMsg: 'Guard Dog on Duty! Trespassers Beware!', unreadAlerts: req.session.unreadAlerts, unreadMessages: 0});
 		// var doc = '<p>No user found</p><br><a href="/">Try again</a>';
 		// res.send(doc);
 		return;
@@ -651,13 +822,19 @@ app.post('/submitLogin', async (req, res) => {
 		req.session.cookie.maxAge = expireTime;
 
 		await setUserDatabase(req);
+		
+		//Run any needed updates to the database for notifications
+		await notificationsToAlert(req);
+		cron.schedule('0 0 * * *', () => {
+			notificationsToAlert(req);
+		});
 
 		res.redirect('/loggedIn'); // redirect to home page
 		return;
 	} else {
 
 		// if the password is incorrect, say so
-		res.render('errorMessage', {loggedIn: isValidSession(req), userType: req.session.userType, errorTitle: 'Password is Incorrect' , errorMsg: 'Guard Dog on Duty! No entry without the right password!', unreadAlerts: req.session.unreadAlerts});
+		res.render('errorMessage', {loggedIn: isValidSession(req), userType: req.session.userType, errorTitle: 'Password is Incorrect' , errorMsg: 'Guard Dog on Duty! No entry without the right password!', unreadAlerts: req.session.unreadAlerts, unreadMessages: 0});
 	}
 });
 
@@ -689,7 +866,7 @@ function sendResetMail(emailAddress, resetToken) {
 
 			// Error handling
 			if (error) {
-				res.render('errorMessge', { errorTitle: 'Email couldn\'t be sent', errorMsg: 'Not even this nose can find something that doesn\'t exist!', loggedIn: false, userType: null , unreadAlerts: 0})
+				res.render('errorMessge', { errorTitle: 'Email couldn\'t be sent', errorMsg: 'Not even this nose can find something that doesn\'t exist!', loggedIn: false, userType: null , unreadAlerts: 0, unreadMessages: 0})
 			}
 		});
 	});
@@ -726,7 +903,7 @@ async function sendReminderEmails() {
 // This function sends other types of emails. Right now I'm adding it so that you can send appointment information. (but you can parse anything you want, really.)
 const sendEmail = async (to, subject, eventTitle, eventDate, eventStartTime, eventEndTime, db) => {
     try {
-        console.log('Rendering email template...');
+        // console.log('Rendering email template...');
         const str = await ejs.renderFile('./views/reminderEmail.ejs', { 
             eventTitle: eventTitle,
             eventDate: eventDate,
@@ -734,11 +911,11 @@ const sendEmail = async (to, subject, eventTitle, eventDate, eventStartTime, eve
             eventEndTime: eventEndTime
         });
 
-        console.log('Filtering recipients...');
+        // console.log('Filtering recipients...');
         var recipients = [];
         for (let email of to) {
             const user = await appUserCollection.find({email: email}).toArray();
-            console.log(user);
+            // console.log(user);
             if (user) {
                 const emailNotifications = user[0].emailNotifications;
                 console.log(`User: ${email}, emailNotifications: ${emailNotifications}`);
@@ -750,7 +927,7 @@ const sendEmail = async (to, subject, eventTitle, eventDate, eventStartTime, eve
             }
         }
 
-        console.log('Recipients:', recipients);
+        // console.log('Recipients:', recipients);
 
         if (recipients.length > 0) {
             const mailOptions = {
@@ -760,9 +937,9 @@ const sendEmail = async (to, subject, eventTitle, eventDate, eventStartTime, eve
                 html: str
             };
 
-            console.log('Sending email...');
+            // console.log('Sending email...');
             const info = await transporter.sendMail(mailOptions);
-            console.log(`Email sent: ${info.response}`);
+            // console.log(`Email sent: ${info.response}`);
         } else {
             console.log('No recipients with email notifications enabled.');
         }
@@ -820,7 +997,7 @@ app.get('/forgotPassword', (req, res) => {
 
 	// If the email is invalid, the query will have an error message. Otherwise, we want it blank so it doesn't always show
 	const errorMessage = req.query.errorMessage || '';
-	res.render('forgotPassword', { errorMessage: errorMessage, loggedIn: false, userType: null, unreadAlerts: 0});
+	res.render('forgotPassword', { errorMessage: errorMessage, loggedIn: false, userType: null, unreadAlerts: 0, unreadMessages: 0});
 });
 
 // This handles the submitted email for the /forgotpassword routing
@@ -879,7 +1056,7 @@ app.get('/resetPassword/:token', async (req, res) => {
 
 	// This detects if we couldn't find the token in any user
 	if (clientUser == null) {
-		res.render('errorMessage', { errorTitle: 'Invalid or Expired Token', errorMsg: 'That\'s one stale dog bone! Please try again.', loggedIn: false, userType: null, unreadAlerts: 0})
+		res.render('errorMessage', { errorTitle: 'Invalid or Expired Token', errorMsg: 'That\'s one stale dog bone! Please try again.', loggedIn: false, userType: null, unreadAlerts: 0, unreadMessages: 0})
 		return;
 	}
 
@@ -895,7 +1072,7 @@ app.get('/resetPasswordForm/:token', (req, res) => {
 
 	// store the token
 	token = req.params;
-	res.render('resetPasswordForm', { token: token.token, loggedIn: false, userType: null , unreadAlerts: 0});
+	res.render('resetPasswordForm', { token: token.token, loggedIn: false, userType: null , unreadAlerts: 0, unreadMessages: 0});
 });
 
 // Handles the new password submission
@@ -928,11 +1105,11 @@ app.post('/resettingPassword/:token', async (req, res) => {
 
 // This is a page for when your password is successfully changed
 app.get('/passwordChangedSuccessfully', (req, res) => {
-	res.render('passwordChangedSuccessfully', {loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
+	res.render('passwordChangedSuccessfully', {loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: 0});
 });
 
 app.get('/emailSent', (req, res) => {
-	res.render('checkInbox', {loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
+	res.render('checkInbox', {loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: 0});
 });
 
 app.get('/logout', (req, res) => {
@@ -974,7 +1151,7 @@ app.get('/profile', sessionValidation, async(req, res) => {
 
 
 		//Render client profile page
-		res.render('clientProfile', {loggedIn: isValidSession(req), user: user, dogs: dogs, records: outstandingBalance, userName: req.session.name, userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
+		res.render('clientProfile', {loggedIn: isValidSession(req), user: user, dogs: dogs, records: outstandingBalance, userName: req.session.name, userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
 		return;
 
 	//Business user profile
@@ -995,11 +1172,11 @@ app.get('/profile', sessionValidation, async(req, res) => {
 
 		//Start on different tabs depending on the req.query
 		if(req.query.tab == 'trainer'){
-			res.render('businessProfile', {loggedIn: isValidSession(req), business: user, trainer: trainer, programs: programs, businessTab: '', trainerTab: 'checked', programsTab: '', userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
+			res.render('businessProfile', {loggedIn: isValidSession(req), business: user, trainer: trainer, programs: programs, businessTab: '', trainerTab: 'checked', programsTab: '', userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
 		} else if(req.query.tab == 'program'){
-			res.render('businessProfile', {loggedIn: isValidSession(req), business: user, trainer: trainer, programs: programs, businessTab: '', trainerTab: '', programsTab: 'checked', userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
+			res.render('businessProfile', {loggedIn: isValidSession(req), business: user, trainer: trainer, programs: programs, businessTab: '', trainerTab: '', programsTab: 'checked', userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
 		} else {
-			res.render('businessProfile', {loggedIn: isValidSession(req), business: user, trainer: trainer, programs: programs, businessTab: 'checked', trainerTab: '', programsTab: '', userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
+			res.render('businessProfile', {loggedIn: isValidSession(req), business: user, trainer: trainer, programs: programs, businessTab: 'checked', trainerTab: '', programsTab: '', userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
 		}
 	}
 });
@@ -1039,13 +1216,45 @@ app.post('/profile/edit/:editType', sessionValidation, upload.array('accountUplo
         // Grab current logo id
         let business = await userdb.collection('info').find({ companyName: req.session.name }).toArray();
 
-        // Logo id is updated with a newly uploaded logo or kept the same
-        if (req.files.length != 0) {
-            await deleteUploadedImage(business[0].logo);
-            req.body.logo = await uploadImage(req.files[0], "businessLogos");
-        } else {
-            req.body.logo = business[0].logo;
-        }
+		//Logo id is updated with a newly upload logo or kept the same
+		if(req.files.length != 0){
+			if(req.files.length < 2){
+
+				let filename = req.files[0].mimetype;
+				filename = filename.split('/');
+				let fileType = filename[0];
+
+				if(fileType == 'image'){
+					await deleteUploadedImage(business[0].logo);
+					req.body.logo = await uploadImage(req.files[0], "businessLogos");
+				} else {
+					let fullFileName = `${req.session.name}_contract.pdf`;
+					let filePath = `pdfs/${fullFileName}`;
+					let fileUrl = await uploadFileToGoogleCloud(req.files[0].buffer, filePath);
+					req.body.contract = filePath;
+				}
+			} else if (req.files.length == 2){
+				for(let i = 0; i < req.files.length; i++){
+					let filename = req.files[0].mimetype;
+					filename = filename.split('/');
+					let fileType = filename[0];
+
+					if(fileType == 'image'){
+						await deleteUploadedImage(business[0].logo);
+						req.body.logo = await uploadImage(req.files[0], "businessLogos");
+					} else {
+						let fullFileName = `${req.session.name}_contract.pdf`;
+						let filePath = `pdfs/${fullFileName}`;
+						let fileUrl = await uploadFileToGoogleCloud(req.files[1].buffer, filePath);
+						req.body.contract = filePath;
+					}
+				}
+			} else {
+				req.body.logo = business[0].logo;
+			}
+		}
+
+		
 
         // Update database
         await userdb.collection('info').updateOne({ companyName: req.session.name }, { $set: req.body });
@@ -1072,26 +1281,6 @@ app.post('/profile/edit/:editType', sessionValidation, upload.array('accountUplo
         // Return to profile, trainer profile tab
         res.redirect('/profile?tab=trainer');
 
-    // Edit business profile -> Programs (can only add a program from profile page)
-    } else if (req.params.editType == 'addProgram') {
-        // Set up program from submitted information
-        let program = {
-            name: req.body.name,
-            pricing: {
-                priceType: req.body.priceType,
-                price: req.body.price
-            },
-            discount: req.body.discounts,
-            hours: req.body.hours,
-            description: req.body.description
-        };
-
-        // Insert program into database
-        await userdb.collection('programs').insertOne(program);
-
-		//Return to profile, trainer profile tab
-		res.redirect('/profile?tab=trainer');
-	
 	//Edit business profile -> Programs (can only add a program from profile page)
 	} else if(req.params.editType == 'addProgram'){
 
@@ -1100,7 +1289,7 @@ app.post('/profile/edit/:editType', sessionValidation, upload.array('accountUplo
 			name: req.body.name,
 			pricing: {
 				priceType: req.body.priceType,
-				price: req.body.price.toFixed(2)
+				price: parseInt(req.body.price).toFixed(2)
 			},
 			discount: req.body.discounts,
 			hours: req.body.hours,
@@ -1126,7 +1315,7 @@ app.get('/program/:programId', async(req, res) => {
 	let program = await userdb.collection('programs').find({_id: programId}).toArray();
 
 	//Render program page with the specific program details
-	res.render('programDetails', {loggedIn: isValidSession(req), userType: req.session.userType, program: program[0], unreadAlerts: req.session.unreadAlerts});
+	res.render('programDetails', {loggedIn: isValidSession(req), userType: req.session.userType, program: program[0], unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
 });
 
 //Edit specific program
@@ -1156,7 +1345,7 @@ app.post('/program/:programId/edit', async(req, res) => {
 
 //Form for adding a new dog
 app.get('/addDog', (req, res) => {
-	res.render('addDog', {loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
+	res.render('addDog', {loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
 });
 
 //Adds the dog to the database
@@ -1178,7 +1367,7 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
     let validationRes = schema.validate({ dogName: req.body.dogName, dogBreed: req.body.dogBreed, specialAlerts: req.body.specialAlerts });
     // Deals with errors from validation
     if (validationRes.error != null) {
-		res.render('errorMessage', {loggedIn: isValidSession(req), userType: req.session.userType, errorTitle: 'Incomplete or Invalid' , errorMsg: 'Ruh Roh! That information is invalid! Please try again.', unreadAlerts: req.session.unreadAlerts});
+		res.render('errorMessage', {loggedIn: isValidSession(req), userType: req.session.userType, errorTitle: 'Incomplete or Invalid' , errorMsg: 'Ruh Roh! That information is invalid! Please try again.', unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
         // let doc = '<body><p>Invalid Dog</p><br><a href="/addDog">Try again</a></body>';
         // res.send(doc);
         return;
@@ -1188,6 +1377,12 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
     let dog = {
         dogName: req.body.dogName
     };
+
+	// Creates documents in the dog document for each vaccine
+    let allVaccines = ['rabies', 'leptospia', 'bordatella', 'bronchiseptica', 'DA2PP'];
+    allVaccines.forEach((vaccine) => {
+        eval('dog.' + vaccine + '= {}');
+    });
 
     // this is the file management stuff
     if (req.files.length != 0) {
@@ -1233,8 +1428,7 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
                 let fullFileName = `${lastName}_${dogName}_${vaccineType}.pdf`;
                 let filePath = `pdfs/${fullFileName}`;
                 let fileUrl = await uploadFileToGoogleCloud(req.files[i].buffer, filePath);
-                dog.vaccineRecords = dog.vaccineRecords || [];
-                dog.vaccineRecords.push({ fileName: req.files[i].originalname, fileUrl });
+                req.body[vaccineType + 'Proof'] =  filePath;
             }
         }
     } else {
@@ -1249,35 +1443,82 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
     }
 
     // Stores sex, birthday, weight, specialAlerts of the dog
-	dog.breed = req.body.dogBreed;
+	dog.breed = req.body.breed;
     dog.sex = req.body.sex;
     dog.birthday = req.body.birthday;
     dog.weight = req.body.weight;
+	dog.breed = req.body.breed;
     dog.specialAlerts = req.body.specialAlerts;
 
-    // Creates documents in the dog document for each vaccine
-    let allVaccines = ['rabies', 'leptospia', 'bordatella', 'bronchiseptica', 'DA2PP'];
-    allVaccines.forEach((vaccine) => {
-        eval('dog.' + vaccine + '= {}');
-    });
+
+	let vaccineNotifs = [];
 
     // If dog has more than one vaccine, add the expiration date and pdf of the proof of vaccination to the specific vaccine document
     if (Array.isArray(req.body.vaccineCheck)) {
         req.body.vaccineCheck.forEach((vaccine) => {
+			let expirationDate = new Date(req.body[vaccine + 'Date']);
+			let weekBeforeDate = new Date(expirationDate);
+			weekBeforeDate = new Date(weekBeforeDate.setDate(expirationDate.getDate() - 7))
             dog[vaccine] = {
                 expirationDate: req.body[vaccine + 'Date'],
                 vaccineRecord: req.body[vaccine + 'Proof']
             };
+
+			vaccineNotifs.push({
+				dog: req.body.dogName,
+				vaccine: vaccine,
+				type: 'Expired',
+				date: expirationDate,
+				notifType: 'vaccineUpdate'
+			});
+
+			if(expirationDate > new Date()){
+				vaccineNotifs.push({
+					dog: req.body.dogName,
+					vaccine: vaccine,
+					type: 'One week warning',
+					date: weekBeforeDate,
+					notifType: 'vaccineUpdate'
+				});
+			}
         });
     } else if (req.body.vaccineCheck) {
+		let expirationDate = new Date(req.body[req.body.vaccineCheck + 'Date']);
+		let weekBeforeDate = new Date(expirationDate);
+		weekBeforeDate = new Date(weekBeforeDate.setDate(expirationDate.getDate() - 7))
+
         dog[req.body.vaccineCheck] = {
             expirationDate: req.body[req.body.vaccineCheck + 'Date'],
             vaccineRecord: req.body[req.body.vaccineCheck + 'Proof']
         };
+
+		vaccineNotifs.push({
+			dog: req.body.dogName,
+			vaccine: req.body.vaccineCheck,
+			type: 'Expired',
+			date: expirationDate,
+			notifType: 'vaccineUpdate'
+		});
+
+		if(expirationDate > new Date()){
+			vaccineNotifs.push({
+				dog: req.body.dogName,
+				vaccine: req.body.vaccineCheck,
+				type: 'One week warning',
+				date: weekBeforeDate,
+				notifType: 'vaccineUpdate'
+			});
+		}	
     }
 
     // Insert the dog into the database and return to profile
-    await userdb.collection('dogs').insertOne(dog);
+	let dogId = await userdb.collection('dogs').insertOne(dog);
+	for(let i = 0; i < vaccineNotifs.length; i++){
+		vaccineNotifs[i].dogId = dogId.insertedId;
+	}
+	await userdb.collection('notifications').insertMany(vaccineNotifs);
+	notificationsToAlert(req);
+
     res.redirect('/profile');
 });
 
@@ -1312,19 +1553,20 @@ app.post('/dog/:dogId/editVaccines', uploadFields, async (req, res) => {
     return res.status(404).send('Dog not found');
   }
 
-  // Update existing fields with incoming data
-  dog.dogName = req.body.dogName || dog.dogName;
-  dog.sex = req.body.sex || dog.sex;
-  dog.birthday = req.body.birthday || dog.birthday;
-  dog.weight = req.body.weight || dog.weight;
-  dog.specialAlerts = req.body.specialAlerts || dog.specialAlerts;
+//   // Update existing fields with incoming data
+//   dog.dogName = req.body.dogName || dog.dogName;
+//   dog.sex = req.body.sex || dog.sex;
+//   dog.birthday = req.body.birthday || dog.birthday;
+//   dog.weight = req.body.weight || dog.weight;
+//   dog.specialAlerts = req.body.specialAlerts || dog.specialAlerts;
 
-  // Update the neutered status
-  if (req.body.neuteredStatus) {
-    dog.neuteredStatus = req.body.neuteredStatus;
-  }
+//   // Update the neutered status
+//   if (req.body.neuteredStatus) {
+//     dog.neuteredStatus = req.body.neuteredStatus;
+//   }
 
   const vaccineTypes = ['rabies', 'leptospia', 'bordatella', 'bronchiseptica', 'DA2PP'];
+  let vaccineNotifs = [];
   
   for (let vaccineType of vaccineTypes) {
     const file = req.files[`${vaccineType}Upload`] ? req.files[`${vaccineType}Upload`][0] : null;
@@ -1344,21 +1586,58 @@ app.post('/dog/:dogId/editVaccines', uploadFields, async (req, res) => {
         }
 
         // Add vaccine record URL
-        dog[vaccineType].vaccineRecord = fileUrl;
+        dog[vaccineType].vaccineRecord = filePath;
 
         // Add or update expiration date
         if (req.body[`${vaccineType}Date`]) {
-          dog[vaccineType].expirationDate = req.body[`${vaccineType}Date`];
+			let expirationDate = new Date(req.body[`${vaccineType}Date`]);
+			let weekBeforeDate = new Date(expirationDate);
+			weekBeforeDate = new Date(weekBeforeDate.setDate(expirationDate.getDate() - 7));
+          	dog[vaccineType].expirationDate = req.body[`${vaccineType}Date`];
+
+			vaccineNotifs.push({
+				dog: dogName,
+				vaccine: vaccineType,
+				type: 'Expired',
+				date: expirationDate,
+				notifType: 'vaccineUpdate',
+				dogId: new ObjectId(dogId)
+			});
+	
+			if(expirationDate > new Date()){
+				vaccineNotifs.push({
+					dog: dogName,
+					vaccine: vaccineType,
+					type: 'One week warning',
+					date: weekBeforeDate,
+					notifType: 'vaccineUpdate',
+					dogId: new ObjectId(dogId)
+				});
+			}	
+			
         }
 
-        // Add to vaccineRecords array
-        dog.vaccineRecords = dog.vaccineRecords || [];
-        dog.vaccineRecords.push({ fileName: file.originalname, fileUrl });
+        // // Add to vaccineRecords array
+        // dog.vaccineRecords = dog.vaccineRecords || [];
+        // dog.vaccineRecords.push({ fileName: file.originalname, fileUrl });
       }
     }
   }
+ 
+  await Promise.all([
+	...vaccineNotifs.map(notif =>
+	  userdb.collection('notifications').deleteOne(
+		{ vaccine: notif.vaccine, type: notif.type, dogId: notif.dogId})
+	),
+	userdb.collection('dogs').updateOne(
+	  { _id: new ObjectId(dogId) },
+	  { $set: dog }
+	),
+	userdb.collection('notifications').insertMany(vaccineNotifs)
+  ]);
 
-  await userdb.collection('dogs').updateOne({ _id: new ObjectId(dogId) }, { $set: dog });
+  notificationsToAlert(req);
+  
   res.redirect('/profile');
 });
 
@@ -1381,7 +1660,7 @@ app.get('/dog/:dogId', async(req, res) => {
 	}
 
 	//Render the dog's profile
-	res.render('dogProfile', {loggedIn: isValidSession(req), userType: req.session.userType, dog: dogRecord[0], unreadAlerts: req.session.unreadAlerts});
+	res.render('dogProfile', {loggedIn: isValidSession(req), userType: req.session.userType, dog: dogRecord[0], unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
 });
 
 //Edit specific dog
@@ -1433,7 +1712,7 @@ app.post('/dog/:dogId/delete',upload.single('dogUpload'), async(req, res) => {
 });
 
 app.get('/accountDeletion', (req, res) => {
-	res.render('accountDeletion', {loggedIn: isValidSession(req), name: req.session.name , userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
+	res.render('accountDeletion', {loggedIn: isValidSession(req), name: req.session.name , userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
 });
 
 app.post('/deleteAccount', async (req, res) => {
@@ -1501,13 +1780,13 @@ app.get('/findTrainer', async(req, res) => {
 		businessTrainers.push(trainer[0]);
 	}
 
-	res.render('viewTrainers', {loggedIn: isValidSession(req), userType: req.session.userType, businesses: businessDetails, trainers: businessTrainers, unreadAlerts: req.session.unreadAlerts});
+	res.render('viewTrainers', {loggedIn: isValidSession(req), userType: req.session.userType, businesses: businessDetails, trainers: businessTrainers, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
 });
 
 //Temporary code from calendar testing; changed address to just /trainer
 app.get('/trainer', async (req, res) => {
 	const trainers = await appUserCollection.find({ userType: 'business' }).project({ _id: 1, companyName: 1 }).toArray();
-	res.render('findTrainer', {loggedIn: isValidSession(req), userType: req.session.userType, trainers: trainers, unreadAlerts: req.session.unreadAlerts});
+	res.render('findTrainer', {loggedIn: isValidSession(req), userType: req.session.userType, trainers: trainers, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
 });
 
 //View indivdual business
@@ -1543,7 +1822,7 @@ app.get('/viewBusiness/:company', async(req, res) => {
 		business.trainer.trainerPic  = cloudinary.url(business.trainer.trainerPic );
 	}
 	
-	res.render('clientViewTrainer', {loggedIn: isValidSession(req), userType: req.session.userType, business: business.info, trainer: business.trainer, programs: business.programs, unreadAlerts: req.session.unreadAlerts});
+	res.render('clientViewTrainer', {loggedIn: isValidSession(req), userType: req.session.userType, business: business.info, trainer: business.trainer, programs: business.programs, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
 });
 
 app.get('/viewBusiness/:company/register/:program', async(req, res) => {
@@ -1580,7 +1859,20 @@ app.get('/viewBusiness/:company/register/:program', async(req, res) => {
 		}
 	}
 
-	res.render('hireTrainer', {loggedIn: isValidSession(req), userType: req.session.userType, program: program[0], dogs: dogs, unreadAlerts: req.session.unreadAlerts});
+	let contract = business.info.contract;
+	let contractUrl;
+	if(contract){
+
+		contract = await downloadAndDecryptFile(contract); //nodejs buffer
+
+		// Convert Node.js buffer to base64 string
+		contractUrl = Buffer.from(contract).toString('base64');
+	
+	} else {
+		contractUrl = '';
+	}
+
+	res.render('hireTrainer', {loggedIn: isValidSession(req), userType: req.session.userType, program: program[0], companyName:req.params.company, contract: contractUrl, dogs: dogs, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
 });
 
 
@@ -1613,7 +1905,7 @@ app.post('/viewBusiness/:company/register/:program/submitRegister', async(req, r
 	companyEmail = companyEmail[0].email;
 	await Promise.all([
 		tempBusiness.collection('alerts').insertOne(request),
-		appUserCollection.updateOne({email: companyEmail, userType:'business'}, {$inc:{unreadAlerts: 1}})
+		appUserCollection.updateOne({name: req.params.company, userType:'business'}, {$inc:{unreadAlerts: 1}})
 	]);
 
 	res.redirect('/viewBusiness/' + req.params.company);
@@ -1734,10 +2026,10 @@ async function getUserEvents(req) {
 
 app.get('/calendar', async (req, res) => {
 	if (req.session.userType == 'business') {
-		res.render('calendarBusiness', {loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
+		res.render('calendarBusiness', {loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
 		return;
 	} else if (req.session.userType == 'client') {
-		res.render('calendarClient', {loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
+		res.render('calendarClient', {loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
 	}
 });
 
@@ -1943,21 +2235,22 @@ app.get('/chatSelectClient', async (req, res) => {
 		return;
 	} else if (isBusiness(req)) {
 		const clientList = await userdb.collection('clients').find().project({email: 1}).toArray();
-		res.render('chatSelectClient', {loggedIn: isValidSession(req), userType: req.session.userType, clients: clientList, unreadAlerts: req.session.unreadAlerts});
+		res.render('chatSelectClient', {loggedIn: isValidSession(req), userType: req.session.userType, clients: clientList, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, unreadMessages: req.session.unreadMessages});
 	}
 });
 
 app.get('/chat/:type', async (req, res) => {
+	req.session.unreadMessages = 0;
 	const type = req.params.type;
 	if (type == 'client') {
 		const receiver = await appUserCollection.find({email: req.session.email}).project({companyName: 1}).toArray();
-		res.render('chatClient', { loggedIn: isValidSession(req), userType: req.session.userType, receiver: receiver[0].companyName, unreadAlerts: req.session.unreadAlerts });
+		res.render('chatClient', { loggedIn: isValidSession(req), userType: req.session.userType, receiver: receiver[0].companyName, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, unreadMessages: req.session.unreadMessages});
 		return;
 	} else if (isBusiness(req)) {
 		setClientDatabase(req, type);
 		const clientdb = appdb.db(req.session.clientdb);
 		const receiver = await clientdb.collection('info').find().project({email: 1}).toArray();
-		res.render('chatBusiness', { loggedIn: isValidSession(req), userType: req.session.userType, clientParam: type, receiver: receiver[0].email, unreadAlerts: req.session.unreadAlerts });
+		res.render('chatBusiness', { loggedIn: isValidSession(req), userType: req.session.userType, clientParam: type, receiver: receiver[0].email, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, unreadMessages: req.session.unreadMessages});
 	}
 });
 
@@ -2045,59 +2338,55 @@ app.put('/messagesBusiness/markRead/:client', async (req, res) => {
 	const clientdb = appdb.db(req.session.clientdb);
 	await clientdb.collection('messages').updateMany({receiver: req.session.name}, { $set: { unread: false }});
 	res.status(200).send('Messages marked as read');
-})
+});
 
-// app.post('/messages', async (req, res) => {
-// 	setUserDatabase(req);
-// 	const { text } = req.body;
-// 	let sender, receiver;
-// 	if (isClient(req)) {
-// 		sender = req.session.email;
-// 		const trainer = await appUserCollection.find({ email: sender }).project({ companyName: 1 }).toArray();
-// 		receiver = trainer[0].companyName;
-// 	} else if (isBusiness(req)) {
-// 		sender = req.session.name;
-// 		const client = await clientdb.collection('info').find().project({email: 1}).toArray();
-// 		receiver = client[0].email;
-// 	}
-	
-// 	const newMessage = { text, receiver: receiver, createdAt: new Date() };
-// 	await userdb.collection('messages').insertOne(newMessage);
-// 	res.status(201).json(newMessage);
-// });
-
-// app.get('/messages', async (req, res) => {
-// 	setUserDatabase(req);
-// 	let senderMsgList, receiverMsgList;
-// 	senderMsgList = await userdb.collection('messages').find().sort({ createdAt: 1 }).limit(25).toArray();
-// 	if (isClient(req)) {
-// 		setTrainerDatabase(req);
-// 		receiverMsgList = await trainerdb.collection('messages').find().sort({ createdAt: 1 }).limit(25).toArray();
-// 	} else if (isBusiness(req)) {
-
-// 		receiverMsgList = await clientdb.collection('messages').find().sort({ createdAt: 1 }).limit(25).toArray();
-// 	}
-	
-// 	res.json({ senderMessages: senderMsgList, receiverMessages: receiverMsgList });
-// });
+app.get('/messagesPreview' , async (req, res) => {
+	const userdb = appdb.db(req.session.userdb);
+	const clients = await userdb.collection('clients').find().toArray();
+	let clientArray = [];
+	if (clients.length > 0) {
+		for (let i = 0; i < clients.length; i++) {
+			setClientDatabase(req, clients[i].email);
+			const clientdb = appdb.db(req.session.clientdb);
+			const clientInfo = await clientdb.collection('info').find().toArray();
+			const clientMessages = await clientdb.collection('messages').find({unread: true}).toArray();
+			if (clientMessages.length > 0) {
+				clientArray.push({
+					email: clientInfo[0].email,
+					msgCount: clientMessages.length
+				});
+			}
+		}
+	}
+	res.json({clientMessages: clientArray});
+});
 
 // ----------------- ALERTS SECTION STARTS HERE -------------------
 
 app.get('/alerts', async(req, res)=>{
 	const userdb = appdb.db(req.session.userdb);
+
+	let [alerts] = await Promise.all([
+		userdb.collection('alerts').find({}).toArray(),
+		appUserCollection.updateOne({email: req.session.email}, {$set: {unreadAlerts: 0}})
+	]);
+	await updateUnreadAlertsMidCode(req);
+	
 	if(req.session.userType == 'business'){
-
-		let [alerts] = await Promise.all([
-			userdb.collection('alerts').find({}).toArray(),
-			appUserCollection.updateOne({email: req.session.email}, {$set: {unreadAlerts: 0}})
-		]);
-		await updateUnreadAlertsMidCode(req);
-
-		res.render('businessAlerts', {loggedIn: isValidSession(req), userType: req.session.userType, alerts: alerts, unreadAlerts: req.session.unreadAlerts});
+		res.render('businessAlerts', {loggedIn: isValidSession(req), userType: req.session.userType, alerts: alerts, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
 	} else {
-		res.redirect('/');
+		res.render('clientAlerts', {loggedIn: isValidSession(req), userType: req.session.userType, alerts: alerts, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
 	}
 });
+
+app.post('/alerts/delete/:alert', async(req, res) => {
+	const userdb = appdb.db(req.session.userdb);
+	let alert = new ObjectId(req.params.alert);
+	userdb.collection('alerts').deleteOne({_id: alert});
+
+	res.redirect('/alerts');
+});
+
 
 app.get('/alerts/view/:alert', async(req, res) => {
 	const userdb = appdb.db(req.session.userdb);
@@ -2120,7 +2409,7 @@ app.get('/alerts/view/:alert', async(req, res) => {
 			dog[0].dogPic = cloudinary.url(dog[0].dogPic);
 		}
 
-		res.render('hireAlertView', {loggedIn: isValidSession(req), userType: req.session.userType, alert: alert[0], dog: dog[0], address: address[0].address, unreadAlerts: req.session.unreadAlerts});
+		res.render('hireAlertView', {loggedIn: isValidSession(req), userType: req.session.userType, alert: alert[0], dog: dog[0], address: address[0].address, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
 	} else {
 		res.redirect('/');
 	}
@@ -2144,7 +2433,7 @@ app.get('/clientList', businessAuthorization, async (req, res) => {
 	// console.log(userClientList);
 	// const ids = userClientList.map(item => item._id.toString());
 	// console.log(ids);
-	res.render('clientList', {clientArray: userClientList, loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
+	res.render('clientList', {clientArray: userClientList, loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
 });
 
 app.get('/clientProfile/:id', async (req, res) => {
@@ -2230,7 +2519,7 @@ app.post('/updateClientPayments', async (req, res) => {
             await clientdbPayments.updateOne({ _id: new ObjectId(id) }, { $set: { outstandingBalance: value } });
         }
     }
-
+    
     res.redirect('/clientProfile/' + req.body.clientId);
 });
 
@@ -2242,10 +2531,10 @@ app.get('/dogView', businessAuthorization, async (req, res) => {
 
 app.get('/sessionList', async (req, res) => {
 	if ( req.session.userType == 'business') {
-		res.render('sessionsBusiness', {loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
+		res.render('sessionsBusiness', {loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
 		return;
 	} else if (req.session.userType == 'client') {
-		res.render('sessionsClient', {loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
+		res.render('sessionsClient', {loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
 	}
 });
 
@@ -2253,7 +2542,7 @@ app.use(express.static(__dirname + "/public"));
 
 app.get('*', (req, res) => {
 	res.status(404);
-	res.render('errorMessage', { errorTitle: '404', errorMsg: 'Looks like you\'re barking up the wrong tree!', loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
+	res.render('errorMessage', { errorTitle: '404', errorMsg: 'Looks like you\'re barking up the wrong tree!', loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
 })
 
 app.listen(port, () => {
