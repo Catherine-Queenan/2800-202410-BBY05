@@ -106,11 +106,11 @@ document.addEventListener('DOMContentLoaded', function () {
 			</div>
 
 			<div class="modal-footer">
-				<div class="row">
+				<div class="row" style="width: 100%;">
 					<button type="button" class="btn btn-danger mb-3" data-bs-dismiss="modal">Cancel</button>
 					<button type="button" id="calModEdit" class="btn btn-secondary mb-3">Edit</button>
-					<button formaction="/removeEvent" id="deleteButton" disabled class="btn btn-danger mb-3">Delete</button>
-					<button formaction="/updateEvent" id="saveButton" disabled class="btn btn-primary mb-3">Save changes</button>
+					<button formaction="/removeEvent" id="deleteButton" class="btn btn-danger mb-3 d-none">Delete</button>
+					<button formaction="/updateEvent" id="saveButton" class="btn btn-primary mb-3 d-none">Save changes</button>
 				</div>
 			</div>
 			`;
@@ -162,9 +162,9 @@ document.addEventListener('DOMContentLoaded', function () {
 				calModEndHHEdit.removeAttribute("disabled");
 				calModEndMMEdit.removeAttribute("disabled");
 				calModInfoEdit.removeAttribute("disabled");
-				deleteButton.removeAttribute("disabled");
 				editButton.classList.add("d-none");
-				saveButton.removeAttribute("disabled");
+				deleteButton.classList.remove("d-none");
+				saveButton.classList.remove("d-none");
 			}
 
 			// This function checks the form and disables the save button if end time < start time

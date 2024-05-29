@@ -2202,6 +2202,30 @@ app.post('/removeEvent', async (req, res) => {
 	}
 });
 
+app.post('/getTrainer', async (req, res) => {
+	const thisUser = await appUserCollection.find({email: req.session.email}).toArray();
+	const companyName = thisUser[0].companyName;
+	res.json(companyName);
+})
+
+app.post('/requestEvent', async (req, res) => {
+	const userdb = appdb.db(req.session.userdb);
+    const date = req.body.calModDate;
+    const startDateStr = date + "T" + req.body.calModStartHH + ":" + req.body.calModStartMM + ":00";
+    const endDateStr = date + "T" + req.body.calModEndHH + ":" + req.body.calModEndMM + ":00";
+    const trainerName = req.body.calModTrainer;
+    const clientEmail = req.body.calModClient;
+    const eventInfo = req.body.calModInfo;
+    const event = {
+        title: req.body.calModTitle,
+        start: startDateStr,
+        end: endDateStr,
+        trainer: trainerName,
+        client: clientEmail,
+        info: eventInfo
+    };
+})
+
 // ----------------- MESSAGING SECTION STARTS HERE -------------------
 
 function encryptMessage(text) {
