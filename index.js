@@ -272,7 +272,7 @@ function isAdmin(req) {
 function adminAuthorization(req, res, next) {
 	if (!isAdmin(req)) {
 		res.status(403);
-		res.render('errorMessage', { errorTitle: '403', errorMsg: 'Looks like you\'re in the doghouse! Or... you just don\'t have permission to view this page.', loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts });
+		res.render('errorMessage', { errorTitle: '403', errorMsg: 'Looks like you\'re in the doghouse! Or... you just don\'t have permission to view this page.', loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
 	} else {
 		next();
 	}
@@ -281,7 +281,7 @@ function adminAuthorization(req, res, next) {
 function clientAuthorization(req, res, next) {
 	if (!isClient(req)) {
 		res.status(403);
-		res.render('errorMessage', { errorTitle: '403', errorMsg: 'Looks like you\'re in the doghouse! Or... you just don\'t have permission to view this page.', loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts });
+		res.render('errorMessage', { errorTitle: '403', errorMsg: 'Looks like you\'re in the doghouse! Or... you just don\'t have permission to view this page.', loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
 	} else {
 		next();
 	}
@@ -290,7 +290,7 @@ function clientAuthorization(req, res, next) {
 function businessAuthorization(req, res, next) {
 	if (!isBusiness(req)) {
 		res.status(403);
-		res.render('errorMessage', { errorTitle: '403', errorMsg: 'Looks like you\'re in the doghouse! Or... you just don\'t have permission to view this page.', loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts });
+		res.render('errorMessage', { errorTitle: '403', errorMsg: 'Looks like you\'re in the doghouse! Or... you just don\'t have permission to view this page.', loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
 	} else {
 		next();
 	}
@@ -568,7 +568,11 @@ app.get('/clientResources', (req, res) => {
 });
 
 app.get('/login/:loginType', (req, res) => {
-	res.render(req.params.loginType, {loggedIn: isValidSession(req), loginType: req.params.loginType, unreadAlerts: 0, unreadMessages: 0});
+	// if(req.params.loginType.replace('?', '') == 'clientLogin' || req.params.loginType.replace('?', '') == 'businessLogin'){
+		res.render(req.params.loginType, {loggedIn: isValidSession(req), loginType: req.params.loginType, unreadAlerts: 0, unreadMessages: 0});
+	// }
+
+	// res.render('errorMessage', { errorTitle: '404', errorMsg: 'Looks like you\'re barking up the wrong tree!', loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: 0, unreadMessages: 0});
 })
 
 // I think this does nothing so I'll comment out, but delete later.
@@ -577,21 +581,6 @@ app.get('/login/:loginType', (req, res) => {
 // 		res.render('businessLogin', {loggedIn: isValidSession(req), userType: req.session.userType});
 // 	}
 // })
-
-//Page to choose what account to sign up for (business or client)
-app.get('/signup', (req, res) => {
-	res.render('signupChoice', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: 0});
-});
-
-//Renders form for business or client sign up
-app.get('/signup/:form', (req, res) => {
-	let form = req.params.form;
-	if (form == "business") {
-		res.render('signUpBusiness.ejs', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: 0});
-	} else if (form == "client") {
-		res.render('signUpClient.ejs', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: 0});
-	}
-});
 
 //Submitting info collected from sign up forms
 app.post('/submitSignup/:type', async (req, res) => {
@@ -676,8 +665,8 @@ app.post('/submitSignup/:type', async (req, res) => {
 		var schema = Joi.object(
 			{
 				companyName: Joi.string().pattern(/^[a-zA-Z0-9\s\-']*$/).max(40).required(),
-				businessEmail: Joi.string().email().required(),
-				businessPhone: Joi.string().pattern(/^[0-9\s]*$/).length(10).required(),
+				companyEmail: Joi.string().email().required(),
+				companyPhone: Joi.string().pattern(/^[0-9\s]*$/).length(10).required(),
 				firstName: Joi.string().pattern(/^[a-zA-Z\s]*$/).max(20).required(),
 				lastName: Joi.string().pattern(/^[a-zA-Z\s]*$/).max(20).required(),
 				companyWebsite: Joi.string().pattern(/^(https?:\/\/)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/).allow(null, ''),
@@ -1183,7 +1172,7 @@ app.get('/profile', sessionValidation, async(req, res) => {
 });
 
 //Profile Editting (both client and business)
-app.post('/profile/edit/:editType', sessionValidation, upload.array('accountUpload', 1), async(req, res) => {
+app.post('/profile/edit/:editType', upload.array('accountUpload', 1), async(req, res) => {
     const userdb = appdb.db(req.session.userdb);
 
     // Edit client profile
@@ -1308,8 +1297,14 @@ app.post('/profile/edit/:editType', sessionValidation, upload.array('accountUplo
 });
 
 //Display specific program
-app.get('/program/:programId', async(req, res) => {
+app.get('/program/:programId', sessionValidation, businessAuthorization, async(req, res) => {
 	const userdb = appdb.db(req.session.userdb);
+
+	//Check programId is a hexstring
+	if(req.params.programId.length != 24){
+		res.render('errorMessage', { errorTitle: '404', errorMsg: 'Looks like you\'re barking up the wrong tree!', loggedIn: isValidSession(req), userType: req.session.userType,  unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+		return;
+	}
 
 	//Use program id to access program
 	let programId =  ObjectId.createFromHexString(req.params.programId);
@@ -1319,8 +1314,13 @@ app.get('/program/:programId', async(req, res) => {
 	]);
 
 
-	//Render program page with the specific program details
-	res.render('programDetails', {loggedIn: isValidSession(req), userType: req.session.userType, program: program[0], services: business[0].services, unreadAlerts: req.session.unreadAlerts});
+	//Render program page with the specific program details if the program exists
+	if(program.length > 0){
+		res.render('programDetails', {loggedIn: isValidSession(req), userType: req.session.userType, program: program[0], services: business[0].services, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+	} else {
+		res.render('errorMessage', { errorTitle: '404', errorMsg: 'Looks like you\'re barking up the wrong tree!', loggedIn: isValidSession(req), userType: req.session.userType,  unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+	}
+	
 });
 
 //Edit specific program
@@ -1350,7 +1350,7 @@ app.post('/program/:programId/edit', async(req, res) => {
 });
 
 //Form for adding a new dog
-app.get('/addDog', (req, res) => {
+app.get('/addDog', sessionValidation, clientAuthorization, (req, res) => {
 	res.render('addDog', {loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
 });
 
@@ -1648,7 +1648,7 @@ app.post('/dog/:dogId/editVaccines', uploadFields, async (req, res) => {
 });
 
 //Show specific dog
-app.get('/dog/:dogId', async(req, res) => {
+app.get('/dog/:dogId', sessionValidation, async(req, res) => {
 
 	if(req.session.userType === 'business') {
 		res.redirect('/dogView');
@@ -1670,7 +1670,7 @@ app.get('/dog/:dogId', async(req, res) => {
 });
 
 //Edit specific dog
-app.post('/dog/:dogId/edit',upload.single('dogUpload'), async(req, res) => {
+app.post('/dog/:dogId/edit', upload.single('dogUpload'), async(req, res) => {
 	const userdb = appdb.db(req.session.userdb);
 
 	//Create the Id object from the dog id
@@ -1696,7 +1696,7 @@ app.post('/dog/:dogId/edit',upload.single('dogUpload'), async(req, res) => {
 });
 
 //Delete specific dog
-app.post('/dog/:dogId/delete',upload.single('dogUpload'), async(req, res) => {
+app.post('/dog/:dogId/delete', upload.single('dogUpload'), async(req, res) => {
 	const userdb = appdb.db(req.session.userdb);
 
 	//Create the Id object from the dog id
@@ -1717,7 +1717,7 @@ app.post('/dog/:dogId/delete',upload.single('dogUpload'), async(req, res) => {
 	res.redirect('/profile');
 });
 
-app.get('/accountDeletion', (req, res) => {
+app.get('/accountDeletion', sessionValidation, (req, res) => {
 	res.render('accountDeletion', {loggedIn: isValidSession(req), name: req.session.name , userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
 });
 
@@ -1743,7 +1743,7 @@ app.post('/deleteAccount', async (req, res) => {
 	res.redirect('/logout');
 });
 
-app.get('/findTrainer', async(req, res) => {
+app.get('/findTrainer',sessionValidation, clientAuthorization, async(req, res) => {
 	//Grab all business users
 	let businesses = await appUserCollection.find({userType: 'business'}).project({companyName: 1}).toArray();
 
@@ -1796,7 +1796,7 @@ app.get('/trainer', async (req, res) => {
 });
 
 //View indivdual business
-app.get('/viewBusiness/:company', async(req, res) => {
+app.get('/viewBusiness/:company', sessionValidation, clientAuthorization, async(req, res) => {
 	//Connect to the specific business' database
 	let db = mongodb_businessdb + '-' + req.params.company.replaceAll(/\s/g, "");
 	let userdbAccess = new MongoClient(`mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/${db}?retryWrites=true`);
@@ -1818,6 +1818,11 @@ app.get('/viewBusiness/:company', async(req, res) => {
 		};
 	})();
 
+	if(!business.info){
+		res.render('errorMessage', { errorTitle: '404', errorMsg: 'Looks like you\'re barking up the wrong tree!', loggedIn: isValidSession(req), userType: req.session.userType,  unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+		return;
+	}
+
 	//If there is a logo, grab its link
 	if(business.info.logo != '' && business.info.logo != null){
 		business.info.logo = cloudinary.url(business.info.logo);
@@ -1831,13 +1836,19 @@ app.get('/viewBusiness/:company', async(req, res) => {
 	res.render('clientViewTrainer', {loggedIn: isValidSession(req), userType: req.session.userType, business: business.info, trainer: business.trainer, programs: business.programs, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
 });
 
-app.get('/viewBusiness/:company/register/:program', async(req, res) => {
+app.get('/viewBusiness/:company/register/:program', sessionValidation, clientAuthorization, async(req, res) => {
 	const userdb = appdb.db(req.session.userdb);
 
 	//Connect to the specific business' database
 	let db = mongodb_businessdb + '-' + req.params.company.replaceAll(/\s/g, "");
 	let userdbAccess = new MongoClient(`mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/${db}?retryWrites=true`);
 	let tempBusiness = userdbAccess.db(db);
+
+	//Make sure the programId is a hex string
+	if(req.params.program.length != 24){
+		res.render('errorMessage', { errorTitle: '404', errorMsg: 'Looks like you\'re barking up the wrong tree!', loggedIn: isValidSession(req), userType: req.session.userType,  unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+		return;
+	}
 
 	let programId = ObjectId.createFromHexString(req.params.program);
 
@@ -1861,6 +1872,12 @@ app.get('/viewBusiness/:company/register/:program', async(req, res) => {
 		userdb.collection('dogs').find({}).toArray(),
 		appUserCollection.find({email: req.session.email}).toArray()
 	]);
+
+	//Make sure both business and the program exist
+	if(!business.info || program.length < 1){
+		res.render('errorMessage', { errorTitle: '404', errorMsg: 'Looks like you\'re barking up the wrong tree!', loggedIn: isValidSession(req), userType: req.session.userType,  unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+		return;
+	}
 	
 	let clientHasTrainer = userTrainer[0].companyName != null;
 
@@ -1938,54 +1955,58 @@ app.post('/resolveAlert/:alert', async(req, res) => {
 	if(req.body.resolve == 'accept'){
 		//Retrive the whole alert and create the database name for the client from it
 		let alert = await userdb.collection('alerts').find({_id: alertId}).toArray();
-		let clientEmail = alert[0].clientEmail.replaceAll('.', '');
 
-		//Find client hiring
-		const clientdb = await getdb('client-' + clientEmail);
+		if(alert[0].alertType == 'hireRequest') {
+			let clientEmail = alert[0].clientEmail.replaceAll('.', '');
 
-		//Get the client's information and check if this is a new client or not
-		let client = await clientdb.collection('info').find({}).project({email: 1, firstName: 1, lastName: 1, phone: 1}).toArray();
-		let check = await userdb.collection('clients').find({email: client[0].email}).project({_id: 1, email: 1}).toArray();
+			//Find client hiring
+			const clientdb = await getdb('client-' + clientEmail);
 
-		//Update that the client is with your business
-		appUserCollection.updateOne({email: client[0].email}, {$set: {companyName: req.session.name}});
+			//Get the client's information and check if this is a new client or not
+			let client = await clientdb.collection('info').find({}).project({email: 1, firstName: 1, lastName: 1, phone: 1}).toArray();
+			let check = await userdb.collection('clients').find({email: client[0].email}).project({_id: 1, email: 1}).toArray();
 
-		if (check.length == 0) {
-			await userdb.collection('clients').insertOne({
-				email: client[0].email,
-				firstName: client[0].firstName,
-				lastName: client[0].lastName,
-				phone: client[0].phone
-			});
+			//Update that the client is with your business
+			appUserCollection.updateOne({email: client[0].email}, {$set: {companyName: req.session.name}});
+
+			if (check.length == 0) {
+				await userdb.collection('clients').insertOne({
+					email: client[0].email,
+					firstName: client[0].firstName,
+					lastName: client[0].lastName,
+					phone: client[0].phone
+				});
+			}
+
+			//Update the client's outstanding balance
+			let program = await userdb.collection('programs').find({_id: alert[0].program}).toArray();
+			let price;
+			if(program[0].pricing.priceType == 'Hourly Rate'){
+				price = (program[0].hours * program[0].pricing.price).toFixed(2);
+			} else {
+				price = program[0].pricing.price;
+			}
+
+			let balance = {
+				dogName: alert[0].dogName,
+				programName: alert[0].programName,
+				credits: program[0].sessions,
+				outstandingBalance: price
+			};
+
+			let registration = {
+				trainer: req.session.name,
+				program: alert[0].programName,
+				dog: alert[0].dog,
+				price: price
+			}
+
+			await Promise.all([
+				clientdb.collection('outstandingBalance').insertOne(balance),
+				clientdb.collection('registrations').insertOne(registration)
+			]);
+
 		}
-
-		//Update the client's outstanding balance
-		let program = await userdb.collection('programs').find({_id: alert[0].program}).toArray();
-		let price;
-		if(program[0].pricing.priceType == 'Hourly Rate'){
-			price = (program[0].hours * program[0].pricing.price).toFixed(2);
-		} else {
-			price = program[0].pricing.price;
-		}
-
-		let balance = {
-			dogName: alert[0].dogName,
-			programName: alert[0].programName,
-			credits: program[0].sessions,
-			outstandingBalance: price
-		};
-
-		let registration = {
-			trainer: req.session.name,
-			program: alert[0].programName,
-			dog: alert[0].dog,
-			price: price
-		}
-
-		await Promise.all([
-			clientdb.collection('outstandingBalance').insertOne(balance),
-			clientdb.collection('registrations').insertOne(registration)
-		]);
 		
 	}
 	
@@ -2036,7 +2057,7 @@ async function getUserEvents(req) {
 	return userEvents;
 }
 
-app.get('/calendar', async (req, res) => {
+app.get('/calendar', sessionValidation, async (req, res) => {
 	if (req.session.userType == 'business') {
 		res.render('calendarBusiness', {loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
 		return;
@@ -2046,7 +2067,7 @@ app.get('/calendar', async (req, res) => {
 });
 
 // Returns all events to the calendar
-app.get('/events', async (req, res) => {
+app.get('/events', sessionValidation, async (req, res) => {
 	const events = await getUserEvents(req);
 	res.json(events);
 });
@@ -2240,7 +2261,7 @@ function decryptMessage(encryptedText, iv, key) {
     return decrypted.toString();
 }
 
-app.get('/chatSelectClient', async (req, res) => {
+app.get('/chatSelectClient', sessionValidation, async (req, res) => {
 	const userdb = appdb.db(req.session.userdb);
 	if (isClient(req)) {
 		res.redirect('/chat/client');
@@ -2251,10 +2272,10 @@ app.get('/chatSelectClient', async (req, res) => {
 	}
 });
 
-app.get('/chat/:type', async (req, res) => {
+app.get('/chat/:type', sessionValidation, async (req, res) => {
 	req.session.unreadMessages = 0;
 	const type = req.params.type;
-	if (type == 'client') {
+	if (type == 'client' && req.session.trainerdb) {
 		const receiver = await appUserCollection.find({email: req.session.email}).project({companyName: 1}).toArray();
 		res.render('chatClient', { loggedIn: isValidSession(req), userType: req.session.userType, receiver: receiver[0].companyName, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, unreadMessages: req.session.unreadMessages});
 		return;
@@ -2262,11 +2283,20 @@ app.get('/chat/:type', async (req, res) => {
 		setClientDatabase(req, type);
 		const clientdb = appdb.db(req.session.clientdb);
 		const receiver = await clientdb.collection('info').find().project({email: 1}).toArray();
+
+		//Check that the reciever exists
+		if(!receiver[0]) {
+			res.render('errorMessage', { errorTitle: '404', errorMsg: 'Looks like you\'re barking up the wrong tree!', loggedIn: isValidSession(req), userType: req.session.userType,  unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+			return;
+		}
+
 		res.render('chatBusiness', { loggedIn: isValidSession(req), userType: req.session.userType, clientParam: type, receiver: receiver[0].email, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, unreadMessages: req.session.unreadMessages});
+	} else {
+		res.render('errorMessage', { errorTitle: '404', errorMsg: 'Looks like you\'re barking up the wrong tree!', loggedIn: isValidSession(req), userType: req.session.userType,  unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
 	}
 });
 
-app.get('/messagesClient', async (req, res) => {
+app.get('/messagesClient', sessionValidation, async (req, res) => {
 	const userdb = appdb.db(req.session.userdb);
 	const trainerdb = appdb.db(req.session.trainerdb);
 	const senderMsgList = await userdb.collection('messages').find().sort({ createdAt: 1 }).limit(25).toArray();
@@ -2307,11 +2337,18 @@ app.put('/messagesClient/markRead', async (req, res) => {
 	res.status(200).send('Messages marked as read');
 });
 
-app.get('/messagesBusiness/:client', async (req, res) => {
+app.get('/messagesBusiness/:client', sessionValidation, businessAuthorization, async (req, res) => {
 	setClientDatabase(req, req.params.client);
 	const userdb = appdb.db(req.session.userdb);
 	const clientdb = appdb.db(req.session.clientdb);
 	const client = await clientdb.collection('info').find().project({email: 1}).toArray();
+
+	//Check that the client exists
+	if(!client[0]){
+		res.render('errorMessage', { errorTitle: '404', errorMsg: 'Looks like you\'re barking up the wrong tree!', loggedIn: isValidSession(req), userType: req.session.userType,  unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+		return;
+	}
+
 	const senderMsgList = await userdb.collection('messages').find({receiver: client[0].email}).sort({ createdAt: 1 }).limit(25).toArray();
 	const receiverMsgList = await clientdb.collection('messages').find().sort({ createdAt: 1 }).limit(25).toArray();
 
@@ -2345,14 +2382,14 @@ app.post('/messagesBusiness/:client', async (req, res) => {
 	res.status(201).json(newMessage);
 });
 
-app.put('/messagesBusiness/markRead/:client', async (req, res) => {
+app.put('/messagesBusiness/markRead/:client', sessionValidation, businessAuthorization, async (req, res) => {
 	setClientDatabase(req, req.params.client);
 	const clientdb = appdb.db(req.session.clientdb);
 	await clientdb.collection('messages').updateMany({receiver: req.session.name}, { $set: { unread: false }});
 	res.status(200).send('Messages marked as read');
 });
 
-app.get('/messagesPreview' , async (req, res) => {
+app.get('/messagesPreview', sessionValidation,  businessAuthorization, async (req, res) => {
 	const userdb = appdb.db(req.session.userdb);
 	const clients = await userdb.collection('clients').find().toArray();
 	let clientArray = [];
@@ -2375,7 +2412,7 @@ app.get('/messagesPreview' , async (req, res) => {
 
 // ----------------- ALERTS SECTION STARTS HERE -------------------
 
-app.get('/alerts', async(req, res)=>{
+app.get('/alerts', sessionValidation, async(req, res)=>{
 	const userdb = appdb.db(req.session.userdb);
 
 	let [alerts] = await Promise.all([
@@ -2393,6 +2430,7 @@ app.get('/alerts', async(req, res)=>{
 
 app.post('/alerts/delete/:alert', async(req, res) => {
 	const userdb = appdb.db(req.session.userdb);
+
 	let alert = new ObjectId(req.params.alert);
 	userdb.collection('alerts').deleteOne({_id: alert});
 
@@ -2400,12 +2438,27 @@ app.post('/alerts/delete/:alert', async(req, res) => {
 });
 
 
-app.get('/alerts/view/:alert', async(req, res) => {
+app.get('/alerts/view/:alert', sessionValidation, async(req, res) => {
 	const userdb = appdb.db(req.session.userdb);
 	if(req.session.userType == 'business'){
 		appUserCollection.updateOne({email: req.session.email}, {$set:{unreadAlerts: 0}});
+
+		
+		//Make sure alert is a valid alertId
+		if(req.params.alert.length != 24){
+			res.render('errorMessage', { errorTitle: '404', errorMsg: 'Looks like you\'re barking up the wrong tree!', loggedIn: isValidSession(req), userType: req.session.userType,  unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+			return;
+		}
+
 		let alertId = ObjectId.createFromHexString(req.params.alert);
 		let alert = await userdb.collection('alerts').find({_id: alertId}).toArray();
+		
+		//Make sure alert is a valid alertId
+		if(!alert[0]){
+			res.render('errorMessage', { errorTitle: '404', errorMsg: 'Looks like you\'re barking up the wrong tree!', loggedIn: isValidSession(req), userType: req.session.userType,  unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+			return;
+		}
+
 
 		let clientEmail = alert[0].clientEmail.split('.').join("");
 		let db = mongodb_clientdb + '-' + clientEmail;
@@ -2428,7 +2481,7 @@ app.get('/alerts/view/:alert', async(req, res) => {
 });
 
 
-app.get('/clientList', businessAuthorization, async (req, res) => {
+app.get('/clientList', sessionValidation, businessAuthorization, async (req, res) => {
 	// console.log(req.session.userType);
 	// get the list of clients that are added to the logged in dog trainer
 	// !Currently, the companyName is set to null because there is no system for business view user pages at the time of writing.!
@@ -2448,7 +2501,7 @@ app.get('/clientList', businessAuthorization, async (req, res) => {
 	res.render('clientList', {clientArray: userClientList, loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
 });
 
-app.get('/clientProfile/:id', async (req, res) => {
+app.get('/clientProfile/:id', sessionValidation,  businessAuthorization, async (req, res) => {
 
 	// Get a list of all clients
 	const clients = await appUserCollection.find({userType: 'client'}).project({id: 1, email: 1, firstName: 1, lastName: 1, phone: 1}).toArray();
@@ -2464,6 +2517,12 @@ app.get('/clientProfile/:id', async (req, res) => {
 		if (ids[i] === req.params.id) {
 			targetClient = clients[i];
 		}
+	}
+
+	//Make sure the targetClient exists
+	if(!targetClient){
+		res.render('errorMessage', { errorTitle: '404', errorMsg: 'Looks like you\'re barking up the wrong tree!', loggedIn: isValidSession(req), userType: req.session.userType,  unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+		return;
 	}
 
 	// used for locating the pfpUrl directory
@@ -2503,13 +2562,13 @@ app.get('/clientProfile/:id', async (req, res) => {
 	res.render('viewingClientProfile', {targetClient: targetClient, pfpUrl: pfpUrl, dogs: dogs, loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
 });
 
-app.get('/dogView', businessAuthorization, async (req, res) => {
+app.get('/dogView', sessionValidation, businessAuthorization, async (req, res) => {
 	res.send('safe');
 });
 
 // ----------------- SESSIONS SECTION STARTS HERE -------------------
 
-app.get('/sessionList', async (req, res) => {
+app.get('/sessionList',sessionValidation, async (req, res) => {
 	if ( req.session.userType == 'business') {
 		res.render('sessionsBusiness', {loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
 		return;
