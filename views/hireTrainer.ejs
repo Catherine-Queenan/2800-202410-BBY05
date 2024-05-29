@@ -57,7 +57,14 @@
                 <%- include('templates/button', {action:'',xClasses:'',xAttributes:'type=button data-bs-dismiss=modal', content:'Cancel'}) %>
               </div>
             </div>
-            <a href="<%=contract%>">Click to download <%=companyName%>'s Contract</a>
+            <% if(contract != ''){ %>
+                <input type="hidden" value="<%=contract%>" id="bufferString">
+                <embed class="form-control" src="" id="contractPdf"/>
+                <!-- <am src="<%=contract%>">Click to download <%=companyName%>'s Contract</a> -->
+            <% } else { %>
+                <p>This trainer has not specified any terms and conditions! Feel free to agree!</p>
+           <%  } %>
+            
             <div class="check-buttons my-4">
                 <%- include('templates/checkmark', {classes: '', value:'agree', name:'agreement', id: 'termsAndConditions', label:"I have read and agree with the provided trainer's terms and conditions", xAttr:''}) %>
             </div>
@@ -89,6 +96,22 @@
 
         let termsAndConditionCheck = document.getElementById('termsAndConditions');
         let confirmButton = document.getElementById('confirmRegister');
+
+        //Dealing the file embed of the contract
+        let bufferString = document.getElementById('bufferString').value;
+        console.log(bufferString);
+        const binaryData = atob(bufferString); // Decode the base64-encoded string
+        const byteArray = new Uint8Array(binaryData.length);
+        for (let i = 0; i < binaryData.length; i++) {
+            byteArray[i] = binaryData.charCodeAt(i);
+        }
+        console.log(byteArray);
+        let blob = new Blob([byteArray], { type: 'application/pdf' });
+        console.log(blob);
+        let contractUrl = URL.createObjectURL(blob);
+        console.log(contractUrl);
+
+        document.getElementById('contractPdf').src = contractUrl;
 
         nextModalButton.addEventListener('click', () =>{
             modalTerms.show();

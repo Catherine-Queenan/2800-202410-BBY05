@@ -338,21 +338,21 @@ async function downloadAndDecryptFile(filePath) {
     return decryptedBuffer;
 }
 
-// Example usage
-(async () => {
-    try {
-        const filePath = 'pdfs/Budd_Evin_bordatella.pdf';
-        const decryptedFileBuffer = await downloadAndDecryptFile(filePath);
-        console.log('File decrypted successfully');
+// // Example usage
+// (async () => {
+//     try {
+//         const filePath = `pdfs/Budd_Evin_bordatella.pdf`;
+//         const decryptedFileBuffer = await downloadAndDecryptFile(filePath);
+//         console.log('File decrypted successfully');
         
-        // Save the decrypted file to disk
-        const outputPath = path.join(__dirname, 'decrypted_contract.pdf');
-        fs.writeFileSync(outputPath, decryptedFileBuffer);
-        console.log(`File saved successfully to ${outputPath}`);
-    } catch (error) {
-        console.error('Error decrypting file:', error);
-    }
-})();
+//         // Save the decrypted file to disk
+//         const outputPath = path.join(__dirname, 'decrypted_contract_example.pdf');
+//         fs.writeFileSync(outputPath, decryptedFileBuffer);
+//         console.log(`File saved successfully to ${outputPath}`);
+//     } catch (error) {
+//         console.error('Error decrypting file:', error);
+//     }
+// })();
 
 //Upload files to Google Cloud
 async function uploadFileToGoogleCloud(fileBuffer, fileName) {
@@ -1062,8 +1062,8 @@ app.post('/profile/edit/:editType', sessionValidation, upload.array('accountUplo
 				} else {
 					let fullFileName = `${req.session.name}_contract.pdf`;
 					let filePath = `pdfs/${fullFileName}`;
-					let fileUrl = await overwriteOrUploadFile(req.files[0].buffer, filePath);
-					req.body.contract = fileUrl;
+					let fileUrl = await uploadFileToGoogleCloud(req.files[0].buffer, filePath);
+					req.body.contract = filePath;
 				}
 			} else if (req.files.length == 2){
 				for(let i = 0; i < req.files.length; i++){
@@ -1077,8 +1077,8 @@ app.post('/profile/edit/:editType', sessionValidation, upload.array('accountUplo
 					} else {
 						let fullFileName = `${req.session.name}_contract.pdf`;
 						let filePath = `pdfs/${fullFileName}`;
-						let fileUrl = await overwriteOrUploadFile(req.files[1].buffer, filePath);
-						req.body.contract = fileUrl;
+						let fileUrl = await uploadFileToGoogleCloud(req.files[1].buffer, filePath);
+						req.body.contract = filePath;
 					}
 				}
 			} else {
@@ -1589,8 +1589,17 @@ app.get('/viewBusiness/:company/register/:program', async(req, res) => {
 	}
 
 	let contract = business.info.contract;
+	let contractUrl;
+	if(contract){
 
-	res.render('hireTrainer', {loggedIn: isValidSession(req), userType: req.session.userType, program: program[0], companyName:req.params.company, contract: contract, dogs: dogs, unreadAlerts: req.session.unreadAlerts});
+		// Convert Node.js buffer to base64 string
+		contractUrl = Buffer.from(contract).toString('base64');
+	
+	} else {
+		contractUrl = '';
+	}
+
+	res.render('hireTrainer', {loggedIn: isValidSession(req), userType: req.session.userType, program: program[0], companyName:req.params.company, contract: contractUrl, dogs: dogs, unreadAlerts: req.session.unreadAlerts});
 });
 
 
