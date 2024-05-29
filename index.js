@@ -12,6 +12,10 @@ const cron = require('node-cron');
 const {Storage} = require('@google-cloud/storage');
 const {Readable} = require('stream');
 const crypto = require('crypto');
+const { pipeline } = require('stream/promises');
+
+const fs = require('fs');
+const path = require('path');
 
 const multer = require("multer");
 const stream = require("stream");
@@ -176,8 +180,10 @@ async function notificationsToAlert(req){
 // Use the updateUnreadAlerts middleware for all routes
 //middleWare
 async function updateUnreadAlerts(req, res, next) {
+	console.log(req.session);
     if (req.session && req.session.email) {
         try {
+			console.log(req.session.email);
             let alerts = await appUserCollection.find({ email: req.session.email }).project({ unreadAlerts: 1 }).toArray();
             let unreadAlerts = alerts.length > 0 ? alerts[0].unreadAlerts : 0;
             req.session.unreadAlerts = unreadAlerts;
@@ -399,15 +405,72 @@ function encrypt(buffer) {
     };
 }
 
+// Function to decrypt the PDF file
+function decrypt(encrypted) {
+    const iv = Buffer.from(encrypted.iv, 'hex');
+    const encryptedText = Buffer.from(encrypted.content, 'hex');
+    const decipher = crypto.createDecipheriv(algorithm, Buffer.from(secretKey, 'utf8'), iv);
+    const decrypted = Buffer.concat([decipher.update(encryptedText), decipher.final()]);
+    return decrypted;
+}
+
+// Function to download and decrypt file from Google Cloud Storage
+async function downloadAndDecryptFile(filePath) {
+    const bucket = googleStorage.bucket(bucketName);
+    const file = bucket.file(filePath);
+
+    let encryptedBuffer = Buffer.alloc(0);
+
+    await pipeline(
+        file.createReadStream(),
+        new stream.Transform({
+            transform(chunk, encoding, callback) {
+                encryptedBuffer = Buffer.concat([encryptedBuffer, chunk]);
+                callback();
+            }
+        })
+    );
+
+    // Extract the IV and encrypted content from the buffer
+    const iv = encryptedBuffer.slice(0, 16);  // First 16 bytes are the IV
+    const encryptedContent = encryptedBuffer.slice(16);
+
+    // Decrypt the file content
+    const decipher = crypto.createDecipheriv('aes-256-ctr', Buffer.from(secretKey, 'utf8'), iv);
+    const decryptedBuffer = Buffer.concat([decipher.update(encryptedContent), decipher.final()]);
+
+    return decryptedBuffer;
+}
+
+// // Example usage
+// (async () => {
+//     try {
+//         const filePath = `pdfs/Budd_Evin_bordatella.pdf`;
+//         const decryptedFileBuffer = await downloadAndDecryptFile(filePath);
+//         console.log('File decrypted successfully');
+        
+//         // Save the decrypted file to disk
+//         const outputPath = path.join(__dirname, 'decrypted_contract_example.pdf');
+//         fs.writeFileSync(outputPath, decryptedFileBuffer);
+//         console.log(`File saved successfully to ${outputPath}`);
+//     } catch (error) {
+//         console.error('Error decrypting file:', error);
+//     }
+// })();
+
 //Upload files to Google Cloud
 async function uploadFileToGoogleCloud(fileBuffer, fileName) {
     const encryptedFile = encrypt(fileBuffer);
-    //console.log('Encrypted File:', encryptedFile); // Debugging
     const bucket = googleStorage.bucket(bucketName);
     const file = bucket.file(fileName);
+    const ivBuffer = Buffer.from(encryptedFile.iv, 'hex');
+    const encryptedBuffer = Buffer.from(encryptedFile.content, 'hex');
+
+    // Prefix the IV to the encrypted content
+    const finalBuffer = Buffer.concat([ivBuffer, encryptedBuffer]);
 
     return new Promise((resolve, reject) => {
-        const encryptedStream = Readable.from(Buffer.from(encryptedFile.content, 'hex'));
+        const encryptedStream = Readable.from(finalBuffer);
         encryptedStream.pipe(file.createWriteStream())
             .on('error', reject)
             .on('finish', () => {
@@ -624,8 +687,8 @@ app.post('/submitSignup/:type', async (req, res) => {
 		//Stores all user inputs that a user types in from req.body
 		var user = {
 			companyName: req.body.companyName,
-			businessEmail: req.body.businessEmail,
-			businessPhone: req.body.businessPhone,
+			companyEmail: req.body.businessEmail,
+			companyPhone: req.body.businessPhone,
 			firstName: req.body.firstName,
 			lastName: req.body.lastName,
 			companyWebsite: req.body.companyWebsite,
@@ -662,11 +725,11 @@ app.post('/submitSignup/:type', async (req, res) => {
 		}
 
 		await appUserCollection.insertOne({
-			email: user.businessEmail,
+			email: user.companyEmail,
 			companyName: user.companyName,
 			firstName: user.firstName,
 			lastName: user.lastName,
-			phone: user.businessPhone,
+			phone: user.companyPhone,
 			password: user.password,
 			userType: 'business',
 			unreadAlerts: 0
@@ -686,8 +749,8 @@ app.post('/submitSignup/:type', async (req, res) => {
 		//Store business information in client collection
 		await userdb.collection('info').insertOne({
 			companyName: user.companyName,
-			email: user.businessEmail,
-			phone: user.businessPhone,
+			email: user.companyEmail,
+			phone: user.companyPhone,
 			services: user.services,
 			companyWebsite: user.companyWebsite
 		});
@@ -1153,13 +1216,45 @@ app.post('/profile/edit/:editType', sessionValidation, upload.array('accountUplo
         // Grab current logo id
         let business = await userdb.collection('info').find({ companyName: req.session.name }).toArray();
 
-        // Logo id is updated with a newly uploaded logo or kept the same
-        if (req.files.length != 0) {
-            await deleteUploadedImage(business[0].logo);
-            req.body.logo = await uploadImage(req.files[0], "businessLogos");
-        } else {
-            req.body.logo = business[0].logo;
-        }
+		//Logo id is updated with a newly upload logo or kept the same
+		if(req.files.length != 0){
+			if(req.files.length < 2){
+
+				let filename = req.files[0].mimetype;
+				filename = filename.split('/');
+				let fileType = filename[0];
+
+				if(fileType == 'image'){
+					await deleteUploadedImage(business[0].logo);
+					req.body.logo = await uploadImage(req.files[0], "businessLogos");
+				} else {
+					let fullFileName = `${req.session.name}_contract.pdf`;
+					let filePath = `pdfs/${fullFileName}`;
+					let fileUrl = await uploadFileToGoogleCloud(req.files[0].buffer, filePath);
+					req.body.contract = filePath;
+				}
+			} else if (req.files.length == 2){
+				for(let i = 0; i < req.files.length; i++){
+					let filename = req.files[0].mimetype;
+					filename = filename.split('/');
+					let fileType = filename[0];
+
+					if(fileType == 'image'){
+						await deleteUploadedImage(business[0].logo);
+						req.body.logo = await uploadImage(req.files[0], "businessLogos");
+					} else {
+						let fullFileName = `${req.session.name}_contract.pdf`;
+						let filePath = `pdfs/${fullFileName}`;
+						let fileUrl = await uploadFileToGoogleCloud(req.files[1].buffer, filePath);
+						req.body.contract = filePath;
+					}
+				}
+			} else {
+				req.body.logo = business[0].logo;
+			}
+		}
+
+		
 
         // Update database
         await userdb.collection('info').updateOne({ companyName: req.session.name }, { $set: req.body });
@@ -1186,26 +1281,6 @@ app.post('/profile/edit/:editType', sessionValidation, upload.array('accountUplo
         // Return to profile, trainer profile tab
         res.redirect('/profile?tab=trainer');
 
-    // Edit business profile -> Programs (can only add a program from profile page)
-    } else if (req.params.editType == 'addProgram') {
-        // Set up program from submitted information
-        let program = {
-            name: req.body.name,
-            pricing: {
-                priceType: req.body.priceType,
-                price: req.body.price
-            },
-            discount: req.body.discounts,
-            hours: req.body.hours,
-            description: req.body.description
-        };
-
-        // Insert program into database
-        await userdb.collection('programs').insertOne(program);
-
-		//Return to profile, trainer profile tab
-		res.redirect('/profile?tab=trainer');
-	
 	//Edit business profile -> Programs (can only add a program from profile page)
 	} else if(req.params.editType == 'addProgram'){
 
@@ -1214,7 +1289,7 @@ app.post('/profile/edit/:editType', sessionValidation, upload.array('accountUplo
 			name: req.body.name,
 			pricing: {
 				priceType: req.body.priceType,
-				price: req.body.price.toFixed(2)
+				price: parseInt(req.body.price).toFixed(2)
 			},
 			discount: req.body.discounts,
 			hours: req.body.hours,
@@ -1303,6 +1378,12 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
         dogName: req.body.dogName
     };
 
+	// Creates documents in the dog document for each vaccine
+    let allVaccines = ['rabies', 'leptospia', 'bordatella', 'bronchiseptica', 'DA2PP'];
+    allVaccines.forEach((vaccine) => {
+        eval('dog.' + vaccine + '= {}');
+    });
+
     // this is the file management stuff
     if (req.files.length != 0) {
         // Check if the first image is an image file and upload the image if it is
@@ -1347,8 +1428,7 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
                 let fullFileName = `${lastName}_${dogName}_${vaccineType}.pdf`;
                 let filePath = `pdfs/${fullFileName}`;
                 let fileUrl = await uploadFileToGoogleCloud(req.files[i].buffer, filePath);
-                dog.vaccineRecords = dog.vaccineRecords || [];
-                dog.vaccineRecords.push({ fileName: req.files[i].originalname, fileUrl });
+                req.body[vaccineType + 'Proof'] =  filePath;
             }
         }
     } else {
@@ -1367,14 +1447,11 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
     dog.sex = req.body.sex;
     dog.birthday = req.body.birthday;
     dog.weight = req.body.weight;
+	dog.breed = req.body.breed;
     dog.specialAlerts = req.body.specialAlerts;
 
-    // Creates documents in the dog document for each vaccine
-    let allVaccines = ['rabies', 'leptospia', 'bordatella', 'bronchiseptica', 'DA2PP'];
+
 	let vaccineNotifs = [];
-    allVaccines.forEach((vaccine) => {
-        eval('dog.' + vaccine + '= {}');
-    });
 
     // If dog has more than one vaccine, add the expiration date and pdf of the proof of vaccination to the specific vaccine document
     if (Array.isArray(req.body.vaccineCheck)) {
@@ -1476,17 +1553,17 @@ app.post('/dog/:dogId/editVaccines', uploadFields, async (req, res) => {
     return res.status(404).send('Dog not found');
   }
 
-  // Update existing fields with incoming data
-  dog.dogName = req.body.dogName || dog.dogName;
-  dog.sex = req.body.sex || dog.sex;
-  dog.birthday = req.body.birthday || dog.birthday;
-  dog.weight = req.body.weight || dog.weight;
-  dog.specialAlerts = req.body.specialAlerts || dog.specialAlerts;
+//   // Update existing fields with incoming data
+//   dog.dogName = req.body.dogName || dog.dogName;
+//   dog.sex = req.body.sex || dog.sex;
+//   dog.birthday = req.body.birthday || dog.birthday;
+//   dog.weight = req.body.weight || dog.weight;
+//   dog.specialAlerts = req.body.specialAlerts || dog.specialAlerts;
 
-  // Update the neutered status
-  if (req.body.neuteredStatus) {
-    dog.neuteredStatus = req.body.neuteredStatus;
-  }
+//   // Update the neutered status
+//   if (req.body.neuteredStatus) {
+//     dog.neuteredStatus = req.body.neuteredStatus;
+//   }
 
   const vaccineTypes = ['rabies', 'leptospia', 'bordatella', 'bronchiseptica', 'DA2PP'];
   let vaccineNotifs = [];
@@ -1509,7 +1586,7 @@ app.post('/dog/:dogId/editVaccines', uploadFields, async (req, res) => {
         }
 
         // Add vaccine record URL
-        dog[vaccineType].vaccineRecord = fileUrl;
+        dog[vaccineType].vaccineRecord = filePath;
 
         // Add or update expiration date
         if (req.body[`${vaccineType}Date`]) {
@@ -1782,7 +1859,20 @@ app.get('/viewBusiness/:company/register/:program', async(req, res) => {
 		}
 	}
 
-	res.render('hireTrainer', {loggedIn: isValidSession(req), userType: req.session.userType, program: program[0], dogs: dogs, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+	let contract = business.info.contract;
+	let contractUrl;
+	if(contract){
+
+		contract = await downloadAndDecryptFile(contract); //nodejs buffer
+
+		// Convert Node.js buffer to base64 string
+		contractUrl = Buffer.from(contract).toString('base64');
+	
+	} else {
+		contractUrl = '';
+	}
+
+	res.render('hireTrainer', {loggedIn: isValidSession(req), userType: req.session.userType, program: program[0], companyName:req.params.company, contract: contractUrl, dogs: dogs, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
 });
 
 
@@ -1815,7 +1905,7 @@ app.post('/viewBusiness/:company/register/:program/submitRegister', async(req, r
 	companyEmail = companyEmail[0].email;
 	await Promise.all([
 		tempBusiness.collection('alerts').insertOne(request),
-		appUserCollection.updateOne({email: companyEmail, userType:'business'}, {$inc:{unreadAlerts: 1}})
+		appUserCollection.updateOne({name: req.params.company, userType:'business'}, {$inc:{unreadAlerts: 1}})
 	]);
 
 	res.redirect('/viewBusiness/' + req.params.company);
