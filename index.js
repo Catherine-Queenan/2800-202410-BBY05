@@ -1592,6 +1592,8 @@ app.get('/viewBusiness/:company/register/:program', async(req, res) => {
 	let contractUrl;
 	if(contract){
 
+		contract = await downloadAndDecryptFile(contract); //nodejs buffer
+
 		// Convert Node.js buffer to base64 string
 		contractUrl = Buffer.from(contract).toString('base64');
 	

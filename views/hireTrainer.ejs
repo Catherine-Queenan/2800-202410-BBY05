@@ -49,7 +49,7 @@
       </div>
 
       <div id="termsAndConditionsModal" class="modal fade" aria-hidden="true" tabindex="-1">
-        <div class="modal-dialog" role="document">
+        <div class="modal-dialog modal-xl" role="document">
           <div class="modal-content">
             <div class="modal-header">
               <div class="modal-title ">
@@ -59,7 +59,7 @@
             </div>
             <% if(contract != ''){ %>
                 <input type="hidden" value="<%=contract%>" id="bufferString">
-                <embed class="form-control" src="" id="contractPdf"/>
+                <embed class="form-control" src="" id="contractPdf" style="height: 75vh"/>
                 <!-- <am src="<%=contract%>">Click to download <%=companyName%>'s Contract</a> -->
             <% } else { %>
                 <p>This trainer has not specified any terms and conditions! Feel free to agree!</p>
