@@ -1134,7 +1134,9 @@ app.post('/profile/edit/:editType', sessionValidation, upload.array('accountUplo
             },
             discount: req.body.discounts,
             hours: req.body.hours,
-            description: req.body.description
+            description: req.body.description,
+			sessions: req.body.sessions,
+			service: req.body.service
         };
 
         // Insert program into database
@@ -1174,10 +1176,14 @@ app.get('/program/:programId', async(req, res) => {
 
 	//Use program id to access program
 	let programId =  ObjectId.createFromHexString(req.params.programId);
-	let program = await userdb.collection('programs').find({_id: programId}).toArray();
+	let [program, business] = await Promise.all([
+		userdb.collection('programs').find({_id: programId}).toArray(),
+		userdb.collection('info').find({}).project({services: 1}).toArray()
+	]);
+
 
 	//Render program page with the specific program details
-	res.render('programDetails', {loggedIn: isValidSession(req), userType: req.session.userType, program: program[0], unreadAlerts: req.session.unreadAlerts});
+	res.render('programDetails', {loggedIn: isValidSession(req), userType: req.session.userType, program: program[0], services: business[0].services, unreadAlerts: req.session.unreadAlerts});
 });
 
 //Edit specific program
@@ -1194,7 +1200,8 @@ app.post('/program/:programId/edit', async(req, res) => {
 		discount: req.body.discounts,
 		hours: req.body.hours,
 		sessions: req.body.sessions,
-		description: req.body.description
+		description: req.body.description,
+		service: req.body.service
 	}
 
 	//Use program id to update program with new details
@@ -1719,7 +1726,7 @@ app.get('/viewBusiness/:company/register/:program', async(req, res) => {
 		}
 	}
 
-	res.render('hireTrainer', {loggedIn: isValidSession(req), userType: req.session.userType, program: program[0], dogs: dogs, unreadAlerts: req.session.unreadAlerts});
+	res.render('hireTrainer', {loggedIn: isValidSession(req), userType: req.session.userType, program: program[0], dogs: dogs, companyName: req.params.company, unreadAlerts: req.session.unreadAlerts});
 });
 
 

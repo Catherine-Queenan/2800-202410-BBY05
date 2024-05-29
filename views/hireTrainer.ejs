@@ -1,7 +1,9 @@
 <%- include("templates/header") %>
+<%- include('templates/linkButton', {page:'/viewBusiness/' + companyName, content: 'back'}) %>
+
 <div class="profile-container my-4 mx-4">
         <%- include('templates/button', {action:'',xClasses:'',xAttributes:'id=registerDog type=button disabled', content:'Register Dog'}) %>
-        <%- include('templates/clientViewProgram', {program: program})%>
+        <%- include('templates/clientViewProgram', {program: program, view: 'register'})%>
         <div class="heading-gen my-3">
         <p class="h2 purple">Selected Dog:</p>
             <div id="selectedDog">
@@ -40,7 +42,7 @@
                 </div>
                 <p class="my-3 fw-bold" style="font-size:20px; text-align:start;">Program:</p>
                 <div class="card m-2 smallShadow" style="background-color:#20133541; color:#201335; border-radius:1px;">
-                <%- include('templates/clientViewProgram', {program: program})%>
+                <%- include('templates/clientViewProgram', {program: program, view: 'allPrograms'})%>
             </div>
             </div>
             <div class="modal-footer d-flex justify-content-between">

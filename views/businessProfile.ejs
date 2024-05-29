@@ -3,13 +3,13 @@
 		<h1 class="text-center mb-4 yeseva-one"><%=business.companyName%></h1>  <!--Page title-->
         <div class="resource-wrap d-flex justify-content-center">
             <div class="resource-html justify-content-center">
-                <input id="tabR-1" type="radio" name="tab" class="tabR-one btn-check" <%=businessTab%>>
+                <input id="tabR-1" type="radio" name="tab" class="tabR-one btn-check cancelButton cancelNewProgram" value="trainer" <%=businessTab%>>
                 <label for="tabR-1" class="tabR">Business Details</label>
 
-                <input id="tabR-2" type="radio" name="tab" class="tabR-two btn-check" <%=trainerTab%>>
+                <input id="tabR-2" type="radio" name="tab" class="tabR-two btn-check cancelButton cancelNewProgram" value="business" <%=trainerTab%>>
                 <label for="tabR-2" class="tabR">Trainer Profile</label>
 
-                <input id="tabR-3" type="radio" name="tab" class="tabR-three btn-check" <%=programsTab%>>
+                <input id="tabR-3" type="radio" name="tab" class="tabR-three btn-check cancelButton" value="business trainer" <%=programsTab%>>
                 <label for="tabR-3" class="tabR">Programs</label>
 
                 <div class="resource-form">
@@ -126,6 +126,16 @@
 								<label for="programName">Program Name:</label>
 								<input class="newProgramInfo" type="text" id="programName" name="name" required>
 							</div>
+
+							<div class="form-group">
+								<label for="programService">Service Provided:</label>
+								<select class="form-select" name="service" required>
+									<option></option>
+									<% for(let i = 0; i < business.services.length; i++){ %>
+										<option value="<%=business.services[i]%>"><%=business.services[i]%></option>
+									<% } %>
+								</select>
+							</div>
 							
 							<div style="font-size: 18px; font-weight:700;">
 								<div class="radio-buttons m-3">
@@ -168,7 +178,7 @@
 							</div>
 
 							<div class="my-3 d-flex justify-content-between">
-								<%- include('templates/button', {action:'',xClasses:'btn-danger col-3 me-4',xAttributes:'id=cancelNewProgram type=button',content:'Cancel'}) %>
+								<%- include('templates/button', {action:'',xClasses:'btn-danger col-3 me-4 cancelNewProgram',xAttributes:'id=cancelNewProgram type=button',content:'Cancel'}) %>
 								<%- include('templates/button', {action:'/profile/edit/addProgram',xClasses:'col-3',xAttributes:'id=submitNewProgram',content:'Add'}) %>
 							</div>
 						</form>
@@ -205,7 +215,8 @@
 	let editButtons = document.querySelectorAll('.editButton');
 	let cancelButtons = document.querySelectorAll('.cancelButton');
 	let addProgramButton = document.getElementById('addProgramButton');
-	let cancelAddProgramButton = document.getElementById('cancelNewProgram');
+	let cancelAddProgramButtons = document.querySelectorAll('.cancelNewProgram');
+
 
 	//Form for adding a new program on the programs page
 	let programForm = document.getElementById('newProgramForm');
@@ -221,10 +232,16 @@
 		});
 	});
 
+	let areTabsEditable = {
+		business: true,
+		trainer: false,
+		program: false,
+	}
+
 	//Edit event
 	editButtons.forEach((button) => {
 		button.addEventListener('click', () => {
-
+			areTabsEditable[button.value] = true;
 			//Hide the edit button
 			button.style = 'display: none';
 
@@ -244,8 +261,6 @@
 
 			saveButton.style = 'display: block';
 			cancelButton.style = 'display:block';
-
-			console.log(button.parentElement);
 
 			if(button.value == 'business'){
 				//Show the delete service buttons
@@ -271,7 +286,6 @@
 					let serviceInput = document.getElementById('toAddService');
 
 					serviceInput.addEventListener('input', function(){
-						console.log('aaaaaaaaaaaa');
 						if(this.value == ''){
 							saveServiceButton.disabled = true;
 						} else {
@@ -322,65 +336,128 @@
 
 	cancelButtons.forEach((button) => {
 		button.addEventListener('click', () => {
-			button.style = "display:none";
+			let editType = button.value;
+			if(editType.includes(' ')){
+				editType = editType.split(' ');
+				for(let i = 0; i < editType.length; i++){
+					if(areTabsEditable[editType[i]]){
+						areTabsEditable[editType[i]] = false;
 
-			//Show edit button, hide save button
-			let saveButton = document.getElementById(button.value + 'SaveButton');
-			let editButton = document.getElementById(button.value + 'EditButton');
-			editButton.style = 'display:block';
-			saveButton.style = 'display:none';
+						//Show edit button, hide save button
+						let saveButton = document.getElementById(editType[i] + 'SaveButton');
+						let editButton = document.getElementById(editType[i] + 'EditButton');
+						let cancelButton = document.getElementById(editType[i] + 'CancelButton');
+						editButton.style = 'display:block';
+						saveButton.style = 'display:none';
+						cancelButton.style = 'display:none';
 
-			//Hide the logo or profile pic upload
-			let upload = document.getElementById(button.value + 'Upload');
-			upload.style = 'display: none';
+						//Hide the logo or profile pic upload
+						let upload = document.getElementById(editType[i] + 'Upload');
+						upload.style = 'display: none';
 
 
-			//Select and enable all input fields
-			let fields = document.querySelectorAll('.' + button.value + 'Info');
-			fields.forEach((field) => {
-				field.disabled = true;
-			});
+						//Select and enable all input fields
+						let fields = document.querySelectorAll('.' + editType[i] + 'Info');
+						fields.forEach((field) => {
+							field.disabled = true;
+						});
 
-			if(button.value == 'business'){
-				//Hide the delete service buttons
-				serviceButtons.forEach((button) => {
-					button.style = 'display: none';
+						if(editType[i] == 'business'){
+							//Hide the delete service buttons
+							serviceButtons.forEach((button) => {
+								button.style = 'display: none';
+							});
+
+							let serviceInput = document.getElementById('toAddService');
+							serviceInput.value = '';
+							//Hide the add service button
+							let addServiceButton = document.getElementById('addService');
+							addServiceButton.style = 'display: none';
+
+							let serviceInputDiv = document.getElementById('addServiceInputDiv');
+							serviceInputDiv.style = 'display:none';
+
+							//Delete added services
+							let addedServices = document.querySelectorAll('.addedService');
+							addedServices.forEach((service) => {
+								service.remove();
+							});
+							
+						}
+					}
+				}
+			} else if(areTabsEditable[editType]) {
+				areTabsEditable[editType] = false;
+
+				//Show edit button, hide save button
+				let saveButton = document.getElementById(editType + 'SaveButton');
+				let editButton = document.getElementById(editType + 'EditButton');
+				let cancelButton = document.getElementById(editType + 'CancelButton');
+				editButton.style = 'display:block';
+				saveButton.style = 'display:none';
+				cancelButton.style = 'display:none';
+
+				//Hide the logo or profile pic upload
+				let upload = document.getElementById(editType + 'Upload');
+				upload.style = 'display: none';
+
+
+				//Select and enable all input fields
+				let fields = document.querySelectorAll('.' + editType + 'Info');
+				fields.forEach((field) => {
+					field.disabled = true;
 				});
 
-				let serviceInput = document.getElementById('toAddService');
-				serviceInput.value = '';
-				//Hide the add service button
-				let addServiceButton = document.getElementById('addService');
-				addServiceButton.style = 'display: none';
+				if(editType == 'business'){
+					//Hide the delete service buttons
+					serviceButtons.forEach((button) => {
+						button.style = 'display: none';
+					});
 
-				let serviceInputDiv = document.getElementById('addServiceInputDiv');
-				serviceInputDiv.style = 'display:none';
+					let serviceInput = document.getElementById('toAddService');
+					serviceInput.value = '';
+					//Hide the add service button
+					let addServiceButton = document.getElementById('addService');
+					addServiceButton.style = 'display: none';
 
-				//Delete added services
-				let addedServices = document.querySelectorAll('.addedService');
-				addedServices.forEach((service) => {
-					service.remove();
-				});
+					let serviceInputDiv = document.getElementById('addServiceInputDiv');
+					serviceInputDiv.style = 'display:none';
 
+					//Delete added services
+					let addedServices = document.querySelectorAll('.addedService');
+					addedServices.forEach((service) => {
+						service.remove();
+					});
+
+				}
 			}
+
+			
 
     	});  
 	});
 	
 
 	//Add program event shows the new program form and hides the add program button
+	let isProgramFormOpen = false;
 	addProgramButton.addEventListener('click', () => {
 		programForm.style = 'display:block';
 		addProgramButton.style = 'display:none';
+		areTabsEditable['program'] = true;
 	});
 
-	cancelAddProgramButton.addEventListener('click', () => {
-		programForm.style = 'display:none';
-		addProgramButton.style = 'display:block';
+	cancelAddProgramButtons.forEach((button) => {
+		button.addEventListener('click', () => {
+			if(areTabsEditable['program']){
+				areTabsEditable['program'] = false;
+				programForm.style = 'display:none';
+				addProgramButton.style = 'display:block';
 
-		let inputs = document.querySelectorAll('.newProgramInfo');
-		inputs.forEach((input) => {
-			input.value = '';
+				let inputs = document.querySelectorAll('.newProgramInfo');
+				inputs.forEach((input) => {
+					input.value = '';
+				});
+			}
 		});
 	});
 	
