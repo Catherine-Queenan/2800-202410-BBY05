@@ -180,10 +180,10 @@ async function notificationsToAlert(req){
 // Use the updateUnreadAlerts middleware for all routes
 //middleWare
 async function updateUnreadAlerts(req, res, next) {
-	console.log(req.session);
+	// console.log(req.session);
     if (req.session && req.session.email) {
         try {
-			console.log(req.session.email);
+			// console.log(req.session.email);
             let alerts = await appUserCollection.find({ email: req.session.email }).project({ unreadAlerts: 1 }).toArray();
             let unreadAlerts = alerts.length > 0 ? alerts[0].unreadAlerts : 0;
             req.session.unreadAlerts = unreadAlerts;
@@ -903,7 +903,7 @@ async function sendReminderEmails() {
 // This function sends other types of emails. Right now I'm adding it so that you can send appointment information. (but you can parse anything you want, really.)
 const sendEmail = async (to, subject, eventTitle, eventDate, eventStartTime, eventEndTime, db) => {
     try {
-        console.log('Rendering email template...');
+        // console.log('Rendering email template...');
         const str = await ejs.renderFile('./views/reminderEmail.ejs', { 
             eventTitle: eventTitle,
             eventDate: eventDate,
@@ -911,11 +911,11 @@ const sendEmail = async (to, subject, eventTitle, eventDate, eventStartTime, eve
             eventEndTime: eventEndTime
         });
 
-        console.log('Filtering recipients...');
+        // console.log('Filtering recipients...');
         var recipients = [];
         for (let email of to) {
             const user = await appUserCollection.find({email: email}).toArray();
-            console.log(user);
+            // console.log(user);
             if (user) {
                 const emailNotifications = user[0].emailNotifications;
                 console.log(`User: ${email}, emailNotifications: ${emailNotifications}`);
@@ -927,7 +927,7 @@ const sendEmail = async (to, subject, eventTitle, eventDate, eventStartTime, eve
             }
         }
 
-        console.log('Recipients:', recipients);
+        // console.log('Recipients:', recipients);
 
         if (recipients.length > 0) {
             const mailOptions = {
@@ -937,9 +937,9 @@ const sendEmail = async (to, subject, eventTitle, eventDate, eventStartTime, eve
                 html: str
             };
 
-            console.log('Sending email...');
+            // console.log('Sending email...');
             const info = await transporter.sendMail(mailOptions);
-            console.log(`Email sent: ${info.response}`);
+            // console.log(`Email sent: ${info.response}`);
         } else {
             console.log('No recipients with email notifications enabled.');
         }
