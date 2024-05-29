@@ -392,13 +392,14 @@ async function getdb(dbName) {
 	return type.db(dbName);
 }
 
-// Function to encrypt the PDF file
+// Function to encrypt the PDF file.
+//The buffer refers to the actual PDF file that you want to encrypt.
 function encrypt(buffer) {
     const iv = crypto.randomBytes(16);
-    //console.log('IV:', iv); // Debugging
     const cipher = crypto.createCipheriv(algorithm, Buffer.from(secretKey, 'utf8'), iv);
     const encrypted = Buffer.concat([cipher.update(buffer), cipher.final()]);
-    //console.log('Encrypted content:', encrypted); // Debugging
+    
+    //Return the IV and the encrypted data as hex strings
     return {
         iv: iv.toString('hex'),
         content: encrypted.toString('hex')
@@ -460,7 +461,7 @@ async function downloadAndDecryptFile(filePath) {
 
 //Upload files to Google Cloud
 async function uploadFileToGoogleCloud(fileBuffer, fileName) {
-    const encryptedFile = encrypt(fileBuffer);
+    const encryptedFile = encrypt(fileBuffer); // Encrypt the file first
     const bucket = googleStorage.bucket(bucketName);
     const file = bucket.file(fileName);
     const ivBuffer = Buffer.from(encryptedFile.iv, 'hex');
@@ -479,10 +480,14 @@ async function uploadFileToGoogleCloud(fileBuffer, fileName) {
     });
 }
 
+// Function to OVERWRITE a file to Google Cloud
 async function overwriteOrUploadFile(buffer, filePath) {
     const bucket = googleStorage.bucket(bucketName);
     const file = bucket.file(filePath);
+    
+    //Encrypt the file buffer
     const encryptedFile = encrypt(buffer);
+    
     const encryptedStream = Readable.from(Buffer.from(encryptedFile.content, 'hex'));
 
     return new Promise((resolve, reject) => {
@@ -528,14 +533,18 @@ app.use(async (req, res, next) => {
     res.locals.currentUrl = req.originalUrl; // I don't think we're doing any internal routing, but for safety, I'm using originalUrl instead of url to prevent issues in the future.
     if (req.session.userType === 'client') {
         let user = await appUserCollection.findOne({ email: req.session.email });
+        
+        // If the user exists and also has a companyName, find the business user with the respective name
         if (user && user.companyName) {
             let trainer = await appUserCollection.findOne({ companyName: user.companyName, userType: 'business' });
+            // If the trainer is found, set trainerAssigned to true
             res.locals.trainerAssigned = true;
             res.locals.trainer = {
                 name: trainer.companyName || '',
                 email: trainer.email || ''
             };
         } else {
+            // If there's no trainer, set trainerAssigned to false
             res.locals.trainerAssigned = false;
         }
     }
@@ -904,6 +913,7 @@ async function sendReminderEmails() {
 const sendEmail = async (to, subject, eventTitle, eventDate, eventStartTime, eventEndTime, db) => {
     try {
         // console.log('Rendering email template...');
+        // Creates and renders an email template with the provided event details
         const str = await ejs.renderFile('./views/reminderEmail.ejs', { 
             eventTitle: eventTitle,
             eventDate: eventDate,
@@ -912,7 +922,10 @@ const sendEmail = async (to, subject, eventTitle, eventDate, eventStartTime, eve
         });
 
         // console.log('Filtering recipients...');
+        // Initializes an empty array to hold all recipients
         var recipients = [];
+        
+        // This goes through the list of email addresses to check if they want to receive email notifications, and adds them to the array
         for (let email of to) {
             const user = await appUserCollection.find({email: email}).toArray();
             // console.log(user);
@@ -928,7 +941,8 @@ const sendEmail = async (to, subject, eventTitle, eventDate, eventStartTime, eve
         }
 
         // console.log('Recipients:', recipients);
-
+        
+        // If there are recipients in the array, send the email(s)
         if (recipients.length > 0) {
             const mailOptions = {
                 from: autoreply_email,
@@ -936,8 +950,8 @@ const sendEmail = async (to, subject, eventTitle, eventDate, eventStartTime, eve
                 subject: subject,
                 html: str
             };
-
-            // console.log('Sending email...');
+            
+            // Send the email
             const info = await transporter.sendMail(mailOptions);
             // console.log(`Email sent: ${info.response}`);
         } else {
@@ -1365,11 +1379,17 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
     }
 
     let validationRes = schema.validate({ dogName: req.body.dogName, dogBreed: req.body.dogBreed, specialAlerts: req.body.specialAlerts });
+    
     // Deals with errors from validation
     if (validationRes.error != null) {
-		res.render('errorMessage', {loggedIn: isValidSession(req), userType: req.session.userType, errorTitle: 'Incomplete or Invalid' , errorMsg: 'Ruh Roh! That information is invalid! Please try again.', unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
-        // let doc = '<body><p>Invalid Dog</p><br><a href="/addDog">Try again</a></body>';
-        // res.send(doc);
+		res.render('errorMessage', {
+            loggedIn: isValidSession(req), 
+            userType: req.session.userType, 
+            errorTitle: 'Incomplete or Invalid' ,
+            errorMsg: 'Ruh Roh! That information is invalid! Please try again.',
+            unreadAlerts: req.session.unreadAlerts,
+            unreadMessages: req.session.unreadMessages
+        });
         return;
     }
 
@@ -1423,7 +1443,8 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
 
             // Get the last name of the client
             let lastName = req.session.name.split(' ')[1];
-
+            
+            //Uploads the file to Google Cloud Storage
             if (fileType === 'application') {
                 let fullFileName = `${lastName}_${dogName}_${vaccineType}.pdf`;
                 let filePath = `pdfs/${fullFileName}`;
