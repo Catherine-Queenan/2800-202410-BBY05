@@ -2040,40 +2040,81 @@ app.get('/clientList', businessAuthorization, async (req, res) => {
 	// get the list of clients that are added to the logged in dog trainer
 	// !Currently, the companyName is set to null because there is no system for business view user pages at the time of writing.!
 	// clientList = await appUserCollection.find({companyName: null, userType: 'client'}).project({_id: 1, email: 1, firstName: 1, lastName: 1}).toArray();
-	const userdb = appdb.db(req.session.userdb);
-	const clientList = await userdb.collection('clients').find().project({email: 1}).toArray();
+	// const userdb = appdb.db(req.session.userdb);
+	// const clientList = await userdb.collection('clients').find().project({email: 1}).toArray();
 	// console.log(clientList);
-	let clientListArray = [];
-	clientList.forEach((client) => {
-		clientListArray.push(client.email);
-	});
+	// let clientListArray = [];
+	// clientList.forEach((client) => {
+	// 	clientListArray.push(client.email);
+	// });
 	// console.log(clientListArray);
 
 														// email: {$in: clientListArray}
-	const userClientList = await appUserCollection.find({}).project({_id: 1, email: 1, firstName: 1, lastName: 1}).toArray();
+	// const userClientList = await appUserCollection.find({}).project({_id: 1, email: 1, firstName: 1, lastName: 1}).toArray();
 	// console.log(userClientList);
 	// const ids = userClientList.map(item => item._id.toString());
 	// console.log(ids);
-	res.render('clientList', {clientArray: userClientList, loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
+
+	// Kevin - output an array of objects from client's databases that have hired this trainer
+	const userdb = appdb.db(req.session.userdb);
+	const clientList = await userdb.collection('clients').find().project({email: 1}).toArray();
+	let clientListArray = [];
+    for (let i = 0; i < clientList.length; i++) {
+        setClientDatabase(req, clientList[i].email);
+        const clientdb = appdb.db(req.session.clientdb);
+        const clientOut = await clientdb.collection('info').find().project({_id: 1, email: 1, firstName: 1, lastName: 1}).toArray();
+        clientListArray.push({
+            _id: clientOut[0]._id,
+            email: clientOut[0].email,
+            firstName: clientOut[0].firstName,
+            lastName: clientOut[0].lastName
+        });
+    }
+
+	res.render('clientList', {clientArray: clientListArray, loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
 });
 
 app.get('/clientProfile/:id', async (req, res) => {
 
 	// Get a list of all clients
-	const clients = await appUserCollection.find({userType: 'client'}).project({id: 1, email: 1, firstName: 1, lastName: 1, phone: 1}).toArray();
+	// const clients = await appUserCollection.find({userType: 'client'}).project({id: 1, email: 1, firstName: 1, lastName: 1, phone: 1}).toArray();
+	
+	// Kevin - Return an array of ids and emails from the client's database
+	const userdb = appdb.db(req.session.userdb);
+	const clients = await userdb.collection('clients').find().project({email: 1}).toArray();
+	let clientArray = [];
+	for (let i = 0; i < clients.length; i++) {
+		setClientDatabase(req, clients[i].email);
+		const clientdb = appdb.db(req.session.clientdb);
+		const client = await clientdb.collection('info').find().project({_id: 1, email: 1}).toArray();
+		clientArray.push({
+			_id: client[0]._id,
+			email: client[0].email
+		});
+	}
+	console.log("clientArray: ", clientArray);
 
 	// Map their id's to a string
-	const ids = clients.map(item => item._id.toString());
+	// const ids = clients.map(item => item._id.toString());
+	const ids = clientArray.map(item => item._id.toString());
 
 	// variable to store the client
 	let targetClient;
 
 	// loop through clients and find the target client to load the page with
-	for (let i = 0; i < clients.length; i++) {
+	// for (let i = 0; i < clients.length; i++) {
+	// 	if (ids[i] === req.params.id) {
+	// 		targetClient = clients[i];
+	// 	}
+	// }
+
+	for (let i = 0; i < clientArray.length; i++) {
 		if (ids[i] === req.params.id) {
-			targetClient = clients[i];
+			targetClient = clientArray[i];
 		}
 	}
+
+	console.log("targetClient: ", targetClient);
 
 	// used for locating the pfpUrl directory
 	const email = targetClient.email;
@@ -2121,21 +2162,45 @@ app.get('/clientProfile/:id', async (req, res) => {
 app.get('/clientProfile/:c_id/dogView/:d_id', businessAuthorization, async (req, res) => {
 
 	// Get a list of all clients
-	const clients = await appUserCollection.find({userType: 'client'}).project({id: 1, email: 1, firstName: 1, lastName: 1, phone: 1}).toArray();
+	// const clients = await appUserCollection.find({userType: 'client'}).project({id: 1, email: 1, firstName: 1, lastName: 1, phone: 1}).toArray();
 
-	console.log(clients);
+	// console.log(clients);
+
+	// Kevin - Return an array of ids and emails from the client's database
+	const userdb = appdb.db(req.session.userdb);
+	const clients = await userdb.collection('clients').find().project({email: 1}).toArray();
+	let clientArray = [];
+	for (let i = 0; i < clients.length; i++) {
+		setClientDatabase(req, clients[i].email);
+		const clientdb = appdb.db(req.session.clientdb);
+		const client = await clientdb.collection('info').find().project({_id: 1, email: 1}).toArray();
+		clientArray.push({
+			_id: client[0]._id,
+			email: client[0].email
+		});
+	}
 
 	// Map their id's to a string
-	const ids = clients.map(item => item._id.toString());
+	// const ids = clients.map(item => item._id.toString());
+
+	const ids = clientArray.map(item => item._id.toString());
 
 	// variable to store the client
 	let targetClient;
 	
 	// loop through clients and find the target client to load the page with
-	for (let i = 0; i < clients.length; i++) {
+	// for (let i = 0; i < clients.length; i++) {
+	// 	console.log(req.params.c_id +" and " + ids[i]);
+	// 	if (ids[i] === req.params.c_id) {
+	// 		targetClient = clients[i];
+	// 		console.log("match found");
+	// 	}
+	// }
+
+	for (let i = 0; i < clientArray.length; i++) {
 		console.log(req.params.c_id +" and " + ids[i]);
 		if (ids[i] === req.params.c_id) {
-			targetClient = clients[i];
+			targetClient = clientArray[i];
 			console.log("match found");
 		}
 	}

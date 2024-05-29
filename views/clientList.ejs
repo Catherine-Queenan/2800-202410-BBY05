@@ -22,7 +22,7 @@
 <script>
     let clientListSize = "<%= clientArray.length%>";
     const clients = '<%- JSON.stringify(clientArray) %>';
-    clientsParsed = JSON.parse(clients);
+    let clientsParsed = JSON.parse(clients);
 </script>
 
 <template id="clientCardTemplate">
