@@ -47,39 +47,44 @@
 			</div>
 
 			<div class="modal-footer">
-				<%- include('templates/button', {action:'',xClasses:'',xAttributes:'type=button data-bs-dismiss=modal id=nextModalButton', content:'Next'}) %>
+				<% if(clientHasTrainer) { %>
+					<%- include('templates/button', {action:'',xClasses:'',xAttributes:'id=confirmRegister type=button' , content:'Confirm'}) %>
+				<% } else { %>
+					<%- include('templates/button', {action:'',xClasses:'',xAttributes:'type=button data-bs-dismiss=modal id=nextModalButton', content:'Next'}) %>
+				<% } %>
 			</div>
 		  </div>
 		</div>
 	  </div>
 
-	  <div id="termsAndConditionsModal" class="modal fade" aria-hidden="true" tabindex="-1">
-		<div class="modal-dialog modal-xl" role="document">
-		  <div class="modal-content">
-			<div class="modal-header">
-			  <div class="modal-title ">
-				<span class="h2"><%=companyName%>'s Terms and Conditions</span>
-				<%- include('templates/button', {action:'',xClasses:'',xAttributes:'type=button data-bs-dismiss=modal', content:'Cancel'}) %>
-			  </div>
+	  <% if(!clientHasTrainer) { %>
+		<div id="termsAndConditionsModal" class="modal fade" aria-hidden="true" tabindex="-1">
+			<div class="modal-dialog modal-xl" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+				<div class="modal-title ">
+					<span class="h2"><%=companyName%>'s Terms and Conditions</span>
+					<%- include('templates/button', {action:'',xClasses:'',xAttributes:'type=button data-bs-dismiss=modal', content:'Cancel'}) %>
+				</div>
+				</div>
+				<% if(contract != ''){ %>
+					<input type="hidden" value="<%=contract%>" id="bufferString">
+					<embed class="form-control" src="" id="contractPdf" style="height: 75vh"/>
+				<% } else { %>
+					<p>This trainer has not specified any terms and conditions! Feel free to agree!</p>
+			<%  } %>
+				
+				<div class="check-buttons my-4">
+					<%- include('templates/checkmark', {classes: '', value:'agree', name:'agreement', id: 'termsAndConditions', label:"I have read and agree with the provided trainer's terms and conditions", xAttr:''}) %>
+				</div>
+				<div class="modal-footer">
+					<%- include('templates/button', {action:'',xClasses:'',xAttributes:'type=button data-bs-dismiss=modal id=backModalButton', content:'Back'}) %>
+					<%- include('templates/button', {action:'',xClasses:'',xAttributes:'id=confirmRegister type=button disabled' , content:'Confirm'}) %>
+				</div>
 			</div>
-			<% if(contract != ''){ %>
-				<input type="hidden" value="<%=contract%>" id="bufferString">
-				<embed class="form-control" src="" id="contractPdf" style="height: 75vh"/>
-				<!-- <am src="<%=contract%>">Click to download <%=companyName%>'s Contract</a> -->
-			<% } else { %>
-				<p>This trainer has not specified any terms and conditions! Feel free to agree!</p>
-		   <%  } %>
-			
-			<div class="check-buttons my-4">
-				<%- include('templates/checkmark', {classes: '', value:'agree', name:'agreement', id: 'termsAndConditions', label:"I have read and agree with the provided trainer's terms and conditions", xAttr:''}) %>
 			</div>
-			<div class="modal-footer">
-				<%- include('templates/button', {action:'',xClasses:'',xAttributes:'type=button data-bs-dismiss=modal id=backModalButton', content:'Back'}) %>
-				<%- include('templates/button', {action:'',xClasses:'',xAttributes:'id=confirmRegister type=button disabled' , content:'Confrim'}) %>
-			</div>
-		  </div>
 		</div>
-	  </div>
+	<% } %>
 	  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
 		integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
 		crossorigin="anonymous"></script>
@@ -93,47 +98,47 @@
 
 		let nextModalButton = document.getElementById('nextModalButton');
 		let backModalButton = document.getElementById('backModalButton');
+		let confirmButton = document.getElementById('confirmRegister');
 
 		let input = document.getElementById('selectedDogSave');
 
 		let modalConfirm = new bootstrap.Modal(document.getElementById('confirmationModal'));
-		let modalTerms = new bootstrap.Modal(document.getElementById('termsAndConditionsModal'));
+		if(nextModalButton){
+			let modalTerms = new bootstrap.Modal(document.getElementById('termsAndConditionsModal'));
+			let termsAndConditionCheck = document.getElementById('termsAndConditions');
 
-		let termsAndConditionCheck = document.getElementById('termsAndConditions');
-		let confirmButton = document.getElementById('confirmRegister');
+			//Dealing the file embed of the contract
+			let bufferString = document.getElementById('bufferString').value;
 
-		//Dealing the file embed of the contract
-		let bufferString = document.getElementById('bufferString').value;
-		console.log(bufferString);
-		const binaryData = atob(bufferString); // Decode the base64-encoded string
-		const byteArray = new Uint8Array(binaryData.length);
-		for (let i = 0; i < binaryData.length; i++) {
-			byteArray[i] = binaryData.charCodeAt(i);
+			const binaryData = atob(bufferString); // Decode the base64-encoded string
+			const byteArray = new Uint8Array(binaryData.length);
+			for (let i = 0; i < binaryData.length; i++) {
+				byteArray[i] = binaryData.charCodeAt(i);
+			}
+
+			let blob = new Blob([byteArray], { type: 'application/pdf' });
+
+			let contractUrl = URL.createObjectURL(blob);
+
+			document.getElementById('contractPdf').src = contractUrl;
+		
+			nextModalButton.addEventListener('click', () =>{
+				modalTerms.show();
+			});
+		
+
+			backModalButton.addEventListener('click', () =>{
+				modalConfirm.show();
+			});
+
+			termsAndConditionCheck.addEventListener('click', () => {
+				
+				confirmButton.disabled = !termsAndConditionCheck.checked;
+			});
 		}
-		console.log(byteArray);
-		let blob = new Blob([byteArray], { type: 'application/pdf' });
-		console.log(blob);
-		let contractUrl = URL.createObjectURL(blob);
-		console.log(contractUrl);
-
-		document.getElementById('contractPdf').src = contractUrl;
-
-		nextModalButton.addEventListener('click', () =>{
-			modalTerms.show();
-		});
-
-		backModalButton.addEventListener('click', () =>{
-			modalConfirm.show();
-		});
-
-		termsAndConditionCheck.addEventListener('click', () => {
-			console.log(termsAndConditionCheck.checked)
-			confirmButton.disabled = !termsAndConditionCheck.checked;
-		})
-
 	   
 		confirmButton.addEventListener('click', ()=>{
-			if(termsAndConditionCheck.checked){
+			if(!nextModalButton || termsAndConditionCheck.checked){
 				selectDogForm.submit();
 			}
 

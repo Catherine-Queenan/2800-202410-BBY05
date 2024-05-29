@@ -529,6 +529,7 @@ app.use(async (req, res, next) => {
     if (req.session.userType === 'client') {
         let user = await appUserCollection.findOne({ email: req.session.email });
         if (user && user.companyName) {
+			console.log(user.companyName.replaceAll(' ', '.'));
             let trainer = await appUserCollection.findOne({ companyName: user.companyName, userType: 'business' });
             res.locals.trainerAssigned = true;
             res.locals.trainer = {
@@ -674,7 +675,7 @@ app.post('/submitSignup/:type', async (req, res) => {
 		//Validation schema for user inputs
 		var schema = Joi.object(
 			{
-				companyName: Joi.string().pattern(/^[a-zA-Z0-9\s-']*$/).max(40).required(),
+				companyName: Joi.string().pattern(/^[a-zA-Z0-9\s\-']*$/).max(40).required(),
 				businessEmail: Joi.string().email().required(),
 				businessPhone: Joi.string().pattern(/^[0-9\s]*$/).length(10).required(),
 				firstName: Joi.string().pattern(/^[a-zA-Z\s]*$/).max(20).required(),
@@ -1855,8 +1856,14 @@ app.get('/viewBusiness/:company/register/:program', async(req, res) => {
 		};
 	})();
 
-	let program = await tempBusiness.collection('programs').find({_id: programId}).toArray();
-	let dogs = await userdb.collection('dogs').find({}).toArray();
+	let [program, dogs, userTrainer] = await Promise.all([
+		tempBusiness.collection('programs').find({_id: programId}).toArray(),
+		userdb.collection('dogs').find({}).toArray(),
+		appUserCollection.find({email: req.session.email}).toArray()
+	]);
+	
+	let clientHasTrainer = userTrainer[0].companyName != null;
+
 	for(let i = 0; i < dogs.length; i++){
 		let pic = dogs[i].dogPic;
 		if(pic != '' && pic != null){
@@ -1877,7 +1884,7 @@ app.get('/viewBusiness/:company/register/:program', async(req, res) => {
 		contractUrl = '';
 	}
 
-	res.render('hireTrainer', {loggedIn: isValidSession(req), userType: req.session.userType, program: program[0], companyName:req.params.company, contract: contractUrl, dogs: dogs, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+	res.render('hireTrainer', {loggedIn: isValidSession(req), userType: req.session.userType, program: program[0], companyName:req.params.company, contract: contractUrl, clientHasTrainer: clientHasTrainer, dogs: dogs, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
 });
 
 
@@ -1910,7 +1917,7 @@ app.post('/viewBusiness/:company/register/:program/submitRegister', async(req, r
 	companyEmail = companyEmail[0].email;
 	await Promise.all([
 		tempBusiness.collection('alerts').insertOne(request),
-		appUserCollection.updateOne({name: req.params.company, userType:'business'}, {$inc:{unreadAlerts: 1}})
+		appUserCollection.updateOne({companyName: req.params.company, userType:'business'}, {$inc:{unreadAlerts: 1}})
 	]);
 
 	res.redirect('/viewBusiness/' + req.params.company);

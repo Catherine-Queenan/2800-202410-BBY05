@@ -231,7 +231,7 @@
 	//Toggle for pricing type and price label
 	let priceLabel = document.getElementById('priceLabel');
 	let pricingToggles = document.querySelectorAll('.pricingChoice');
-
+	
 	//Delete each listed service
 	serviceButtons.forEach((button) => {
 		button.addEventListener('click', () => {
@@ -390,6 +390,13 @@
 							let serviceInputDiv = document.getElementById('addServiceInputDiv');
 							serviceInputDiv.style = 'display:none';
 
+
+							//Display Terms and Conditions upload
+							let termsAndConditionsDiv = document.getElementById('termsAndConditionsUpload');
+							termsAndConditionsDiv.style='display:none';
+							let contractMessage = document.getElementById('contractMessage');
+							contractMessage.style='display:none';
+
 							//Delete added services
 							let addedServices = document.querySelectorAll('.addedService');
 							addedServices.forEach((service) => {
@@ -435,6 +442,12 @@
 
 					let serviceInputDiv = document.getElementById('addServiceInputDiv');
 					serviceInputDiv.style = 'display:none';
+
+					//Display Terms and Conditions upload
+					let termsAndConditionsDiv = document.getElementById('termsAndConditionsUpload');
+					termsAndConditionsDiv.style='display:none';
+					let contractMessage = document.getElementById('contractMessage');
+					contractMessage.style='display:none';
 
 					//Delete added services
 					let addedServices = document.querySelectorAll('.addedService');
