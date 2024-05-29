@@ -2467,6 +2467,7 @@ app.get('/clientProfile/:id', async (req, res) => {
 	// set the databases
 	const clientdbInfo = clientdb.collection('info');
 	const clientdbDogs = clientdb.collection('dogs');
+    const clientdbPayments = clientdb.collection('outstandingBalance');
 
 	//grab the array version of the pfp url
 	pfpUrlProcessing = await clientdbInfo.find({email}).project({profilePic: 1}).toArray();
@@ -2487,8 +2488,39 @@ app.get('/clientProfile/:id', async (req, res) => {
 		}
 	}
 	// console.log(dogs);
+    
+    const records = await clientdbPayments.find({}).toArray();
 
-	res.render('viewingClientProfile', {targetClient: targetClient, pfpUrl: pfpUrl, dogs: dogs, loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+	res.render('viewingClientProfile', {
+        targetClient: targetClient,
+        pfpUrl: pfpUrl,
+        dogs: dogs,
+        records: records,
+        loggedIn: isValidSession(req),
+        userType: req.session.userType,
+        unreadAlerts: req.session.unreadAlerts
+    });
+});
+
+app.post('/updateClientPayments', async (req, res) => {
+    setClientDatabase(req, req.body.clientEmail);
+    const clientdb = appdb.db(req.session.clientdb);
+    const clientdbPayments = clientdb.collection('outstandingBalance');
+
+    const updates = Object.keys(req.body).filter(key => key.startsWith('credits-') || key.startsWith('balance-'));
+
+    for (let i = 0; i < updates.length; i++) {
+        const [field, id] = updates[i].split('-');
+        const value = req.body[updates[i]];
+
+        if (field === 'credits') {
+            await clientdbPayments.updateOne({ _id: new ObjectId(id) }, { $set: { credits: value } });
+        } else if (field === 'balance') {
+            await clientdbPayments.updateOne({ _id: new ObjectId(id) }, { $set: { outstandingBalance: value } });
+        }
+    }
+    
+    res.redirect('/clientProfile/' + req.body.clientId);
 });
 
 app.get('/dogView', businessAuthorization, async (req, res) => {
