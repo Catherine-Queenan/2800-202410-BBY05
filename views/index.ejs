@@ -174,7 +174,7 @@
 
 					<%- include('templates/homepage', { 
 						title: 'Clients', 
-						content: 'Dynamically loaded client profiles from database',
+						content: '',
 						prevClass: 'smallShadow',
 						actionOne: '/clientList',
 						classesOne: '',
@@ -185,7 +185,7 @@
 						attributesTwo: '',
 						contentTwo: 'Trusted Professionals',
 						imageUrl: 'images/DogBackdrop.png',
-						divObjectId: ''
+						divObjectId: 'clientList'
 					}) %>
 
 					<%- include('templates/homepage', { 
@@ -206,7 +206,9 @@
 				</div>
 			</div>
 		</section>
+		
 		<script src="/scripts/calendarBusinessHome.js"></script>
+		<script src="/scripts/clientListHome.js"></script>
 		<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
 	<% } %>
 </div>

@@ -2034,6 +2034,41 @@ app.get('/alerts/view/:alert', async(req, res) => {
 	}
 });
 
+app.get('/api/clients', async (req, res) => {
+    const userdb = appdb.db(req.session.userdb);
+	const clientList = await userdb.collection('clients').find().project({email: 1}).toArray();
+	// clientList = await appUserCollection.find({userType: 'client'}).project({_id: 1, email: 1, firstName: 1, lastName: 1}).toArray();
+	let clientsParsed = [];
+    for (let i = 0; i < clientList.length; i++) {
+        setClientDatabase(req, clientList[i].email);
+        const clientdb = appdb.db(req.session.clientdb);
+        const clientOut = await clientdb.collection('info').find().project({_id: 1, email: 1, firstName: 1, lastName: 1}).toArray();
+
+		const dogOut = await clientdb.collection('dogs').find().project({dogPic: 1, dogName: 1}).toArray();
+		
+		// process the cloud links
+		for(let j = 0; j < dogOut.length; j++) {
+			let dogPicUrl;
+			let dogPic = dogOut[j].dogPic
+
+			if(dogPic != '') {
+				dogPicUrl = cloudinary.url(dogPic);
+			}
+			
+			dogOut[j].dogPic = dogPicUrl;
+		}
+	
+        clientsParsed.push({
+            _id: clientOut[0]._id,
+            email: clientOut[0].email,
+            firstName: clientOut[0].firstName,
+            lastName: clientOut[0].lastName,
+			dogs: dogOut
+        });
+    }	
+	console.log(clientList)
+	res.send(clientsParsed)
+});
 
 app.get('/clientList', businessAuthorization, async (req, res) => {
 	// console.log(req.session.userType);
@@ -2095,12 +2130,12 @@ app.get('/clientList', businessAuthorization, async (req, res) => {
     }
 	// console.log("Client List Array: ", clientListArray)
 
-	for (let i = 0; i < clientListArray.length; i++) {
-		console.log(clientListArray[i].firstName, "'s dogs:");
-		for (let j = 0; j < clientListArray[i].dogs.length; j++) {
-			console.log("Dog:" + clientListArray[i].dogs[j].dogName);
-		}
-	}
+	// for (let i = 0; i < clientListArray.length; i++) {
+	// 	console.log(clientListArray[i].firstName, "'s dogs:");
+	// 	for (let j = 0; j < clientListArray[i].dogs.length; j++) {
+	// 		console.log("Dog:" + clientListArray[i].dogs[j].dogName);
+	// 	}
+	// }
 
 	res.render('clientList', {clientArray: clientListArray, loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
 });
