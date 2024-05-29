@@ -2089,8 +2089,9 @@ app.get('/clientProfile/:id', async (req, res) => {
 	const clientdbInfo = clientdb.collection('info');
 	const clientdbDogs = clientdb.collection('dogs');
 
-	targetClient = await clientdbInfo.find({}).project({_id: 1}).toArray();
-	console.log(targetClient);
+	targetClient = await clientdbInfo.find({}).toArray();
+
+
 
 	//grab the array version of the pfp url
 	pfpUrlProcessing = await clientdbInfo.find({email}).project({profilePic: 1}).toArray();
@@ -2110,15 +2111,19 @@ app.get('/clientProfile/:id', async (req, res) => {
 			dogs[i].dogPic = cloudinary.url(pic);
 		}
 	}
-	
-	res.send('construction');
-	// res.render('viewingClientProfile', {c_id: targetClient._id.toString(), targetClient: targetClient, pfpUrl: pfpUrl, dogs: dogs, loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
+
+	console.log(targetClient[0]);
+	let targetClientId = targetClient[0]._id.toString(); // USE LATER FOR REWORK. GIVES ID ENDING IN 2
+	// res.send('construction');
+	res.render('viewingClientProfile', {c_id: req.params.id, targetClient: targetClient[0], pfpUrl: pfpUrl, dogs: dogs, loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts});
 });
 
 app.get('/clientProfile/:c_id/dogView/:d_id', businessAuthorization, async (req, res) => {
 
 	// Get a list of all clients
 	const clients = await appUserCollection.find({userType: 'client'}).project({id: 1, email: 1, firstName: 1, lastName: 1, phone: 1}).toArray();
+
+	console.log(clients);
 
 	// Map their id's to a string
 	const ids = clients.map(item => item._id.toString());
@@ -2128,8 +2133,10 @@ app.get('/clientProfile/:c_id/dogView/:d_id', businessAuthorization, async (req,
 	
 	// loop through clients and find the target client to load the page with
 	for (let i = 0; i < clients.length; i++) {
+		console.log(req.params.c_id +" and " + ids[i]);
 		if (ids[i] === req.params.c_id) {
 			targetClient = clients[i];
+			console.log("match found");
 		}
 	}
 
