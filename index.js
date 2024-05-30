@@ -81,11 +81,8 @@ const autoreply_email = process.env.EMAIL_ADDRESS;
 const autoreply_email_password = process.env.EMAIL_ADDRESS_PASSWORD;
 /* END secret section */
 
-// var { database } = include('databaseConnection');
-
 //Creating a MongoClient and using it to connect to a specified database
 const MongoClient = require("mongodb").MongoClient;
-// let atlasURI = `mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/${database}?retryWrites=true`;
 const appdb = new MongoClient(`mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/${mongodb_appdb}?retryWrites=true`);
 
 // ----- Collections -----
@@ -136,7 +133,6 @@ app.use(session({
 	resave: true
 }));
 
-
 //Function to check the dates of the scheduled notifications
 async function notificationsToAlert(req){
 	if(req.session && req.session.userType == 'client'){
@@ -159,7 +155,6 @@ async function notificationsToAlert(req){
 							alertType: allNotifications[i].notifType
 						});
 					}
-					
 				}
 			}
 
@@ -229,6 +224,7 @@ async function updateUnreadMessages(req, res, next) {
 
 app.use(updateUnreadMessages);
 
+// Function that checks if the user is a client
 function isClient(req) {
 	if (req.session.userType == 'client') {
 		return true;
@@ -237,6 +233,7 @@ function isClient(req) {
 	}
 }
 
+// Function that checks if the user is a business
 function isBusiness(req) {
 	if (req.session.userType == 'business') {
 		return true;
@@ -245,6 +242,7 @@ function isBusiness(req) {
 	}
 }
 
+// Function that checks if the session is valid
 function isValidSession(req) {
 	if (req.session.authenticated) {
 		return true;
@@ -253,6 +251,7 @@ function isValidSession(req) {
 	}
 }
 
+// Middleware to validate the session. If the session is not valid, it redirects to the homepage.
 function sessionValidation(req, res, next) {
 	if (isValidSession(req)) {
 		next();
@@ -261,6 +260,7 @@ function sessionValidation(req, res, next) {
 	}
 }
 
+// Function that checks if the user is an admin
 function isAdmin(req) {
 	if (req.session.userType == 'admin') {
 		return true;
@@ -269,6 +269,7 @@ function isAdmin(req) {
 	}
 }
 
+// Middleware that allows users through if they're an administrator, otherwise presenting the unauthorized user with a 403 page
 function adminAuthorization(req, res, next) {
 	if (!isAdmin(req)) {
 		res.status(403);
@@ -278,6 +279,7 @@ function adminAuthorization(req, res, next) {
 	}
 }
 
+// Middleware that allows clients to see pages that people without an account would otherwise not be able to see.
 function clientAuthorization(req, res, next) {
 	if (!isClient(req)) {
 		res.status(403);
@@ -287,6 +289,7 @@ function clientAuthorization(req, res, next) {
 	}
 }
 
+// Middleware to authorize business users to see pages that regular client users or otherwise would not be able to see
 function businessAuthorization(req, res, next) {
 	if (!isBusiness(req)) {
 		res.status(403);
@@ -392,13 +395,14 @@ async function getdb(dbName) {
 	return type.db(dbName);
 }
 
-// Function to encrypt the PDF file
+// Function to encrypt the PDF file.
+//The buffer refers to the actual PDF file that you want to encrypt.
 function encrypt(buffer) {
     const iv = crypto.randomBytes(16);
-    //console.log('IV:', iv); // Debugging
     const cipher = crypto.createCipheriv(algorithm, Buffer.from(secretKey, 'utf8'), iv);
     const encrypted = Buffer.concat([cipher.update(buffer), cipher.final()]);
-    //console.log('Encrypted content:', encrypted); // Debugging
+    
+    //Return the IV and the encrypted data as hex strings
     return {
         iv: iv.toString('hex'),
         content: encrypted.toString('hex')
@@ -442,25 +446,9 @@ async function downloadAndDecryptFile(filePath) {
     return decryptedBuffer;
 }
 
-// // Example usage
-// (async () => {
-//     try {
-//         const filePath = `pdfs/Budd_Evin_bordatella.pdf`;
-//         const decryptedFileBuffer = await downloadAndDecryptFile(filePath);
-//         console.log('File decrypted successfully');
-        
-//         // Save the decrypted file to disk
-//         const outputPath = path.join(__dirname, 'decrypted_contract_example.pdf');
-//         fs.writeFileSync(outputPath, decryptedFileBuffer);
-//         console.log(`File saved successfully to ${outputPath}`);
-//     } catch (error) {
-//         console.error('Error decrypting file:', error);
-//     }
-// })();
-
 //Upload files to Google Cloud
 async function uploadFileToGoogleCloud(fileBuffer, fileName) {
-    const encryptedFile = encrypt(fileBuffer);
+    const encryptedFile = encrypt(fileBuffer); // Encrypt the file first
     const bucket = googleStorage.bucket(bucketName);
     const file = bucket.file(fileName);
     const ivBuffer = Buffer.from(encryptedFile.iv, 'hex');
@@ -479,10 +467,14 @@ async function uploadFileToGoogleCloud(fileBuffer, fileName) {
     });
 }
 
+// Function to OVERWRITE a file to Google Cloud
 async function overwriteOrUploadFile(buffer, filePath) {
     const bucket = googleStorage.bucket(bucketName);
     const file = bucket.file(filePath);
+    
+    //Encrypt the file buffer
     const encryptedFile = encrypt(buffer);
+    
     const encryptedStream = Readable.from(Buffer.from(encryptedFile.content, 'hex'));
 
     return new Promise((resolve, reject) => {
@@ -528,15 +520,19 @@ app.use(async (req, res, next) => {
     res.locals.currentUrl = req.originalUrl; // I don't think we're doing any internal routing, but for safety, I'm using originalUrl instead of url to prevent issues in the future.
     if (req.session.userType === 'client') {
         let user = await appUserCollection.findOne({ email: req.session.email });
+        
+        // If the user exists and also has a companyName, find the business user with the respective name
         if (user && user.companyName) {
 			console.log(user.companyName.replaceAll(' ', '.'));
             let trainer = await appUserCollection.findOne({ companyName: user.companyName, userType: 'business' });
+            // If the trainer is found, set trainerAssigned to true
             res.locals.trainerAssigned = true;
             res.locals.trainer = {
                 name: trainer.companyName || '',
                 email: trainer.email || ''
             };
         } else {
+            // If there's no trainer, set trainerAssigned to false
             res.locals.trainerAssigned = false;
         }
     }
@@ -575,13 +571,6 @@ app.get('/login/:loginType', (req, res) => {
 	// res.render('errorMessage', { errorTitle: '404', errorMsg: 'Looks like you\'re barking up the wrong tree!', loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: 0, unreadMessages: 0});
 })
 
-// I think this does nothing so I'll comment out, but delete later.
-// app.get('/business/:action', (req, res) => {
-// 	if(res.params.action == 'login'){
-// 		res.render('businessLogin', {loggedIn: isValidSession(req), userType: req.session.userType});
-// 	}
-// })
-
 //Submitting info collected from sign up forms
 app.post('/submitSignup/:type', async (req, res) => {
 	let type = req.params.type;
@@ -617,8 +606,6 @@ app.post('/submitSignup/:type', async (req, res) => {
 		if (validationRes.error != null) {
 			console.log(validationRes.error);
 			res.render('errorMessage', {loggedIn: isValidSession(req), userType: req.session.userType, errorTitle: 'Incomplete or Invalid' , errorMsg: 'Ruh Roh! That information is invalid! Please try again.', unreadAlerts: req.session.unreadAlerts, unreadMessages: 0});
-			// let doc = '<p>Invalid Signup</p><br><a href="/login/clientLogin">Try again</a></body>';
-			// res.send(doc);
 			return;
 		}
 
@@ -692,8 +679,6 @@ app.post('/submitSignup/:type', async (req, res) => {
 		if (validationRes.error != null) {
 			console.log(validationRes.error);
 			res.render('errorMessage', {loggedIn: isValidSession(req), userType: req.session.userType, errorTitle: 'Incomplete or Invalid' , errorMsg: 'Ruh Roh! That information is invalid! Please try again.', unreadAlerts: req.session.unreadAlerts, unreadMessages: 0});
-			// let doc = '<a href="/login/businessLogin">Try again</a>';
-			// res.send(doc);
 			return;
 		}
 
@@ -753,18 +738,9 @@ app.post('/submitSignup/:type', async (req, res) => {
 		});
 	}
 
-	// //Update the session for the now logged in user
-	// req.session.authenticated = true;
-	// req.session.cookie.maxAge = expireTime;
-
 	//Redirect to home
 	res.redirect('/');
 });
-
-// Deprecated: Will probable delete
-// app.get('/login', (req, res) => {
-// 	res.render('login', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType});
-// });
 
 // Handling login subission information
 app.post('/submitLogin', async (req, res) => {
@@ -785,13 +761,8 @@ app.post('/submitLogin', async (req, res) => {
 	var result = await appUserCollection.find({ email: email }).project({ email: 1, companyName: 1, firstName: 1, lastName: 1, password: 1, userType: 1, _id: 1, unreadAlerts: 1}).toArray();
 
 	// // if there are no clients, search through the admin accounts
-	// if (result.length == 0) {
-	// 	result = await adminsCollection.find({ businessEmail: email }).project({ email: 1, password: 1, _id: 1 }).toArray();
-	// }
 	if (result.length == 0) {
 		res.render('errorMessage', {loggedIn: isValidSession(req), userType: req.session.userType, errorTitle: 'No User Found' , errorMsg: 'Guard Dog on Duty! Trespassers Beware!', unreadAlerts: req.session.unreadAlerts, unreadMessages: 0});
-		// var doc = '<p>No user found</p><br><a href="/">Try again</a>';
-		// res.send(doc);
 		return;
 	}
 
@@ -877,23 +848,13 @@ async function sendReminderEmails() {
     for (const event of events) {
         const user = await appUserCollection.findOne({ email: event.userEmail });
         const eventTime = new Date(event.start);
-        //const oneDayBefore = new Date(eventTime.getTime() - 24 * 60 * 60 * 1000);
-        //const oneHourBefore = new Date(eventTime.getTime() - 60 * 60 * 1000);
-
-//        if (now >= oneDayBefore && now < oneDayBefore + 60 * 1000) {
-//            await scheduleEmail(user.email, 'Appointment Reminder', `You have an appointment scheduled for tomorrow at ${event.start}.`, 0);
-//        } else if (now >= oneHourBefore && now < oneHourBefore + 60 * 1000) {
-//            await scheduleEmail(user.email, 'Appointment Reminder', `You have an appointment scheduled in one hour at ${event.start}.`, 0);
-//        }
     }
 }
-
-//setInterval(sendReminderEmails, 15 * 60 * 1000);
 
 // This function sends other types of emails. Right now I'm adding it so that you can send appointment information. (but you can parse anything you want, really.)
 const sendEmail = async (to, subject, eventTitle, eventDate, eventStartTime, eventEndTime, db) => {
     try {
-        // console.log('Rendering email template...');
+        // Creates and renders an email template with the provided event details
         const str = await ejs.renderFile('./views/reminderEmail.ejs', { 
             eventTitle: eventTitle,
             eventDate: eventDate,
@@ -901,11 +862,12 @@ const sendEmail = async (to, subject, eventTitle, eventDate, eventStartTime, eve
             eventEndTime: eventEndTime
         });
 
-        // console.log('Filtering recipients...');
+        // Initializes an empty array to hold all recipients
         var recipients = [];
+        
+        // This goes through the list of email addresses to check if they want to receive email notifications, and adds them to the array
         for (let email of to) {
             const user = await appUserCollection.find({email: email}).toArray();
-            // console.log(user);
             if (user) {
                 const emailNotifications = user[0].emailNotifications;
                 console.log(`User: ${email}, emailNotifications: ${emailNotifications}`);
@@ -916,9 +878,8 @@ const sendEmail = async (to, subject, eventTitle, eventDate, eventStartTime, eve
                 console.log(`User not found: ${email}`);
             }
         }
-
-        // console.log('Recipients:', recipients);
-
+        
+        // If there are recipients in the array, send the email(s)
         if (recipients.length > 0) {
             const mailOptions = {
                 from: autoreply_email,
@@ -926,10 +887,9 @@ const sendEmail = async (to, subject, eventTitle, eventDate, eventStartTime, eve
                 subject: subject,
                 html: str
             };
-
-            // console.log('Sending email...');
+            
+            // Send the email
             const info = await transporter.sendMail(mailOptions);
-            // console.log(`Email sent: ${info.response}`);
         } else {
             console.log('No recipients with email notifications enabled.');
         }
@@ -937,49 +897,6 @@ const sendEmail = async (to, subject, eventTitle, eventDate, eventStartTime, eve
         console.error('Error sending email:', error);
     }
 };
-
-// Sets up a queue so that emails can be sent even if the app is closed
-// This doesn't work :(
-//let emailQueue = new Queue('emailQueue', {
-//    redis: {
-//        host: '127.0.0.1',
-//        port: 6379,
-//        maxRetriesPerRequest: 10000,
-//    },
-//    defaultJobOptions: {
-//        attempts: 10000,
-//        backoff: {
-//            type: 'exponential',
-//            delay: 60 * 1000,
-//        },
-//    },
-//});
-//
-//
-//emailQueue.process(async (job) => {
-//    console.log("We're in the email queue");
-//    const { to, subject, text } = job.data;
-//    try {
-//        sendEmail(to, subject, text); //Removed an await
-//        console.log(`Email sent successfully to ${to}`);
-//    } catch (error) {
-//        console.error(`Failed to send email to ${to}, will retry...`, error);
-//        throw error;
-//    }
-//});
-//
-//async function scheduleEmail(to, subject, text, delay) {
-//    console.log("Do we even get here 😭");
-//    try {
-//        emailQueue.add(
-//            { to, subject, text },
-//            { delay }
-//        );
-//        console.log(`Scheduled email to ${to} with subject "${subject}" and delay of ${delay}ms`);
-//    } catch (error) {
-//        console.error(`Error scheduling email to ${to}:`, error);
-//    }
-//}
 
 
 // This routing is the main page for forgetting your password.
@@ -1233,7 +1150,7 @@ app.post('/profile/edit/:editType', upload.array('accountUpload', 1), async(req,
 						await deleteUploadedImage(business[0].logo);
 						req.body.logo = await uploadImage(req.files[0], "businessLogos");
 					} else {
-						let fullFileName = `${req.session.name}_contract.pdf`;
+						let fullFileName = `${req.session.name}_contract.pdf`; // Format the file name
 						let filePath = `pdfs/${fullFileName}`;
 						let fileUrl = await uploadFileToGoogleCloud(req.files[1].buffer, filePath);
 						req.body.contract = filePath;
@@ -1371,11 +1288,17 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
     }
 
     let validationRes = schema.validate({ dogName: req.body.dogName, dogBreed: req.body.dogBreed, specialAlerts: req.body.specialAlerts });
+    
     // Deals with errors from validation
     if (validationRes.error != null) {
-		res.render('errorMessage', {loggedIn: isValidSession(req), userType: req.session.userType, errorTitle: 'Incomplete or Invalid' , errorMsg: 'Ruh Roh! That information is invalid! Please try again.', unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
-        // let doc = '<body><p>Invalid Dog</p><br><a href="/addDog">Try again</a></body>';
-        // res.send(doc);
+		res.render('errorMessage', {
+            loggedIn: isValidSession(req), 
+            userType: req.session.userType, 
+            errorTitle: 'Incomplete or Invalid' ,
+            errorMsg: 'Ruh Roh! That information is invalid! Please try again.',
+            unreadAlerts: req.session.unreadAlerts,
+            unreadMessages: req.session.unreadMessages
+        });
         return;
     }
 
@@ -1429,7 +1352,8 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
 
             // Get the last name of the client
             let lastName = req.session.name.split(' ')[1];
-
+            
+            //Uploads the file to Google Cloud Storage
             if (fileType === 'application') {
                 let fullFileName = `${lastName}_${dogName}_${vaccineType}.pdf`;
                 let filePath = `pdfs/${fullFileName}`;
@@ -1528,17 +1452,6 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
     res.redirect('/profile');
 });
 
-// Overwriting Files
-//async function overwriteOrUploadFile(buffer, filePath) {
-//    const bucket = googleStorage.bucket(bucketName);
-//    const file = bucket.file(filePath);
-//    await file.save(buffer, {
-//        contentType: 'application/pdf',
-//        resumable: false
-//    });
-//    return file.publicUrl();
-//}
-
 // Configure multer to handle fields with specific names
 const uploadFields = upload.fields([
   { name: 'rabiesUpload', maxCount: 1 },
@@ -1558,18 +1471,6 @@ app.post('/dog/:dogId/editVaccines', uploadFields, async (req, res) => {
   if (!dog) {
     return res.status(404).send('Dog not found');
   }
-
-//   // Update existing fields with incoming data
-//   dog.dogName = req.body.dogName || dog.dogName;
-//   dog.sex = req.body.sex || dog.sex;
-//   dog.birthday = req.body.birthday || dog.birthday;
-//   dog.weight = req.body.weight || dog.weight;
-//   dog.specialAlerts = req.body.specialAlerts || dog.specialAlerts;
-
-//   // Update the neutered status
-//   if (req.body.neuteredStatus) {
-//     dog.neuteredStatus = req.body.neuteredStatus;
-//   }
 
   const vaccineTypes = ['rabies', 'leptospia', 'bordatella', 'bronchiseptica', 'DA2PP'];
   let vaccineNotifs = [];
@@ -1619,13 +1520,8 @@ app.post('/dog/:dogId/editVaccines', uploadFields, async (req, res) => {
 					notifType: 'vaccineUpdate',
 					dogId: new ObjectId(dogId)
 				});
-			}	
-			
+			}
         }
-
-        // // Add to vaccineRecords array
-        // dog.vaccineRecords = dog.vaccineRecords || [];
-        // dog.vaccineRecords.push({ fileName: file.originalname, fileUrl });
       }
     }
   }
@@ -1755,13 +1651,11 @@ app.get('/findTrainer',sessionValidation, clientAuthorization, async(req, res) =
 	for(let i = 0; i < businesses.length; i++){
 		//Key is the business name
 		let name = businesses[i].companyName;
-		// console.log(name);
 
 		//Establish connection the user database
 		let db = mongodb_businessdb + '-' + name.replaceAll(/\s/g, "");
 		let userdbAccess = new MongoClient(`mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/${db}?retryWrites=true`);
 		let tempBusiness = userdbAccess.db(db);
-		// console.log(tempBusiness);
 
 		//Query for the info and trainer
 		let info = await tempBusiness.collection('info').find({companyName: name}).toArray();
@@ -1810,6 +1704,7 @@ app.get('/viewBusiness/:company', sessionValidation, clientAuthorization, async(
 			tempBusiness.collection('trainer').find({}).toArray(),
 			tempBusiness.collection('programs').find({}).toArray()
 		]);
+        
 		//Returns the query result
 		return {
 			info: info[0],
@@ -1891,19 +1786,16 @@ app.get('/viewBusiness/:company/register/:program', sessionValidation, clientAut
 	let contract = business.info.contract;
 	let contractUrl;
 	if(contract){
-
 		contract = await downloadAndDecryptFile(contract); //nodejs buffer
 
 		// Convert Node.js buffer to base64 string
 		contractUrl = Buffer.from(contract).toString('base64');
-	
 	} else {
 		contractUrl = '';
 	}
 
 	res.render('hireTrainer', {loggedIn: isValidSession(req), userType: req.session.userType, program: program[0], companyName:req.params.company, contract: contractUrl, clientHasTrainer: clientHasTrainer, dogs: dogs, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
 });
-
 
 app.post('/viewBusiness/:company/register/:program/submitRegister', async(req, res) => {
 	const userdb = appdb.db(req.session.userdb);
@@ -1938,11 +1830,6 @@ app.post('/viewBusiness/:company/register/:program/submitRegister', async(req, r
 	]);
 
 	res.redirect('/viewBusiness/' + req.params.company);
-	
-	// // CHANGE LATER TEMPORARY CODE TO AUTO HIRE THE TRAINER FOR NOW
-	// const companyName = await tempBusiness.collection('info').find().project({companyName: 1}).toArray();
-	// res.redirect('/addTrainer/' + companyName[0].companyName);
-	// res.redirect('/findTrainer');
 });
 
 app.post('/resolveAlert/:alert', async(req, res) => {
@@ -2013,7 +1900,6 @@ app.post('/resolveAlert/:alert', async(req, res) => {
 	userdb.collection('alerts').deleteOne({_id: alertId});
 	res.redirect('/alerts')
 });
-
 
 // Temporary add Trainer button for this Branch
 app.get('/addTrainer/:trainer', async (req, res) => {
@@ -2192,10 +2078,6 @@ app.post('/updateEvent', async (req, res) => {
 		}
 	});
 
-	// update using _id, but doesn't work
-	// let eventID = req.body.calModEventID;
-	// console.log(eventID);
-	// await userdb.collection('eventSource').updateOne({ _id: eventID }, { $set: {eventNew} });
 	if (calOrSess == 'calendar') {
 		res.redirect('/calendar');
 		return;
@@ -2209,10 +2091,6 @@ app.post('/removeEvent', async (req, res) => {
 	const calOrSess = req.body.calOrSess;
 
 	const userdb = appdb.db(req.session.userdb);
-
-	// Delete by _id, but doesn't work
-	// let eventID = req.body.calModEventID;
-	// await userdb.collection('eventSource').deleteOne({ _id: eventID});
 
 	const calTitle = req.body.calModTitleOrig;
 	const calStart = req.body.calModStartOrig;
@@ -2422,9 +2300,21 @@ app.get('/alerts', sessionValidation, async(req, res)=>{
 	await updateUnreadAlertsMidCode(req);
 	
 	if(req.session.userType == 'business'){
-		res.render('businessAlerts', {loggedIn: isValidSession(req), userType: req.session.userType, alerts: alerts, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+		res.render('businessAlerts', {
+            loggedIn: isValidSession(req),
+            userType: req.session.userType,
+            alerts: alerts,
+            unreadAlerts: req.session.unreadAlerts,
+            unreadMessages: req.session.unreadMessages
+        });
 	} else {
-		res.render('clientAlerts', {loggedIn: isValidSession(req), userType: req.session.userType, alerts: alerts, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+		res.render('clientAlerts', {
+            loggedIn: isValidSession(req),
+            userType: req.session.userType,
+            alerts: alerts,
+            unreadAlerts: req.session.unreadAlerts,
+            unreadMessages: req.session.unreadMessages
+        });
 	}
 });
 
@@ -2474,7 +2364,15 @@ app.get('/alerts/view/:alert', sessionValidation, async(req, res) => {
 			dog[0].dogPic = cloudinary.url(dog[0].dogPic);
 		}
 
-		res.render('hireAlertView', {loggedIn: isValidSession(req), userType: req.session.userType, alert: alert[0], dog: dog[0], address: address[0].address, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+		res.render('hireAlertView', {
+            loggedIn: isValidSession(req),
+            userType: req.session.userType,
+            alert: alert[0],
+            dog: dog[0],
+            address: address[0].address,
+            unreadAlerts: req.session.unreadAlerts,
+            unreadMessages: req.session.unreadMessages
+        });
 	} else {
 		res.redirect('/');
 	}
@@ -2519,8 +2417,6 @@ app.get('/api/clients', async (req, res) => {
 app.get('/clientList', sessionValidation, businessAuthorization, async (req, res) => {
 	// console.log(req.session.userType);
 	// get the list of clients that are added to the logged in dog trainer
-	// !Currently, the companyName is set to null because there is no system for business view user pages at the time of writing.!
-	// clientList = await appUserCollection.find({companyName: null, userType: 'client'}).project({_id: 1, email: 1, firstName: 1, lastName: 1}).toArray();
 	// const userdb = appdb.db(req.session.userdb);
 	// const clientList = await userdb.collection('clients').find().project({email: 1}).toArray();
 	// console.log(clientList);
@@ -2528,7 +2424,6 @@ app.get('/clientList', sessionValidation, businessAuthorization, async (req, res
 	// clientList.forEach((client) => {
 	// 	clientListArray.push(client.email);
 	// });
-	// console.log(clientListArray);
 
 														// email: {$in: clientListArray}
 	// const userClientList = await appUserCollection.find({}).project({_id: 1, email: 1, firstName: 1, lastName: 1}).toArray();
@@ -2636,10 +2531,6 @@ app.get('/clientProfile/:id', sessionValidation,  businessAuthorization, async (
 
 	// used for locating the pfpUrl directory
 	const email = targetClient.email;
-
-	// // parse the email to be a dbname
-	// const emailParsed = targetClient.email.split('.').join('');
-	// const dbName = mongodb_clientdb + '-' + emailParsed;
 
 	setClientDatabase(req, email);
 	const clientdb = appdb.db(req.session.clientdb);
