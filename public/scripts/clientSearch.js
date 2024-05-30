@@ -1,6 +1,26 @@
-document.addEventListener('DOMContentLoaded', () => {
+
+
+document.addEventListener('DOMContentLoaded', async () => {
     const clientListing = document.getElementById('clientListing');
     clientListing.innerHTML = '';
+
+
+
+    async function fetchClients() {
+        const response = await fetch('/api/clients');
+        if (response.ok) {
+            const clients = await response.json();
+            return clients;
+        } else {
+            console.error('Failed to fetch clients');
+            return [];
+        }
+    }
+    
+    let clientsParsed = await fetchClients();
+
+
+
 
     clientsParsed.forEach((person) => {
         let template = document.getElementById('clientCardTemplate').innerHTML;
@@ -69,9 +89,22 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('loaded page');
 });
 
-document.getElementById('searchInput').addEventListener('input', (event) => {
+document.getElementById('searchInput').addEventListener('input', async (event) => {
     const searchTerm = event.target.value.toLowerCase();
     const clientListing = document.getElementById('clientListing');
+
+    async function fetchClients() {
+        const response = await fetch('/api/clients');
+        if (response.ok) {
+            const clients = await response.json();
+            return clients;
+        } else {
+            console.error('Failed to fetch clients');
+            return [];
+        }
+    }
+    
+    let clientsParsed = await fetchClients();
 
     // Clear the client listing before populating it with search results
     clientListing.innerHTML = '';
