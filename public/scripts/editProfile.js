@@ -10,7 +10,9 @@ let emailNotifications = document.getElementById('emailNotifications');
 let editButton = document.getElementById('editButton');
 
 let originalValues = {};
+let profileEditable = false;
 editButton.addEventListener('click', () => {
+    profileEditable = true;
     inputs.forEach((input) => {
         input.disabled = false;
         originalValues[input.name] = input.value;
@@ -28,20 +30,23 @@ editButton.addEventListener('click', () => {
 
 cancelButtons.forEach((button) => {
     button.addEventListener('click', () => {
-        cancelButton.style = 'display:none';
+        if(profileEditable){
+            profileEditable = false;
+            cancelButton.style = 'display:none';
         
-        inputs.forEach((input) => {
-            input.disabled = true;
-            input.value = originalValues[input.name];
-        });
-    
-        picInput.style = 'display:none';
-        emailNotifications.disabled = true;
-    
-        saveButton.style = 'display:none';
-        editButton.style = 'display:inline';
-    
-        dogs.style = 'display:block';
+            inputs.forEach((input) => {
+                input.disabled = true;
+                input.value = originalValues[input.name];
+            });
+        
+            picInput.style = 'display:none';
+            emailNotifications.disabled = true;
+        
+            saveButton.style = 'display:none';
+            editButton.style = 'display:inline';
+        
+            dogs.style = 'display:block';
+        }
     });
 });
 
