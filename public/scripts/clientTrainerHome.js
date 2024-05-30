@@ -15,10 +15,12 @@ async function showTrainer() {
     }
 
     let doc = `
+    <a href="viewBusiness/${trainer.companyName}">
         <div class="d-flex">
             <img src="${logo}" class="rounded-circle" style="width:80px; height: 80px; object-fit: cover;">
             <span class="card-title h4 text-center yeseva-one align-content-center">${trainer.companyName}</span>
         </div>
+        </a>
     `;
     trainerShow.innerHTML = doc;
 }
