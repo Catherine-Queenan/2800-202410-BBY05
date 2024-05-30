@@ -5,7 +5,7 @@ clientListing.classList.remove('d-none');
 
 
 document.addEventListener('DOMContentLoaded', async () => {
-    
+
     clientListing.innerHTML = '';
 
     async function fetchClients() {
@@ -29,9 +29,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         let tempDiv = document.createElement('div');
         tempDiv.innerHTML = template;
 
-        let profileLink = tempDiv.querySelector('.profileLink');
-        profileLink.setAttribute('formaction', `/clientProfile/${person._id}`);
-
         let dogsContainer = tempDiv.querySelector('.dogsContainer');
         dogsContainer.innerHTML = '';
 
@@ -45,20 +42,17 @@ document.addEventListener('DOMContentLoaded', async () => {
                 dogPicElement.classList.add('rounded-circle', 'profileImg-style');
 
                 let imgElement = document.createElement('img');
-                if(!dog.dogPic  || dog.dogPic == ''){
+                if(!dog.dogPic || dog.dogPic == ''){
                     dog.dogPic = 'images/DefaultAvatar.png';
                 }
                 imgElement.src = dog.dogPic;
                 imgElement.alt = dog.dogName;
-                imgElement.className = 'dogPic';
-                imgElement.classList.add('rounded-circle', 'profileImg-style');
-                
+                imgElement.classList.add('rounded-circle', 'profileImg-style', 'dogPic');
 
                 dogPicElement.appendChild(imgElement);
 
                 let dogNameElement = document.createElement('div');
-                dogNameElement.className = 'dogName';
-                dogNameElement.classList.add('CLASSES-FOR-DOG-NAME-TEXT-HERE');
+                dogNameElement.classList.add('dogName', 'CLASSES-FOR-DOG-NAME-TEXT-HERE');
                 dogNameElement.textContent = dog.dogName;
 
                 housingDiv.appendChild(dogPicElement);
@@ -67,18 +61,23 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         }
 
-        return tempDiv.firstElementChild;
+        // Wrap the client card in an anchor element
+        let anchor = document.createElement('a');
+        anchor.href = `/clientProfile/${person._id}`;
+        anchor.appendChild(tempDiv.firstElementChild);
+
+        return anchor;
     }
 
     const clientsParsed = await fetchClients();
 
     clientsParsed.forEach(person => {
         const clientCard = createClientCard(person);
-        console.log(clientCard)
         clientListing.appendChild(clientCard);
     });
 
     console.log('Client list loaded');
 });
+
 
 
