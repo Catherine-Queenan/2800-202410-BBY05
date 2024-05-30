@@ -160,7 +160,7 @@
 
 							<div class="form-group">
 								<label id="priceLabel"
-								 for="price">Hourly Rate:</label>
+								 for="price">Hourly Rate (in Dollars):</label>
 								<input class="newProgramInfo" type="number" id="price" name="price" min="0" step="0.01" required/>
 							</div>
 
@@ -512,7 +512,7 @@
 	pricingToggles.forEach((toggle) => {
 		toggle.addEventListener('change', () => {
 			if(toggle.checked){
-				priceLabel.innerHTML = toggle.value + ":";
+				priceLabel.innerHTML = toggle.value + "(in Dollars):";
 			}
 		});
 	});
