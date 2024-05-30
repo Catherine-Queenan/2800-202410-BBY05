@@ -1974,7 +1974,7 @@ app.post('/getThisEvent', async (req, res) => {
 	let result;
 	if (isBusiness(req)) {
 		const userdb = appdb.db(req.session.userdb);
-		result = await userdb.collection('eventSource').find(event).project({_id: 1, client: 1, info: 1}).toArray();
+		result = await userdb.collection('eventSource').find(event).project({_id: 1, client: 1, info: 1, notes: 1}).toArray();
 	} else if (isClient(req)) {
 		const trainerdb = appdb.db(req.session.trainerdb);
 		result = await trainerdb.collection('eventSource').find(event).project({_id: 1, trainer: 1, info: 1}).toArray();
@@ -2000,13 +2000,15 @@ app.post('/addEvent', async (req, res) => {
     const trainerName = req.session.name;
     const clientEmail = req.body.calModClient;
     const eventInfo = req.body.calModInfo;
+	const eventNotes = req.body.calModNotes;
     const event = {
         title: req.body.calModTitle,
         start: startDateStr,
         end: endDateStr,
         trainer: trainerName,
         client: clientEmail,
-        info: eventInfo
+        info: eventInfo,
+		notes: eventNotes
     };
 
     // Check for duplicate event
@@ -2046,37 +2048,70 @@ app.post('/updateEvent', async (req, res) => {
 	const date = req.body.calModDate;
 	const startNew = date + "T" + req.body.calModStartHH + ":" + req.body.calModStartMM + ":00";
 	const endNew = date + "T" + req.body.calModEndHH + ":" + req.body.calModEndMM + ":00";
-	const eventOrig = {
-		title: req.body.calModTitleOrig,
-		start: req.body.calModStartOrig,
-		end: req.body.calModEndOrig,
-		client: req.body.calModEmailOrig,
-		info: req.body.calModInfoOrig
-	}
-
-	const eventNew = {
-		title: req.body.calModTitle,
-		start: startNew,
-		end: endNew,
-		client: req.body.calModEmail,
-		info: req.body.calModInfo
-	}
-
-	await userdb.collection('eventSource').updateOne({
-		title: eventOrig.title,
-		start: eventOrig.start,
-		end: eventOrig.end,
-		client: eventOrig.client,
-		info: eventOrig.info
-	}, {
-		$set: {
-			title: eventNew.title,
-			start: eventNew.start,
-			end: eventNew.end,
-			client: eventNew.client,
-			info: eventNew.info
+	if (req.body.eventPassed == 'false') {
+		const eventOrig = {
+			title: req.body.calModTitleOrig,
+			start: req.body.calModStartOrig,
+			end: req.body.calModEndOrig,
+			client: req.body.calModEmailOrig,
+			info: req.body.calModInfoOrig
 		}
-	});
+
+		const eventNew = {
+			title: req.body.calModTitle,
+			start: startNew,
+			end: endNew,
+			client: req.body.calModEmail,
+			info: req.body.calModInfo
+		}
+
+		await userdb.collection('eventSource').updateOne({
+			title: eventOrig.title,
+			start: eventOrig.start,
+			end: eventOrig.end,
+			client: eventOrig.client,
+			info: eventOrig.info
+		}, {
+			$set: {
+				title: eventNew.title,
+				start: eventNew.start,
+				end: eventNew.end,
+				client: eventNew.client,
+				info: eventNew.info
+			}
+		});
+	} else {
+		const eventOrig = {
+			title: req.body.calModTitleOrig,
+			start: req.body.calModStartOrig,
+			end: req.body.calModEndOrig,
+			client: req.body.calModEmailOrig,
+			info: req.body.calModInfoOrig,
+			notes: req.body.calModNotesOrig
+		}
+		const eventNew = {
+			notes: req.body.calModNotes
+		}
+
+		await userdb.collection('eventSource').updateOne({
+			title: eventOrig.title,
+			start: eventOrig.start,
+			end: eventOrig.end,
+			client: eventOrig.client,
+			info: eventOrig.info,
+			notes: eventOrig.notes
+		}, {
+			$set: {
+				title: eventOrig.title,
+				start: eventOrig.start,
+				end: eventOrig.end,
+				client: eventOrig.client,
+				info: eventOrig.info,
+				notes: eventNew.notes
+			}
+		});
+	}
+
 
 	if (calOrSess == 'calendar') {
 		res.redirect('/calendar');

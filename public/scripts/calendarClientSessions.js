@@ -24,28 +24,28 @@ document.addEventListener('DOMContentLoaded', function () {
 			let modalBody = `
 			<div class="mb-3">
 				<label for="calModTitle" class="form-label h3 modal-heading">Session Title</label>
-				<input type="text" class="form-control text-center" disabled name="calModTitle" id="calModTitle" value="${modTitle}">
+				<input type="text" class="form-control auto-resize text-center" disabled name="calModTitle" id="calModTitle" value="${modTitle}">
 			</div>
 
 			<div class="mb-3">
 				<label for="calModTrainer" class="form-label h3 modal-heading">Trainer</label>
-				<input type="text" class="form-control text-center" disabled name="calModTrainer" id="calModTrainer">
+				<input type="text" class="form-control auto-resize text-center" disabled name="calModTrainer" id="calModTrainer">
 			</div>
 
 			<div class="mb-3">
 				<label for="calModStart" class="form-label h3 modal-heading">Start Time</label>
-				<input type="text" class="form-control text-center" disabled name="calModStart" id="calModStart" value="${modStartTime}">
+				<input type="text" class="form-control auto-resize text-center" disabled name="calModStart" id="calModStart" value="${modStartTime}">
 			</div>
 
 			<div class="mb-3">
 				<label for="calModEnd" class="form-label h3 modal-heading">End Time</label>
-				<input type="text" class="form-control text-center" disabled name="calModEnd" id="calModEnd" value="${modEndTime}">
+				<input type="text" class="form-control auto-resize text-center" disabled name="calModEnd" id="calModEnd" value="${modEndTime}">
 			</div>
 
 			<div class="mb-3">
 				<label for="calModInfo" class="form-label h3 modal-heading">Info</label>
 				<div class="input-group">
-					<textarea class="form-control text-center" disabled name="calModInfo" id="calModInfo"></textarea>
+					<textarea class="form-control auto-resize text-center" disabled name="calModInfo" id="calModInfo"></textarea>
 				</div>
 			</div>
 

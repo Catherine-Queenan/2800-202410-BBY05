@@ -27,17 +27,20 @@ document.addEventListener('DOMContentLoaded', function () {
 			let modEndHH = info.event.end.toLocaleString([], {hour:"2-digit", hour12:false}).padStart(2, '0');
 			let modEndMM = info.event.end.toLocaleString([], {minute:"2-digit"}).padStart(2, '0');
 
+			let eventPassed = false; // If Event has passed
+
 			// This will fill the modal with the event info
 			let modalBody = `
 			<div class="mb-3">
 				<label for="calModTitle" class="form-label h5 modal-heading">Session Title</label>
 				<input type="text" class="form-control d-none" name="calOrSess" value="calendar">
 				<input type="text" class="form-control d-none" name="calModEventID" id="calModEventID">
+				<input type="text" class="form-control d-none" name="eventPassed" id="eventPassed" value=${eventPassed}>
 				<input type="text" class="form-control d-none" name="calModDate" value="${info.event.start.toLocaleDateString("en-CA")}">
 				<input type="text" class="form-control d-none" name="calModTitleOrig" id="calModTitleOrig" value="${modTitle}">
 				<input type="text" class="form-control d-none" name="calModStartOrig" id="calModStartOrig" value="${formatDate(modStartOrig)}">
 				<input type="text" class="form-control d-none" name="calModEndOrig" id="calModEndOrig" value="${formatDate(modEndOrig)}">
-				<input type="text" class="form-control text-center" disabled name="calModTitle" id="calModTitle" value="${modTitle}">
+				<input type="text" class="form-control auto-resize text-center" disabled name="calModTitle" id="calModTitle" value="${modTitle}">
 			</div>
 
 			<div class="mb-3">
@@ -97,10 +100,16 @@ document.addEventListener('DOMContentLoaded', function () {
 				<label for="calModInfo" class="form-label h5 modal-heading">Info</label>
 				<div class="input-group">
 					<input type="text" class="form-control d-none" name="calModInfoOrig" id="calModInfoOrig">
-					<textarea class="form-control text-center" disabled name="calModInfo" id="calModInfo"></textarea>
+					<textarea class="form-control auto-resize text-center" disabled name="calModInfo" id="calModInfo"></textarea>
 				</div>
 			</div>
-				
+
+			<div class="mb-3 d-none" id="notesDiv">
+				<label for="calModNotes" class="form-label h5 modal-heading">Post Session Notes</label>
+				<div class="input-group">
+					<input type="text" class="form-control d-none" name="calModNotesOrig" id="calModNotesOrig">
+					<textarea class="form-control auto-resize text-center" disabled name="calModNotes" id="calModNotes"></textarea>
+				</div>
 			</div>
 
 			<div class="modal-footer">
@@ -136,6 +145,21 @@ document.addEventListener('DOMContentLoaded', function () {
 			}
 			getClients();
 
+			// The following code is to check if this session has already passed
+			const notesDiv = document.getElementById("notesDiv");
+
+			function checkDate() {
+				const today = new Date();
+				const thisEndDate = new Date(modEndOrig);
+				if (today > thisEndDate) {
+					eventPassed = true;
+					const eventPassedDiv = document.getElementById('eventPassed');
+					eventPassedDiv.value = true;
+					notesDiv.classList.remove('d-none');
+				}
+			}
+			checkDate();
+
 			// Containing all above buttons and input fields in variables
 			let editButton = document.getElementById("calModEdit");
 			let deleteButton = document.getElementById("deleteButton");
@@ -147,22 +171,27 @@ document.addEventListener('DOMContentLoaded', function () {
 			let calModEndHHEdit = document.getElementById("calModEndHH");
 			let calModEndMMEdit = document.getElementById("calModEndMM");
 			let calModInfoEdit = document.getElementById("calModInfo");
+			let calModNotesEdit = document.getElementById("calModNotes");
 
 			editButton.addEventListener("click", onEditClick, false);
 
 			// Enables editing
 			function onEditClick() {
-				modal.show();
-				calModTitleEdit.removeAttribute("disabled");
-				calModEmailEdit.removeAttribute("disabled");
-				calModStartHHEdit.removeAttribute("disabled");
-				calModStartMMEdit.removeAttribute("disabled");
-				calModEndHHEdit.removeAttribute("disabled");
-				calModEndMMEdit.removeAttribute("disabled");
-				calModInfoEdit.removeAttribute("disabled");
+				if (!eventPassed) {
+					calModTitleEdit.removeAttribute("disabled");
+					calModEmailEdit.removeAttribute("disabled");
+					calModStartHHEdit.removeAttribute("disabled");
+					calModStartMMEdit.removeAttribute("disabled");
+					calModEndHHEdit.removeAttribute("disabled");
+					calModEndMMEdit.removeAttribute("disabled");
+					calModInfoEdit.removeAttribute("disabled");
+					deleteButton.classList.remove("d-none");					
+				} else {
+					calModNotesEdit.removeAttribute("disabled");
+				}
 				editButton.classList.add("d-none");
-				deleteButton.classList.remove("d-none");
 				saveButton.classList.remove("d-none");
+				validateForm();
 			}
 
 			// This function checks the form and disables the save button if end time < start time
@@ -193,14 +222,12 @@ document.addEventListener('DOMContentLoaded', function () {
 			calModEndHHEdit.addEventListener('change', validateForm, false);
 			calModEndMMEdit.addEventListener('change', validateForm, false);
 
-			validateForm();
-
 			// Getting extra info from database
 			let titleOrig = document.getElementById('calModTitle').value;
 			let startOrig = document.getElementById('calModStartOrig').value;
 			let endOrig = document.getElementById('calModEndOrig').value;
 
-			let thisEvent, eventID, eventEmail, eventInfo;
+			let thisEvent, eventID, eventEmail, eventInfo, eventNotes;
 			function getThisEvent() {
 
 				$.ajax({
@@ -217,12 +244,15 @@ document.addEventListener('DOMContentLoaded', function () {
 						eventID = thisEvent[0]._id;
 						eventEmail = thisEvent[0].client;
 						eventInfo = thisEvent[0].info;
+						eventNotes = thisEvent[0].notes;
 						// From database
 						let modEventID = document.getElementById('calModEventID');
 						let modEmailOrig = document.getElementById('calModEmailOrig');
 						let modEmail = document.getElementById('selectedClient');
 						let modInfoOrig = document.getElementById('calModInfoOrig');
 						let modInfo = document.getElementById('calModInfo');
+						let modNotesOrig = document.getElementById('calModNotesOrig');
+						let modNotes = document.getElementById('calModNotes');
 
 						modEventID.setAttribute('value', eventID);
 						modEmailOrig.setAttribute('value', eventEmail);
@@ -230,6 +260,8 @@ document.addEventListener('DOMContentLoaded', function () {
 						modEmail.innerText = eventEmail;
 						modInfoOrig.setAttribute('value', eventInfo);
 						modInfo.innerText = eventInfo;
+						modNotesOrig.setAttribute('value', eventNotes);
+						modNotes.innerText = eventNotes;
 					},
 					error: function(xhr, status, error) {
 						console.error("Error: ", error);
@@ -306,6 +338,13 @@ document.addEventListener('DOMContentLoaded', function () {
 				<label for="calModInfo" class="form-label h5 modal-heading">Info</label>
 				<div class="input-group">
 					<textarea class="form-control auto-resize" name="calModInfo" id="calModInfo"></textarea>
+				</div>
+			</div>
+
+			<div class="mb-3 d-none">
+				<label for="calModNotes" class="form-label h5 modal-heading">Info</label>
+				<div class="input-group">
+					<textarea class="form-control auto-resize" name="calModNotes" id="calModNotes"></textarea>
 				</div>
 			</div>
 
