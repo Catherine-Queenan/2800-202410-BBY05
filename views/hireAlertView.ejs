@@ -1,7 +1,7 @@
 <%- include("templates/header") %>
 <div class="profile-container my-4 mx-4">
     <h1 class="text-center mb-4 yeseva-one">Hire Request</span> from <%=alert.clientName%></h1>
-    <h4 class="karla-heavy">They are interest in enrolling their dog <span class="fw-bold"><%=alert.dogName%></span> in the <span class="fw-bold"><%=alert.programName%> Program</span></h4>
+    <h4 class="karla-heavy">They are interested in enrolling their dog <span class="fw-bold"><%=alert.dogName%></span> in the <span class="fw-bold"><%=alert.programName%> Program</span></h4>
     <form method="post" class="my-3 d-flex justify-content-between">
         <%- include('templates/button', {action:'/resolveAlert/' + alert._id,xClasses:'btn-danger',xAttributes:'name=resolve value=reject',content:'Reject'}) %>
         <%- include('templates/button', {action:'/resolveAlert/' + alert._id,xClasses:'',xAttributes:'name=resolve value=accept',content:'Accept Request'}) %>
