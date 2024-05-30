@@ -8,9 +8,12 @@ let cancelButton = document.getElementById('cancelEdit');
 let emailNotifications = document.getElementById('emailNotifications');
 
 let editButton = document.getElementById('editButton');
+
+let originalValues = {};
 editButton.addEventListener('click', () => {
     inputs.forEach((input) => {
         input.disabled = false;
+        originalValues[input.name] = input.value;
     });
 
     picInput.style = 'display:block';
@@ -29,6 +32,7 @@ cancelButtons.forEach((button) => {
         
         inputs.forEach((input) => {
             input.disabled = true;
+            input.value = originalValues[input.name];
         });
     
         picInput.style = 'display:none';
