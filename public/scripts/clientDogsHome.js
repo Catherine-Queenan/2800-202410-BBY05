@@ -1,6 +1,6 @@
 // Display the trainer company name and logo
 const dogsShow = document.getElementById('dogs');
-dogsShow.classList.add('bg-transparent', 'p-3', 'rounded', 'd-flex');
+dogsShow.classList.add('bg-transparent', 'p-3', 'rounded', 'd-flex', 'profile-card-border',);
 dogsShow.classList.remove('d-none');
 
 async function showDogs() {

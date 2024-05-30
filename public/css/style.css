@@ -120,6 +120,12 @@
     border-radius:1px;
   }
 
+  .profile-card-border {
+    border: 2px solid #F0F1FA;
+    border-radius:1px;
+    box-shadow: 2px 2px 0 0 #201335bc;
+  }
+
   .card {
     border: none;
     background-color:#20133541;

@@ -1,6 +1,6 @@
 // Displays the previously hidden sessionList
 const clientListing = document.getElementById('clientList');
-clientListing.classList.add('bg-transparent', 'pb-3', 'rounded');
+clientListing.classList.add('bg-transparent', 'p-3', 'rounded', 'profile-card-border', 'd-flex', 'flex-wrap', 'justify-content-center');
 clientListing.classList.remove('d-none');
 
 
@@ -39,10 +39,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (person.dogs) {
             person.dogs.forEach(dog => {
                 let housingDiv = document.createElement('div');
-                housingDiv.classList.add('CLASSES-FOR-HOUSING-DIV-HERE');
+                housingDiv.classList.add('d-flex', 'flex-column', 'align-items-center', 'justify-content-center',);
 
                 let dogPicElement = document.createElement('div');
-                dogPicElement.classList.add('rounded-circle', 'profileImg-style');
+                dogPicElement.classList.add('rounded-circle', 'profileImg-style', 'm-2');
 
                 let imgElement = document.createElement('img');
                 if(!dog.dogPic  || dog.dogPic == ''){
@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 let dogNameElement = document.createElement('div');
                 dogNameElement.className = 'dogName';
-                dogNameElement.classList.add('CLASSES-FOR-DOG-NAME-TEXT-HERE');
+                dogNameElement.classList.add('h3');
                 dogNameElement.textContent = dog.dogName;
 
                 housingDiv.appendChild(dogPicElement);

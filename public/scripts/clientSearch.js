@@ -26,30 +26,12 @@ document.addEventListener('DOMContentLoaded', () => {
         // Clear any existing content in the dogsContainer
         dogsContainer.innerHTML = '';
 
-        /*
-            Over here look
-             look over here
-              look over here
-               look over here
-                look over here
-                 look over here 
-                  look over here
-                   look over here
-                    look over here 
-                     look over here
-                      look over here
-                       look over here
-                        look over here
-                         look over here
-                          look over here
-                          there is a second foreach loop that you need to add 
-                          your classes to (using the same classes)
-        */
+        // Iterate over each dog and append its name to the dogsContainer
         person.dogs.forEach(dog => {
 
             // Create the containing div
             let housingDiv = document.createElement('div');
-            housingDiv.classList.add('CLASSES-FOR-HOUSING-DIV-HERE');
+            housingDiv.classList.add('d-flex', 'flex-column', 'align-items-center', 'justify-content-center',);
 
             // Create a div for the dog's picture
             let dogPicElement = document.createElement('div');
@@ -63,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
             imgElement.src = dog.dogPic; 
             imgElement.alt = dog.dogName;
             imgElement.className = 'dogPic';
-            imgElement.classList.add('rounded-circle', 'profileImg-style');
+            imgElement.classList.add('rounded-circle', 'profileImg-style', 'm-2');
 
             // Append the img element to the dogPicElement
             dogPicElement.appendChild(imgElement);
@@ -71,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Create a div for the dog's name
             let dogNameElement = document.createElement('div');
             dogNameElement.className = 'dogName';
-            dogNameElement.classList.add('CLASSES-FOR-DOG-NAME-TEXT-HERE');
+            dogNameElement.classList.add('rounded-circle', 'profileImg-style', 'm-2');
             dogNameElement.textContent = dog.dogName;
             
 
@@ -121,41 +103,23 @@ document.getElementById('searchInput').addEventListener('input', (event) => {
             // Clear any existing content in the dogsContainer
             dogsContainer.innerHTML = '';
 
-            /*
-            Over here look
-             look over here
-              look over here
-               look over here
-                look over here
-                 look over here 
-                  look over here
-                   look over here
-                    look over here 
-                     look over here
-                      look over here
-                       look over here
-                        look over here
-                         look over here
-                          look over here
-                          Add your classes here as well
-        */
             // Iterate over each dog and append its name to the dogsContainer
             person.dogs.forEach(dog => {
 
                 // Create the containing div
                 let housingDiv = document.createElement('div');
-                housingDiv.classList.add('CLASSES-FOR-HOUSING-DIV-HERE');
+                housingDiv.classList.add('d-flex', 'flex-column', 'align-items-center', 'justify-content-center',);
     
                 // Create a div for the dog's picture
                 let dogPicElement = document.createElement('div');
-                dogPicElement.classList.add('CLASSES-FOR-DOG-PICTURE-DIV-HERE');
+                dogPicElement.classList.add('rounded-circle', 'profileImg-style', 'm-2');
     
                 // Create an img element for the dog's picture
                 let imgElement = document.createElement('img');
                 imgElement.src = dog.dogPic; 
                 imgElement.alt = dog.dogName;
                 imgElement.className = 'dogPic';
-                imgElement.classList.add('IMAGE-CLASSES-HERE-IF-NEEDED');
+                imgElement.classList.add('rounded-circle', 'profileImg-style', 'm-2');
                 
     
                 // Append the img element to the dogPicElement
