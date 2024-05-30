@@ -605,7 +605,7 @@ app.post('/submitSignup/:type', async (req, res) => {
 			firstName: req.body.firstName,
 			lastName: req.body.lastName,
 			email: req.body.email,
-			phone: req.body.phone.replace(/ /g,''),
+			phone: req.body.phone.replaceAll(' ','').replaceAll('-', ''),
 			address: req.body.address,
 			password: req.body.password
 		};
@@ -693,7 +693,7 @@ app.post('/submitSignup/:type', async (req, res) => {
 		var user = {
 			companyName: req.body.companyName,
 			companyEmail: req.body.businessEmail,
-			comapnyPhone: req.body.businessPhone.replace(/ /g,''),
+			companyPhone: req.body.businessPhone.replaceAll(' ','').replaceAll('-', ''),
 			firstName: req.body.firstName,
 			lastName: req.body.lastName,
 			companyWebsite: req.body.companyWebsite,
