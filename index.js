@@ -1088,8 +1088,7 @@ app.get('/profile', sessionValidation, async(req, res) => {
 	}
 });
 
-app.get('/clientTrainer', sessionValidation, clientAuthorization, async(req, res) => {
-	console.log(req.session.trainerdb);
+app.get('/clientTrainerHome', sessionValidation, clientAuthorization, async(req, res) => {
 	if(req.session.trainerdb){
 		const trainerdb = appdb.db(req.session.trainerdb);
 		let business = await trainerdb.collection('info').find({}).toArray();
@@ -1103,6 +1102,19 @@ app.get('/clientTrainer', sessionValidation, clientAuthorization, async(req, res
 		res.render('errorMessage', { errorTitle: '404', errorMsg: 'Looks like you\'re barking up the wrong tree!', loggedIn: isValidSession(req), userType: req.session.userType,  unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
 		return;
 	}
+});
+
+app.get('/clientDogsHome', sessionValidation, clientAuthorization, async(req, res) => {
+	const userdb = appdb.db(req.session.userdb);
+	let dogs = await userdb.collection('dogs').find({}).toArray();
+
+	for(let i = 0; i < dogs.length; i++){
+		if(dogs[i].dogPic && dogs[i].dogPic != ''){
+			dogs[i].dogPic = cloudinary.url(dogs[i].dogPic);
+		}
+	}
+
+	res.json({dogs: dogs});
 });
 
 //Profile Editting (both client and business)
@@ -1464,9 +1476,11 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
 	for(let i = 0; i < vaccineNotifs.length; i++){
 		vaccineNotifs[i].dogId = dogId.insertedId;
 	}
-	await userdb.collection('notifications').insertMany(vaccineNotifs);
-	notificationsToAlert(req);
-
+	if(vaccineNotifs.length >= 1){
+		await userdb.collection('notifications').insertMany(vaccineNotifs);
+		notificationsToAlert(req);
+	}
+	
     res.redirect('/profile');
 });
 
@@ -1569,7 +1583,7 @@ app.get('/dog/:dogId', sessionValidation, async(req, res) => {
 	}
 
 	const userdb = appdb.db(req.session.userdb);
-
+	console.log(req.params.dogId);
 	//Use the dog document id to find the specific dog
 	let dogId =  ObjectId.createFromHexString(req.params.dogId);
 	let dogRecord = await userdb.collection('dogs').find({_id: dogId}).toArray();	

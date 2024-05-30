@@ -116,7 +116,7 @@
 
                     <%- include('templates/homepage', { 
                         title: 'Your Dogs', 
-                        content: 'Dynamically loaded dog profiles from database',
+                        content: '',
                         prevClass: 'smallShadow',
                         actionOne: '/profile',
                         classesOne: '',
@@ -151,6 +151,7 @@
         </section>
         <script src="/scripts/calendarClientHome.js"></script>
         <script src="/scripts/clientTrainerHome.js"></script>
+        <script src="/scripts/clientDogsHome.js"></script>
         <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
     <% } else if (userType == "business") { %>
         <%- include('templates/hero', {content: 'Welcome back to Pawfolio!'}) %>
