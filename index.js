@@ -221,6 +221,20 @@ async function updateUnreadMessages(req, res, next) {
 
 app.use(updateUnreadMessages);
 
+//Middleware for updating the trainer db if the clients gains a trainer
+async function updateTrainer(req, res, next){
+	if(req.session && req.session.email && !req.session.trainerdb){
+		let user = await appUserCollection.find({email: req.session.email, userType:'client'}).project({companyName: 1});
+		if(user[0] && user[0].companyName && user[0].companyName != ''){
+			req.session.trainerdb = 'business-' + user[0].companyName.replaceAll(/[\s.]/g, "");
+			req.session.companyName = user[0].companyName;
+		}
+	}
+	next();
+}
+
+app.use(updateTrainer);
+
 // Function that checks if the user is a client
 function isClient(req) {
 	if (req.session.userType == 'client') {
@@ -270,7 +284,7 @@ function isAdmin(req) {
 function adminAuthorization(req, res, next) {
 	if (!isAdmin(req)) {
 		res.status(403);
-		res.render('errorMessage', { errorTitle: '403', errorMsg: 'Looks like you\'re in the doghouse! Or... you just don\'t have permission to view this page.', loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+		res.render('errorMessage', { errorTitle: '403', errorMsg: 'Looks like you\'re in the doghouse! Or... you just don\'t have permission to view this page.', loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, companyName: req.session.companyName});
 	} else {
 		next();
 	}
@@ -280,7 +294,7 @@ function adminAuthorization(req, res, next) {
 function clientAuthorization(req, res, next) {
 	if (!isClient(req)) {
 		res.status(403);
-		res.render('errorMessage', { errorTitle: '403', errorMsg: 'Looks like you\'re in the doghouse! Or... you just don\'t have permission to view this page.', loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+		res.render('errorMessage', { errorTitle: '403', errorMsg: 'Looks like you\'re in the doghouse! Or... you just don\'t have permission to view this page.', loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, companyName: req.session.companyName});
 	} else {
 		next();
 	}
@@ -290,7 +304,7 @@ function clientAuthorization(req, res, next) {
 function businessAuthorization(req, res, next) {
 	if (!isBusiness(req)) {
 		res.status(403);
-		res.render('errorMessage', { errorTitle: '403', errorMsg: 'Looks like you\'re in the doghouse! Or... you just don\'t have permission to view this page.', loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+		res.render('errorMessage', { errorTitle: '403', errorMsg: 'Looks like you\'re in the doghouse! Or... you just don\'t have permission to view this page.', loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, companyName: req.session.companyName});
 	} else {
 		next();
 	}
@@ -537,28 +551,28 @@ app.use(async (req, res, next) => {
 // status to determine what footer and navbar to display
 
 app.get('/', (req, res) => {
-	res.render('index', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+	res.render('index', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, companyName: req.session.companyName});
 });
 
 app.get('/about',  (req, res) => {
-	res.render('about', {loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: 0});
+	res.render('about', {loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: 0, companyName: req.session.companyName});
 });
 
 app.get('/test', (req, res) => {
-	res.render('test', {loggedIn: true, name: 'Test User', userType: 'business', unreadAlerts: 0, unreadMessages: 0});
+	res.render('test', {loggedIn: true, name: 'Test User', userType: 'business', unreadAlerts: 0, unreadMessages: 0, companyName: req.session.companyName});
 });
 
 app.get('/FAQ', (req, res) => {
-	res.render('FAQ', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: 0});
+	res.render('FAQ', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: 0, companyName: req.session.companyName});
 });
 
 app.get('/clientResources', (req, res) => {
-	res.render('clientResources', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: 0});
+	res.render('clientResources', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: 0, companyName: req.session.companyName});
 });
 
 app.get('/login/:loginType', (req, res) => {
 	// if(req.params.loginType.replace('?', '') == 'clientLogin' || req.params.loginType.replace('?', '') == 'businessLogin'){
-		res.render(req.params.loginType, {loggedIn: isValidSession(req), loginType: req.params.loginType, unreadAlerts: 0, unreadMessages: 0});
+		res.render(req.params.loginType, {loggedIn: isValidSession(req), loginType: req.params.loginType, unreadAlerts: 0, unreadMessages: 0, companyName: req.session.companyName});
 	// }
 
 	// res.render('errorMessage', { errorTitle: '404', errorMsg: 'Looks like you\'re barking up the wrong tree!', loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: 0, unreadMessages: 0});
@@ -582,7 +596,8 @@ app.post('/submitSignup/:type', async (req, res) => {
 					loggedIn: isValidSession(req), 
 					userType: req.session.userType, 
 					unreadAlerts: req.session.unreadAlerts, 
-					unreadMessages: req.session.unreadMessages
+					unreadMessages: req.session.unreadMessages,
+					companyName: req.session.companyName
 				});
 				return;
 			}
@@ -616,7 +631,7 @@ app.post('/submitSignup/:type', async (req, res) => {
 		//Deal with errors from validation
 		if (validationRes.error != null) {
 			console.log(validationRes.error);
-			res.render('errorMessage', {loggedIn: isValidSession(req), userType: req.session.userType, errorTitle: 'Incomplete or Invalid' , errorMsg: 'Ruh Roh! That information is invalid! Please try again.', unreadAlerts: req.session.unreadAlerts, unreadMessages: 0});
+			res.render('errorMessage', {loggedIn: isValidSession(req), userType: req.session.userType, errorTitle: 'Incomplete or Invalid' , errorMsg: 'Ruh Roh! That information is invalid! Please try again.', unreadAlerts: req.session.unreadAlerts, unreadMessages: 0, companyName: req.session.companyName});
 			return;
 		}
 
@@ -670,7 +685,8 @@ app.post('/submitSignup/:type', async (req, res) => {
 					loggedIn: isValidSession(req), 
 					userType: req.session.userType, 
 					unreadAlerts: req.session.unreadAlerts, 
-					unreadMessages: req.session.unreadMessages
+					unreadMessages: req.session.unreadMessages,
+					companyName: req.session.companyName
 				});
 				return;
 			}
@@ -706,7 +722,7 @@ app.post('/submitSignup/:type', async (req, res) => {
 		//Deals with errors from validation
 		if (validationRes.error != null) {
 			console.log(validationRes.error);
-			res.render('errorMessage', {loggedIn: isValidSession(req), userType: req.session.userType, errorTitle: 'Incomplete or Invalid' , errorMsg: 'Ruh Roh! That information is invalid! Please try again.', unreadAlerts: req.session.unreadAlerts, unreadMessages: 0});
+			res.render('errorMessage', {loggedIn: isValidSession(req), userType: req.session.userType, errorTitle: 'Incomplete or Invalid' , errorMsg: 'Ruh Roh! That information is invalid! Please try again.', unreadAlerts: req.session.unreadAlerts, unreadMessages: 0, companyName: req.session.companyName});
 			return;
 		}
 
@@ -745,6 +761,7 @@ app.post('/submitSignup/:type', async (req, res) => {
 		req.session.userType = 'business';
 		req.session.cookie.maxAge = expireTime;
 		req.session.unreadAlerts = 0;
+		req.session.companyName = result[0].companyName;
 
 		await setUserDatabase(req);
 		const userdb = appdb.db(req.session.userdb);
@@ -790,7 +807,7 @@ app.post('/submitLogin', async (req, res) => {
 
 	// // if there are no clients, search through the admin accounts
 	if (result.length == 0) {
-		res.render('errorMessage', {loggedIn: isValidSession(req), userType: req.session.userType, errorTitle: 'No User Found' , errorMsg: 'Guard Dog on Duty! Trespassers Beware!', unreadAlerts: req.session.unreadAlerts, unreadMessages: 0});
+		res.render('errorMessage', {loggedIn: isValidSession(req), userType: req.session.userType, errorTitle: 'No User Found' , errorMsg: 'Guard Dog on Duty! Trespassers Beware!', unreadAlerts: req.session.unreadAlerts, unreadMessages: 0, companyName: req.session.companyName});
 		return;
 	}
 
@@ -800,6 +817,7 @@ app.post('/submitLogin', async (req, res) => {
 		req.session.email = email;
 		req.session.userType = result[0].userType;
 		req.session.unreadAlerts = result[0].unreadAlerts;
+		req.session.companyName = result[0].companyName;
 
 		// Set session name to first+last if client, companyname if business
 		if (req.session.userType == 'client') {
@@ -830,7 +848,7 @@ app.post('/submitLogin', async (req, res) => {
 	} else {
 
 		// if the password is incorrect, say so
-		res.render('errorMessage', {loggedIn: isValidSession(req), userType: req.session.userType, errorTitle: 'Password is Incorrect' , errorMsg: 'Guard Dog on Duty! No entry without the right password!', unreadAlerts: req.session.unreadAlerts, unreadMessages: 0});
+		res.render('errorMessage', {loggedIn: isValidSession(req), userType: req.session.userType, errorTitle: 'Password is Incorrect' , errorMsg: 'Guard Dog on Duty! No entry without the right password!', unreadAlerts: req.session.unreadAlerts, unreadMessages: 0, companyName: req.session.companyName});
 	}
 });
 
@@ -862,7 +880,7 @@ function sendResetMail(emailAddress, resetToken) {
 
 			// Error handling
 			if (error) {
-				res.render('errorMessge', { errorTitle: 'Email couldn\'t be sent', errorMsg: 'Not even this nose can find something that doesn\'t exist!', loggedIn: false, userType: null , unreadAlerts: 0, unreadMessages: 0})
+				res.render('errorMessge', { errorTitle: 'Email couldn\'t be sent', errorMsg: 'Not even this nose can find something that doesn\'t exist!', loggedIn: false, userType: null , unreadAlerts: 0, unreadMessages: 0, companyName: req.session.companyName})
 			}
 		});
 	});
@@ -938,7 +956,7 @@ app.get('/forgotPassword', (req, res) => {
 
 	// If the email is invalid, the query will have an error message. Otherwise, we want it blank so it doesn't always show
 	const errorMessage = req.query.errorMessage || '';
-	res.render('forgotPassword', { errorMessage: errorMessage, loggedIn: false, userType: null, unreadAlerts: 0, unreadMessages: 0});
+	res.render('forgotPassword', { errorMessage: errorMessage, loggedIn: false, userType: null, unreadAlerts: 0, unreadMessages: 0, companyName: req.session.companyName});
 });
 
 // This handles the submitted email for the /forgotpassword routing
@@ -997,7 +1015,7 @@ app.get('/resetPassword/:token', async (req, res) => {
 
 	// This detects if we couldn't find the token in any user
 	if (clientUser == null) {
-		res.render('errorMessage', { errorTitle: 'Invalid or Expired Token', errorMsg: 'That\'s one stale dog bone! Please try again.', loggedIn: false, userType: null, unreadAlerts: 0, unreadMessages: 0})
+		res.render('errorMessage', { errorTitle: 'Invalid or Expired Token', errorMsg: 'That\'s one stale dog bone! Please try again.', loggedIn: false, userType: null, unreadAlerts: 0, unreadMessages: 0, companyName: req.session.companyName})
 		return;
 	}
 
@@ -1013,7 +1031,7 @@ app.get('/resetPasswordForm/:token', (req, res) => {
 
 	// store the token
 	token = req.params;
-	res.render('resetPasswordForm', { token: token.token, loggedIn: false, userType: null , unreadAlerts: 0, unreadMessages: 0});
+	res.render('resetPasswordForm', { token: token.token, loggedIn: false, userType: null , unreadAlerts: 0, unreadMessages: 0, companyName: req.session.companyName});
 });
 
 // Handles the new password submission
@@ -1046,11 +1064,11 @@ app.post('/resettingPassword/:token', async (req, res) => {
 
 // This is a page for when your password is successfully changed
 app.get('/passwordChangedSuccessfully', (req, res) => {
-	res.render('passwordChangedSuccessfully', {loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: 0});
+	res.render('passwordChangedSuccessfully', {loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: 0, companyName: req.session.companyName});
 });
 
 app.get('/emailSent', (req, res) => {
-	res.render('checkInbox', {loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: 0});
+	res.render('checkInbox', {loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: 0, companyName: req.session.companyName});
 });
 
 app.get('/logout', (req, res) => {
@@ -1092,7 +1110,7 @@ app.get('/profile', sessionValidation, async(req, res) => {
 
 
 		//Render client profile page
-		res.render('clientProfile', {loggedIn: isValidSession(req), user: user, dogs: dogs, records: outstandingBalance, userName: req.session.name, userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+		res.render('clientProfile', {loggedIn: isValidSession(req), user: user, dogs: dogs, records: outstandingBalance, userName: req.session.name, userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, companyName: req.session.companyName});
 		return;
 
 	//Business user profile
@@ -1113,17 +1131,23 @@ app.get('/profile', sessionValidation, async(req, res) => {
 
 		//Start on different tabs depending on the req.query
 		if(req.query.tab == 'trainer'){
-			res.render('businessProfile', {loggedIn: isValidSession(req), business: user, trainer: trainer, programs: programs, businessTab: '', trainerTab: 'checked', programsTab: '', userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+			res.render('businessProfile', {loggedIn: isValidSession(req), business: user, trainer: trainer, programs: programs, businessTab: '', trainerTab: 'checked', programsTab: '', userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, companyName: req.session.companyName});
 		} else if(req.query.tab == 'program'){
-			res.render('businessProfile', {loggedIn: isValidSession(req), business: user, trainer: trainer, programs: programs, businessTab: '', trainerTab: '', programsTab: 'checked', userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+			res.render('businessProfile', {loggedIn: isValidSession(req), business: user, trainer: trainer, programs: programs, businessTab: '', trainerTab: '', programsTab: 'checked', userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, companyName: req.session.companyName});
 		} else {
-			res.render('businessProfile', {loggedIn: isValidSession(req), business: user, trainer: trainer, programs: programs, businessTab: 'checked', trainerTab: '', programsTab: '', userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+			res.render('businessProfile', {loggedIn: isValidSession(req), business: user, trainer: trainer, programs: programs, businessTab: 'checked', trainerTab: '', programsTab: '', userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, companyName: req.session.companyName});
 		}
 	}
 });
 
 app.get('/clientTrainerHome', sessionValidation, clientAuthorization, async(req, res) => {
-	if(req.session.trainerdb){
+	let user = await appUserCollection.find({email: req.session.email, userType: req.session.userType}).toArray();
+	if(req.session.trainerdb || user[0].companyName){
+		if(!req.session.trainerdb){
+			req.session.trainerdb = 'business-' + user[0].companyName.replaceAll(/[\s.]/g, "");
+			req.session.companyName = user[0].companyName;
+		}
+
 		const trainerdb = appdb.db(req.session.trainerdb);
 		let business = await trainerdb.collection('info').find({}).toArray();
 
@@ -1133,7 +1157,7 @@ app.get('/clientTrainerHome', sessionValidation, clientAuthorization, async(req,
 		res.json(business[0]);
 
 	} else {
-		res.render('errorMessage', { errorTitle: '404', errorMsg: 'Looks like you\'re barking up the wrong tree!', loggedIn: isValidSession(req), userType: req.session.userType,  unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+		res.render('errorMessage', { errorTitle: '404', errorMsg: 'Looks like you\'re barking up the wrong tree!', loggedIn: isValidSession(req), userType: req.session.userType,  unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, companyName: req.session.companyName});
 		return;
 	}
 });
@@ -1284,7 +1308,7 @@ app.get('/program/:programId', sessionValidation, businessAuthorization, async(r
 
 	//Check programId is a hexstring
 	if(req.params.programId.length != 24){
-		res.render('errorMessage', { errorTitle: '404', errorMsg: 'Looks like you\'re barking up the wrong tree!', loggedIn: isValidSession(req), userType: req.session.userType,  unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+		res.render('errorMessage', { errorTitle: '404', errorMsg: 'Looks like you\'re barking up the wrong tree!', loggedIn: isValidSession(req), userType: req.session.userType,  unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, companyName: req.session.companyName});
 		return;
 	}
 
@@ -1298,9 +1322,9 @@ app.get('/program/:programId', sessionValidation, businessAuthorization, async(r
 
 	//Render program page with the specific program details if the program exists
 	if(program.length > 0){
-		res.render('programDetails', {loggedIn: isValidSession(req), userType: req.session.userType, program: program[0], services: business[0].services, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+		res.render('programDetails', {loggedIn: isValidSession(req), userType: req.session.userType, program: program[0], services: business[0].services, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, companyName: req.session.companyName});
 	} else {
-		res.render('errorMessage', { errorTitle: '404', errorMsg: 'Looks like you\'re barking up the wrong tree!', loggedIn: isValidSession(req), userType: req.session.userType,  unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+		res.render('errorMessage', { errorTitle: '404', errorMsg: 'Looks like you\'re barking up the wrong tree!', loggedIn: isValidSession(req), userType: req.session.userType,  unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, companyName: req.session.companyName});
 	}
 	
 });
@@ -1333,7 +1357,7 @@ app.post('/program/:programId/edit', async(req, res) => {
 
 //Form for adding a new dog
 app.get('/addDog', sessionValidation, clientAuthorization, (req, res) => {
-	res.render('addDog', {loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+	res.render('addDog', {loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, companyName: req.session.companyName});
 });
 
 //Adds the dog to the database
@@ -1362,7 +1386,8 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
             errorTitle: 'Incomplete or Invalid' ,
             errorMsg: 'Ruh Roh! That information is invalid! Please try again.',
             unreadAlerts: req.session.unreadAlerts,
-            unreadMessages: req.session.unreadMessages
+            unreadMessages: req.session.unreadMessages,
+			companyName: req.session.companyName
         });
         return;
     }
@@ -1627,7 +1652,7 @@ app.get('/dog/:dogId', sessionValidation, async(req, res) => {
 		dogRecord[0].dogPic = cloudinary.url(dogRecord[0].dogPic);
 	}
 	//Render the dog's profile
-	res.render('dogProfile', {loggedIn: isValidSession(req), userType: req.session.userType, dog: dogRecord[0], unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+	res.render('dogProfile', {loggedIn: isValidSession(req), userType: req.session.userType, dog: dogRecord[0], unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, companyName: req.session.companyName});
 });
 
 //Edit specific dog
@@ -1679,7 +1704,7 @@ app.post('/dog/:dogId/delete', upload.single('dogUpload'), async(req, res) => {
 });
 
 app.get('/accountDeletion', sessionValidation, (req, res) => {
-	res.render('accountDeletion', {loggedIn: isValidSession(req), name: req.session.name , userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+	res.render('accountDeletion', {loggedIn: isValidSession(req), name: req.session.name , userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, companyName: req.session.companyName});
 });
 
 app.post('/deleteAccount', async (req, res) => {
@@ -1745,13 +1770,13 @@ app.get('/findTrainer',sessionValidation, clientAuthorization, async(req, res) =
 		businessTrainers.push(trainer[0]);
 	}
 
-	res.render('viewTrainers', {loggedIn: isValidSession(req), userType: req.session.userType, businesses: businessDetails, trainers: businessTrainers, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+	res.render('viewTrainers', {loggedIn: isValidSession(req), userType: req.session.userType, businesses: businessDetails, trainers: businessTrainers, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, companyName: req.session.companyName});
 });
 
 //Temporary code from calendar testing; changed address to just /trainer
 app.get('/trainer', async (req, res) => {
 	const trainers = await appUserCollection.find({ userType: 'business' }).project({ _id: 1, companyName: 1 }).toArray();
-	res.render('findTrainer', {loggedIn: isValidSession(req), userType: req.session.userType, trainers: trainers, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+	res.render('findTrainer', {loggedIn: isValidSession(req), userType: req.session.userType, trainers: trainers, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, companyName: req.session.companyName});
 });
 
 //View indivdual business
@@ -1779,7 +1804,7 @@ app.get('/viewBusiness/:company', sessionValidation, clientAuthorization, async(
 	})();
 
 	if(!business.info){
-		res.render('errorMessage', { errorTitle: '404', errorMsg: 'Looks like you\'re barking up the wrong tree!', loggedIn: isValidSession(req), userType: req.session.userType,  unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+		res.render('errorMessage', { errorTitle: '404', errorMsg: 'Looks like you\'re barking up the wrong tree!', loggedIn: isValidSession(req), userType: req.session.userType,  unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, companyName: req.session.companyName});
 		return;
 	}
 
@@ -1793,7 +1818,7 @@ app.get('/viewBusiness/:company', sessionValidation, clientAuthorization, async(
 		business.trainer.trainerPic  = cloudinary.url(business.trainer.trainerPic );
 	}
 	
-	res.render('clientViewTrainer', {loggedIn: isValidSession(req), userType: req.session.userType, business: business.info, trainer: business.trainer, programs: business.programs, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+	res.render('clientViewTrainer', {loggedIn: isValidSession(req), userType: req.session.userType, business: business.info, trainer: business.trainer, programs: business.programs, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, companyName: req.session.companyName});
 });
 
 app.get('/viewBusiness/:company/register/:program', sessionValidation, clientAuthorization, async(req, res) => {
@@ -1806,7 +1831,7 @@ app.get('/viewBusiness/:company/register/:program', sessionValidation, clientAut
 
 	//Make sure the programId is a hex string
 	if(req.params.program.length != 24){
-		res.render('errorMessage', { errorTitle: '404', errorMsg: 'Looks like you\'re barking up the wrong tree!', loggedIn: isValidSession(req), userType: req.session.userType,  unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+		res.render('errorMessage', { errorTitle: '404', errorMsg: 'Looks like you\'re barking up the wrong tree!', loggedIn: isValidSession(req), userType: req.session.userType,  unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, companyName: req.session.companyName});
 		return;
 	}
 
@@ -1835,7 +1860,7 @@ app.get('/viewBusiness/:company/register/:program', sessionValidation, clientAut
 
 	//Make sure both business and the program exist
 	if(!business.info || program.length < 1){
-		res.render('errorMessage', { errorTitle: '404', errorMsg: 'Looks like you\'re barking up the wrong tree!', loggedIn: isValidSession(req), userType: req.session.userType,  unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+		res.render('errorMessage', { errorTitle: '404', errorMsg: 'Looks like you\'re barking up the wrong tree!', loggedIn: isValidSession(req), userType: req.session.userType,  unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, companyName: req.session.companyName});
 		return;
 	}
 	
@@ -1859,7 +1884,7 @@ app.get('/viewBusiness/:company/register/:program', sessionValidation, clientAut
 		contractUrl = '';
 	}
 
-	res.render('hireTrainer', {loggedIn: isValidSession(req), userType: req.session.userType, program: program[0], companyName:req.params.company, contract: contractUrl, clientHasTrainer: clientHasTrainer, dogs: dogs, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+	res.render('hireTrainer', {loggedIn: isValidSession(req), userType: req.session.userType, program: program[0], companyName:req.params.company, contract: contractUrl, clientHasTrainer: clientHasTrainer, dogs: dogs, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, companyName: req.session.companyName});
 });
 
 app.post('/viewBusiness/:company/register/:program/submitRegister', async(req, res) => {
@@ -2010,10 +2035,10 @@ async function getUserEvents(req) {
 
 app.get('/calendar', sessionValidation, async (req, res) => {
 	if (req.session.userType == 'business') {
-		res.render('calendarBusiness', {loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+		res.render('calendarBusiness', {loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, companyName: req.session.companyName});
 		return;
 	} else if (req.session.userType == 'client') {
-		res.render('calendarClient', {loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+		res.render('calendarClient', {loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, companyName: req.session.companyName});
 	}
 });
 
@@ -2248,7 +2273,7 @@ app.get('/alerts/session/:alert', sessionValidation, async (req, res) => {
 
 		// Make sure alert is a valid alertId
 		if(req.params.alert.length != 24){
-			res.render('errorMessage', { errorTitle: '404', errorMsg: 'Looks like you\'re barking up the wrong tree!', loggedIn: isValidSession(req), userType: req.session.userType,  unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+			res.render('errorMessage', { errorTitle: '404', errorMsg: 'Looks like you\'re barking up the wrong tree!', loggedIn: isValidSession(req), userType: req.session.userType,  unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, companyName: req.session.companyName});
 			return;
 		}
 
@@ -2257,7 +2282,7 @@ app.get('/alerts/session/:alert', sessionValidation, async (req, res) => {
 		
 		//Make sure alert is a valid alertId
 		if(!alert[0]){
-			res.render('errorMessage', { errorTitle: '404', errorMsg: 'Looks like you\'re barking up the wrong tree!', loggedIn: isValidSession(req), userType: req.session.userType,  unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+			res.render('errorMessage', { errorTitle: '404', errorMsg: 'Looks like you\'re barking up the wrong tree!', loggedIn: isValidSession(req), userType: req.session.userType,  unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, companyName: req.session.companyName});
 			return;
 		}
 
@@ -2268,7 +2293,8 @@ app.get('/alerts/session/:alert', sessionValidation, async (req, res) => {
             userType: req.session.userType,
             alert: alert[0],
             unreadAlerts: req.session.unreadAlerts,
-            unreadMessages: req.session.unreadMessages
+            unreadMessages: req.session.unreadMessages,
+			companyName: req.session.companyName
         });
 	} else {
 		res.redirect('/');
@@ -2335,7 +2361,7 @@ app.get('/chatSelectClient', sessionValidation, async (req, res) => {
 		return;
 	} else if (isBusiness(req)) {
 		const clientList = await userdb.collection('clients').find().project({email: 1}).toArray();
-		res.render('chatSelectClient', {loggedIn: isValidSession(req), userType: req.session.userType, clients: clientList, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, unreadMessages: req.session.unreadMessages});
+		res.render('chatSelectClient', {loggedIn: isValidSession(req), userType: req.session.userType, clients: clientList, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, unreadMessages: req.session.unreadMessages, companyName: req.session.companyName});
 	}
 });
 
@@ -2344,7 +2370,7 @@ app.get('/chat/:type', sessionValidation, async (req, res) => {
 	const type = req.params.type;
 	if (type == 'client' && req.session.trainerdb) {
 		const receiver = await appUserCollection.find({email: req.session.email}).project({companyName: 1}).toArray();
-		res.render('chatClient', { loggedIn: isValidSession(req), userType: req.session.userType, receiver: receiver[0].companyName, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, unreadMessages: req.session.unreadMessages});
+		res.render('chatClient', { loggedIn: isValidSession(req), userType: req.session.userType, receiver: receiver[0].companyName, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, unreadMessages: req.session.unreadMessages, companyName: req.session.companyName});
 		return;
 	} else if (isBusiness(req)) {
 		setClientDatabase(req, type);
@@ -2353,13 +2379,13 @@ app.get('/chat/:type', sessionValidation, async (req, res) => {
 
 		//Check that the reciever exists
 		if(!receiver[0]) {
-			res.render('errorMessage', { errorTitle: '404', errorMsg: 'Looks like you\'re barking up the wrong tree!', loggedIn: isValidSession(req), userType: req.session.userType,  unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+			res.render('errorMessage', { errorTitle: '404', errorMsg: 'Looks like you\'re barking up the wrong tree!', loggedIn: isValidSession(req), userType: req.session.userType,  unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, companyName: req.session.companyName});
 			return;
 		}
 
-		res.render('chatBusiness', { loggedIn: isValidSession(req), userType: req.session.userType, clientParam: type, receiver: receiver[0].email, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, unreadMessages: req.session.unreadMessages});
+		res.render('chatBusiness', { loggedIn: isValidSession(req), userType: req.session.userType, clientParam: type, receiver: receiver[0].email, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, unreadMessages: req.session.unreadMessages, companyName: req.session.companyName});
 	} else {
-		res.render('errorMessage', { errorTitle: '404', errorMsg: 'Looks like you\'re barking up the wrong tree!', loggedIn: isValidSession(req), userType: req.session.userType,  unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+		res.render('errorMessage', { errorTitle: '404', errorMsg: 'Looks like you\'re barking up the wrong tree!', loggedIn: isValidSession(req), userType: req.session.userType,  unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, companyName: req.session.companyName});
 	}
 });
 
@@ -2412,7 +2438,7 @@ app.get('/messagesBusiness/:client', sessionValidation, businessAuthorization, a
 
 	//Check that the client exists
 	if(!client[0]){
-		res.render('errorMessage', { errorTitle: '404', errorMsg: 'Looks like you\'re barking up the wrong tree!', loggedIn: isValidSession(req), userType: req.session.userType,  unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+		res.render('errorMessage', { errorTitle: '404', errorMsg: 'Looks like you\'re barking up the wrong tree!', loggedIn: isValidSession(req), userType: req.session.userType,  unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, companyName: req.session.companyName});
 		return;
 	}
 
@@ -2506,7 +2532,8 @@ app.get('/alerts', sessionValidation, async(req, res)=>{
             alerts: alerts,
 			reqSessions: reqSessions,
             unreadAlerts: req.session.unreadAlerts,
-            unreadMessages: req.session.unreadMessages
+            unreadMessages: req.session.unreadMessages,
+			companyName: req.session.companyName
         });
 	} else {
 		res.render('clientAlerts', {
@@ -2514,7 +2541,8 @@ app.get('/alerts', sessionValidation, async(req, res)=>{
             userType: req.session.userType,
             alerts: alerts,
             unreadAlerts: req.session.unreadAlerts,
-            unreadMessages: req.session.unreadMessages
+            unreadMessages: req.session.unreadMessages,
+			companyName: req.session.companyName
         });
 	}
 });
@@ -2537,7 +2565,7 @@ app.get('/alerts/view/:alert', sessionValidation, async(req, res) => {
 		
 		//Make sure alert is a valid alertId
 		if(req.params.alert.length != 24){
-			res.render('errorMessage', { errorTitle: '404', errorMsg: 'Looks like you\'re barking up the wrong tree!', loggedIn: isValidSession(req), userType: req.session.userType,  unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+			res.render('errorMessage', { errorTitle: '404', errorMsg: 'Looks like you\'re barking up the wrong tree!', loggedIn: isValidSession(req), userType: req.session.userType,  unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, companyName: req.session.companyName});
 			return;
 		}
 
@@ -2546,7 +2574,7 @@ app.get('/alerts/view/:alert', sessionValidation, async(req, res) => {
 		
 		//Make sure alert is a valid alertId
 		if(!alert[0]){
-			res.render('errorMessage', { errorTitle: '404', errorMsg: 'Looks like you\'re barking up the wrong tree!', loggedIn: isValidSession(req), userType: req.session.userType,  unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+			res.render('errorMessage', { errorTitle: '404', errorMsg: 'Looks like you\'re barking up the wrong tree!', loggedIn: isValidSession(req), userType: req.session.userType,  unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, companyName: req.session.companyName});
 			return;
 		}
 
@@ -2572,7 +2600,8 @@ app.get('/alerts/view/:alert', sessionValidation, async(req, res) => {
             dog: dog[0],
             address: address[0].address,
             unreadAlerts: req.session.unreadAlerts,
-            unreadMessages: req.session.unreadMessages
+            unreadMessages: req.session.unreadMessages,
+			companyName: req.session.companyName
         });
 	} else {
 		res.redirect('/');
@@ -2653,7 +2682,7 @@ app.get('/clientList', sessionValidation, businessAuthorization, async (req, res
 		
     }
 
-	res.render('clientList', {clientArray: clientListArray, loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+	res.render('clientList', {clientArray: clientListArray, loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, companyName: req.session.companyName});
 });
 
 app.get('/clientProfile/:id', sessionValidation,  businessAuthorization, async (req, res) => {
@@ -2687,7 +2716,7 @@ app.get('/clientProfile/:id', sessionValidation,  businessAuthorization, async (
 
 	//Make sure the targetClient exists
 	if(!targetClient){
-		res.render('errorMessage', { errorTitle: '404', errorMsg: 'Looks like you\'re barking up the wrong tree!', loggedIn: isValidSession(req), userType: req.session.userType,  unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+		res.render('errorMessage', { errorTitle: '404', errorMsg: 'Looks like you\'re barking up the wrong tree!', loggedIn: isValidSession(req), userType: req.session.userType,  unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, companyName: req.session.companyName});
 		return;
 	}
 
@@ -2729,7 +2758,7 @@ app.get('/clientProfile/:id', sessionValidation,  businessAuthorization, async (
 
 	let targetClientId = targetClient[0]._id.toString(); // USE LATER FOR REWORK. GIVES ID ENDING IN 2
 
-	res.render('viewingClientProfile', {c_id: req.params.id, targetClient: targetClient[0], records: records, pfpUrl: pfpUrl, dogs: dogs, loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+	res.render('viewingClientProfile', {c_id: req.params.id, targetClient: targetClient[0], records: records, pfpUrl: pfpUrl, dogs: dogs, loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, companyName: req.session.companyName});
 });
 
 app.post('/updateClientPayments', async (req, res) => {
@@ -2811,17 +2840,17 @@ app.get('/clientProfile/:c_id/dogView/:d_id', businessAuthorization, async (req,
 		targetDog.dogPic = cloudinary.url(pic);
 	}
 
-	res.render('dogProfileView', {loggedIn: isValidSession(req), userType: req.session.userType, clientId: clientId[0]._id.toString(), dog: targetDog, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages})
+	res.render('dogProfileView', {loggedIn: isValidSession(req), userType: req.session.userType, clientId: clientId[0]._id.toString(), dog: targetDog, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, companyName: req.session.companyName})
 });
 
 // ----------------- SESSIONS SECTION STARTS HERE -------------------
 
 app.get('/sessionList',sessionValidation, async (req, res) => {
 	if ( req.session.userType == 'business') {
-		res.render('sessionsBusiness', {loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+		res.render('sessionsBusiness', {loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, companyName: req.session.companyName});
 		return;
 	} else if (req.session.userType == 'client') {
-		res.render('sessionsClient', {loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+		res.render('sessionsClient', {loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, companyName: req.session.companyName});
 	}
 });
 
@@ -2829,7 +2858,7 @@ app.use(express.static(__dirname + "/public"));
 
 app.get('*', (req, res) => {
 	res.status(404);
-	res.render('errorMessage', { errorTitle: '404', errorMsg: 'Looks like you\'re barking up the wrong tree!', loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+	res.render('errorMessage', { errorTitle: '404', errorMsg: 'Looks like you\'re barking up the wrong tree!', loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, companyName: req.session.companyName});
 });
 
 app.listen(port, () => {
