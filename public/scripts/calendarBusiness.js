@@ -129,7 +129,6 @@ document.addEventListener('DOMContentLoaded', function () {
 				try {
 					let res = await axios.post('/getClients');
 					let clients = res.data;
-					console.log("clients: " + clients);
 
 					let emails = document.getElementById('calModEmail');
 					if (clients && clients.length > 0) {
@@ -359,7 +358,6 @@ document.addEventListener('DOMContentLoaded', function () {
 				try {
 					let res = await axios.post('/getClients');
 					let clients = res.data;
-					console.log("clients: " + clients);
 
 					let modClient = document.getElementById('calModClient');
 					if (clients && clients.length > 0) {

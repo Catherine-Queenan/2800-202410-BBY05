@@ -52,7 +52,6 @@ const secretKey = process.env.SECRET_KEY;
 if (!secretKey || secretKey.length !== 32) {
     throw new Error("SECRET_KEY is not defined or does not meet the required length (32 characters) in the environment variables");
 }
-//console.log(secretKey);
 
 //END OF GOOGLE CLOUD STORAGE
 
@@ -175,10 +174,8 @@ async function notificationsToAlert(req){
 // Use the updateUnreadAlerts middleware for all routes
 //middleWare
 async function updateUnreadAlerts(req, res, next) {
-	// console.log(req.session);
     if (req.session && req.session.email) {
         try {
-			// console.log(req.session.email);
             let alerts = await appUserCollection.find({ email: req.session.email }).project({ unreadAlerts: 1 }).toArray();
             let unreadAlerts = alerts.length > 0 ? alerts[0].unreadAlerts : 0;
             req.session.unreadAlerts = unreadAlerts;
@@ -361,7 +358,6 @@ async function setUserDatabase(req) {
     }
 
     req.session.userdb = dbName;
-	// console.log('userdb: ' + req.session.userdb);
 }
 
 // Allows access to the trainer's database when tied to a client
@@ -376,7 +372,6 @@ async function setTrainerDatabase(req) {
 		} else {
 			const trainerName = mongodb_businessdb + '-' + trainer[0].companyName.replaceAll(/[\s.]/g, "");
 			req.session.trainerdb = trainerName;
-			// console.log('trainerdb: ' + req.session.trainerdb);
 		}
 	}
 }
@@ -385,7 +380,6 @@ function setClientDatabase(req, client) {
 	const clientEmail = client.replaceAll(/[\s.]/g, "");
 	const dbName = mongodb_clientdb + '-' + clientEmail;
 	req.session.clientdb = dbName;
-	// console.log('clientdb: ' + req.session.clientdb);
 }
 
 async function getdb(dbName) {
@@ -523,7 +517,6 @@ app.use(async (req, res, next) => {
         
         // If the user exists and also has a companyName, find the business user with the respective name
         if (user && user.companyName) {
-			// console.log(user.companyName.replaceAll(' ', '.'));
             let trainer = await appUserCollection.findOne({ companyName: user.companyName, userType: 'business' });
             // If the trainer is found, set trainerAssigned to true
             res.locals.trainerAssigned = true;
@@ -905,7 +898,6 @@ const sendEmail = async (to, subject, eventTitle, eventDate, eventStartTime, eve
             const user = await appUserCollection.find({email: email}).toArray();
             if (user) {
                 const emailNotifications = user[0].emailNotifications;
-                // console.log(`User: ${email}, emailNotifications: ${emailNotifications}`);
                 if (emailNotifications === true || emailNotifications === undefined) {
                     recipients.push(email);
                 }
@@ -1618,7 +1610,6 @@ app.get('/dog/:dogId', sessionValidation, async(req, res) => {
 	}
 
 	const userdb = appdb.db(req.session.userdb);
-	console.log(req.params.dogId);
 	//Use the dog document id to find the specific dog
 	let dogId =  ObjectId.createFromHexString(req.params.dogId);
 	let dogRecord = await userdb.collection('dogs').find({_id: dogId}).toArray();	
@@ -2659,8 +2650,6 @@ app.get('/clientList', sessionValidation, businessAuthorization, async (req, res
 app.get('/clientProfile/:id', sessionValidation,  businessAuthorization, async (req, res) => {
 
 	// Get a list of all clients
-	// const clients = await appUserCollection.find({userType: 'client'}).project({id: 1, email: 1, firstName: 1, lastName: 1, phone: 1}).toArray();
-	
 	// Kevin - Return an array of ids and emails from the client's database
 	const userdb = appdb.db(req.session.userdb);
 	const clients = await userdb.collection('clients').find().project({email: 1}).toArray();
@@ -2758,7 +2747,6 @@ app.post('/updateClientPayments', async (req, res) => {
 app.get('/clientProfile/:c_id/dogView/:d_id', businessAuthorization, async (req, res) => {
 
 	// Get a list of all clients
-
 	// Kevin - Return an array of ids and emails from the client's database
 	const userdb = appdb.db(req.session.userdb);
 	const clients = await userdb.collection('clients').find().project({email: 1}).toArray();
@@ -2792,15 +2780,6 @@ app.get('/clientProfile/:c_id/dogView/:d_id', businessAuthorization, async (req,
 	const clientdb = await getdb(req.session.clientdb);
 
 	let clientId = await clientdb.collection('info').find().toArray();
-	// console.log(clientId);
-
-	// clientId = clientId[0]._id;
-
-	// console.log(clientId);
-
-	// clientId = clientId.toString();
-
-	// console.log(clientId);
 
 	// set the database
 	const clientdbDogs = clientdb.collection('dogs');
