@@ -108,20 +108,24 @@
 			let modalTerms = new bootstrap.Modal(document.getElementById('termsAndConditionsModal'));
 
 			//Dealing the file embed of the contract
-			let bufferString = document.getElementById('bufferString').value;
+			let bufferString = document.getElementById('bufferString');
+			if(bufferString){
+				let string = bufferString.value;
+				const binaryData = atob(string); // Decode the base64-encoded string
+				const byteArray = new Uint8Array(binaryData.length);
+				
+				for (let i = 0; i < binaryData.length; i++) {
+					byteArray[i] = binaryData.charCodeAt(i);
+				}
 
-			const binaryData = atob(bufferString); // Decode the base64-encoded string
-			const byteArray = new Uint8Array(binaryData.length);
-			for (let i = 0; i < binaryData.length; i++) {
-				byteArray[i] = binaryData.charCodeAt(i);
+				let blob = new Blob([byteArray], { type: 'application/pdf' });
+
+				let contractUrl = URL.createObjectURL(blob);
+
+				document.getElementById('contractPdf').src = contractUrl;
 			}
 
-			let blob = new Blob([byteArray], { type: 'application/pdf' });
-
-			let contractUrl = URL.createObjectURL(blob);
-
-			document.getElementById('contractPdf').src = contractUrl;
-		
+			
 			nextModalButton.addEventListener('click', () =>{
 				modalTerms.show();
 			});
