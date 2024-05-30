@@ -4,13 +4,13 @@
         <div class="resource-wrap text-center">
             <div class="resource-html justify-content-center">
                 <div class="check-buttons my-4">
-                    <div class="heading-gen mb-5">
+                    <div class="mb-4">
                         <%- include('templates/checkmark', {classes: 'alertFilter', value:'hireRequest', name:'hiringRequests', id: 'hiringRequests', label:'Hiring Requests', xAttr:''}) %>
                     </div>
-                    <div class="heading-gen mb-5">
+                    <div class="mb-4">
                         <%- include('templates/checkmark', {classes: 'alertFilter', value:'cancellation', name:'cancellations', id: 'cancellations', label:'Cancellations', xAttr:''}) %>
                     </div>
-                    <div class="heading-gen mb-5">
+                    <div class="mb-4">
                         <%- include('templates/checkmark', {classes: 'alertFilter', value:'payment', name:'paymentsRecieved', id: 'paymentsRecieved', label:'Payments Recieved', xAttr:''}) %>
                     </div>
                     <div class="heading-gen mb-5">
@@ -19,7 +19,7 @@
                 </div>
             </div>
         </div>
-    <div>
+    <div class="pt-4">
         <% if(alerts.length < 1 && reqSessions.length < 1) {%>
             <p class="fw-bold text-center heading-gen">You have no new alerts</p>
         <% } else if (alerts.length >= 1) {%>

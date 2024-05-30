@@ -1,8 +1,8 @@
 <!--Main client Resources page-->
 <%- include("templates/header") %>
     
-<div class="container"> <!--Added container div to center content on page-->
-    <h1 class="text-center">Resources</h1> <!--Page title-->
+<div class="profile-container my-4 mx-4"> <!--Added container div to center content on page-->
+    <h1 class="text-center yeseva-one pt-4">Resources</h1> <!--Page title-->
         
         <div class="resource-wrap d-flex justify-content-center">
             <div class="resource-html text-center">
@@ -16,7 +16,7 @@
                 <label for="tabR-4" class="tabR">Dog Shows</label>
                 <input id="tabR-5" type="radio" name="tab" class="tabR-five btn-check">
                 <label for="tabR-5" class="tabR">Dog Sports</label>
-                <div class="resource-form">
+                <div class="resource-form d-flex justify-content-center">
                     <div class="tabR-one-htm">
                         <!--Resource cards-->
                         <%- include('templates/resource', {
@@ -93,7 +93,7 @@
                         }) %>
                     </div>
                 </div>
-                <div class="resource-form">
+                <div class="resource-form d-flex justify-content-center">
                     <div class="tabR-two-htm">
                         <!--Resource cards-->
                         <%- include('templates/resource', {
@@ -130,7 +130,7 @@
                         }) %>
                     </div>
                 </div>
-                <div class="resource-form">
+                <div class="resource-form d-flex justify-content-center">
                     <div class="tabR-three-htm">
                         <!--Resource cards-->
                         <%- include('templates/resource', {
@@ -172,7 +172,7 @@
                         }) %>
                     </div>
                 </div>
-                <div class="resource-form">
+                <div class="resource-form d-flex justify-content-center">
                     <div class="tabR-five-htm">
                         <!--Resource cards-->
                         <%- include('templates/resource', {

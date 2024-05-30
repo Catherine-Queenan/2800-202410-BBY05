@@ -18,18 +18,11 @@
 <!-- This script includes the client searching DOM logic -->
 <script type="text/javascript" src="/scripts/clientSearch.js"></script>
 
-<!-- This script is responsible for handling the client array conversion to the JS -->
-<script>
-    let clientListSize = "<%= clientArray.length%>";
-    const clients = '<%- JSON.stringify(clientArray) %>';
-    let clientsParsed = JSON.parse(clients);
-</script>
-
 <template id="clientCardTemplate">
     <li>
         <div class="card m-4 smallShadow" style="background-color:#20133541; color:#201335; border-radius:1px">
             <div class="d-flex justify-content-center m-2">
-            <div class="card-body">
+            <div>
                 <h5 class="card-title h4 text-center yeseva-one">[firstNamePlaceholder] [lastNamePlaceholder]</h5>
                 <p class="karla-heavy fw-bold text-center">[emailPlaceholder]</p>
                 <form method="get" class="d-flex justify-content-center">

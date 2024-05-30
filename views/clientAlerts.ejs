@@ -4,16 +4,16 @@
         <div class="resource-wrap text-center">
             <div class="resource-html justify-content-center">
                 <div class="check-buttons my-4">
-                    <div class="heading-gen mb-5">
+                    <div class="mb-4">
                         <%- include('templates/checkmark', {classes: 'alertFilter', value:'vaccineAlert', name:'vaccineAlert', id: 'vaccineAlert', label:'Dog Vaccine Updates', xAttr:''}) %>
                     </div>
-                    <div class="heading-gen mb-5">
+                    <div class="mb-4">
                         <%- include('templates/checkmark', {classes: 'alertFilter', value:'sessionAlert', name:'sessionAlert', id: 'sessionAlert', label:'Session Updates', xAttr:''}) %>
                     </div>
                 </div>
             </div>
         </div>
-    <div>
+    <div class="pt-4">
         <% if(alerts.length < 1) {%>
             <p class="fw-bold text-center heading-gen">You have no new alerts</p>
         <% } else {%>

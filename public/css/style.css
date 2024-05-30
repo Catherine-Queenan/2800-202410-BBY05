@@ -43,6 +43,16 @@
     background-repeat: no-repeat;
     background-image: linear-gradient(180deg, rgba(240, 241, 250, 1) 0%, rgba(134, 134, 134, 0) 73%);
   }
+
+  .profileImg-style {
+    width: 80px; 
+    height: 80px; 
+    object-fit: cover;
+  }
+
+  .smallWidth {
+    min-width: 100px;
+  }
 /* End of General */
 
 /* Bootstrap Modifications */
@@ -102,16 +112,26 @@
 
   .smallShadow {
     box-shadow: 3px 4px 0px 0px #201335;
-    box-shadow: -3px -4px 0px 0px #201335;
-    box-shadow: 0 0 0px 3px #201335;
+    border: 3px solid #201335 !important;
   }
 
   .icon {
     cursor:pointer;
   }
 
+  .indexShadow {
+    border: 3px solid #201335;
+    border-radius:1px;
+  }
+
+  .profile-card-border {
+    border: 2px solid #F0F1FA;
+    border-radius:1px;
+    box-shadow: 2px 2px 0 0 #201335bc;
+  }
+
   .card {
-    border:none;
+    border: none;
     background-color:#20133541;
     color:#201335;
     border-radius:1px;
@@ -1071,8 +1091,8 @@
     color: #FFA05C;
   }
 
-  .orangeBackgroundFade {
-    background-color: #ffa05c8e !important;
+  .whiteBackgroundFade {
+    background-color: #f0f1fa67 !important;
   }
 
   .violetBackground {

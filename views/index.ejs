@@ -68,7 +68,7 @@
                         <%- include('templates/homepage', { 
                             title: 'Your Upcoming Sessions',
                             content: '',
-                            prevClass: 'smallShadow',
+                            prevClass: 'indexShadow smallShadow',
                             actionOne: '/sessionList',
                             classesOne: 'lg-button',
                             attributesOne: '',
@@ -84,7 +84,7 @@
                         <%- include('templates/homepage', { 
                             title: 'Your Trainer',
                             content: '',
-                            prevClass: 'smallShadow',
+                            prevClass: 'indexShadow smallShadow',
                             actionOne: '/viewBusiness/' + trainer.name,
                             classesOne: 'lg-button',
                             attributesOne: '',
@@ -99,8 +99,8 @@
                     <% } else { %>
                         <%- include('templates/homepage', { 
                             title: 'Find a Trainer', 
-                            content: 'Click here to add a trainer',
-                            prevClass: 'smallShadow',
+                            content: 'With our network of trainers, finding the perfect one for you is just a paw trick away!',
+                            prevClass: 'indexShadow smallShadow',
                             actionOne: '/findTrainer',
                             classesOne: '',
                             attributesOne: '',
@@ -133,15 +133,15 @@
                     <%- include('templates/clientPreview', { 
                         title: 'Helpful Resources', 
                         content: 'Thinking about getting a dog? Looking for helpful care guides or canine enrichment ideas? Browse our curated articles, videos, and more!',
-                        prevClass: 'smallShadow',
+                        prevClass: 'indexShadow smallShadow',
                         actionOne: '/clientResources',
                         classesOne: '',
                         attributesOne: '',
                         contentOne: 'All Resources',
-                        actionTwo: '',
+                        actionTwo: '/FAQ',
                         classesTwo: '',
                         attributesTwo: '',
-                        contentTwo: 'Trusted Professionals',
+                        contentTwo: 'Read More',
                         justify: 'justify-content-center',
                         imageUrl: 'images/PupReadFade.png'
                     }) %>
@@ -161,11 +161,11 @@
                     <%- include('templates/homepage', { 
                         title: 'This Week\'s Sessions',
                         content: '',
-                        prevClass: 'smallShadow',
+                        prevClass: 'indexShadow smallShadow',
                         actionOne: '/sessionList',
                         classesOne: 'lg-button',
                         attributesOne: '',
-                        contentOne: 'CLIENT',
+                        contentOne: '',
                         actionTwo: '/login/businessLogin',
                         classesTwo: 'lg-button',
                         attributesTwo: '',
@@ -175,33 +175,33 @@
                     }) %>
 
                     <%- include('templates/homepage', { 
-                        title: 'Inbox', 
-                        content: 'Dynamically loaded content based on inbox messages.',
-                        prevClass: 'smallShadow',
+                        title: 'Messages', 
+                        content: '',
+                        prevClass: 'indexShadow smallShadow',
                         actionOne: '/chatSelectClient',
                         classesOne: '',
                         attributesOne: '',
-                        contentOne: 'Learn More',
+                        contentOne: '',
                         actionTwo: '',
                         classesTwo: '',
                         attributesTwo: '',
-                        contentTwo: 'Find a Trainer',
+                        contentTwo: '',
                         imageUrl: 'images/PawTrickFade.png',
                         divObjectId: 'messagePreview'
                     }) %>
 
                     <%- include('templates/homepage', { 
                         title: 'Clients', 
-                        content: 'Dynamically loaded client profiles from database',
-                        prevClass: 'smallShadow',
+                        content: '',
+                        prevClass: 'indexShadow smallShadow',
                         actionOne: '/clientList',
                         classesOne: '',
                         attributesOne: '',
-                        contentOne: 'All Resources',
+                        contentOne: '',
                         actionTwo: '',
                         classesTwo: '',
                         attributesTwo: '',
-                        contentTwo: 'Trusted Professionals',
+                        contentTwo: '',
                         imageUrl: 'images/DogBackdrop.png',
                         divObjectId: 'clientList'
                     }) %>
@@ -209,15 +209,15 @@
                     <%- include('templates/homepage', { 
                         title: 'Booking Calendar', 
                         content: '',
-                        prevClass: 'smallShadow',
+                        prevClass: 'indexShadow smallShadow',
                         actionOne: '/calendar',
                         classesOne: '',
                         attributesOne: '',
-                        contentOne: 'All Resources',
+                        contentOne: '',
                         actionTwo: '',
                         classesTwo: '',
                         attributesTwo: '',
-                        contentTwo: 'Trusted Professionals',
+                        contentTwo: '',
                         imageUrl: 'images/DogBackdrop.png',
                         divObjectId: 'calendar'
                     }) %>

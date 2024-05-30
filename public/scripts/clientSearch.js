@@ -1,6 +1,26 @@
-document.addEventListener('DOMContentLoaded', () => {
+
+
+document.addEventListener('DOMContentLoaded', async () => {
     const clientListing = document.getElementById('clientListing');
     clientListing.innerHTML = '';
+
+
+
+    async function fetchClients() {
+        const response = await fetch('/api/clients');
+        if (response.ok) {
+            const clients = await response.json();
+            return clients;
+        } else {
+            console.error('Failed to fetch clients');
+            return [];
+        }
+    }
+    
+    let clientsParsed = await fetchClients();
+
+
+
 
     clientsParsed.forEach((person) => {
         let template = document.getElementById('clientCardTemplate').innerHTML;
@@ -26,41 +46,26 @@ document.addEventListener('DOMContentLoaded', () => {
         // Clear any existing content in the dogsContainer
         dogsContainer.innerHTML = '';
 
-        /*
-            Over here look
-             look over here
-              look over here
-               look over here
-                look over here
-                 look over here 
-                  look over here
-                   look over here
-                    look over here 
-                     look over here
-                      look over here
-                       look over here
-                        look over here
-                         look over here
-                          look over here
-                          there is a second foreach loop that you need to add 
-                          your classes to (using the same classes)
-        */
+        // Iterate over each dog and append its name to the dogsContainer
         person.dogs.forEach(dog => {
 
             // Create the containing div
             let housingDiv = document.createElement('div');
-            housingDiv.classList.add('CLASSES-FOR-HOUSING-DIV-HERE');
+            housingDiv.classList.add('d-flex', 'flex-column', 'align-items-center', 'justify-content-center',);
 
             // Create a div for the dog's picture
             let dogPicElement = document.createElement('div');
-            dogPicElement.classList.add('CLASSES-FOR-DOG-PICTURE-DIV-HERE');
+            dogPicElement.classList.add();
 
             // Create an img element for the dog's picture
             let imgElement = document.createElement('img');
+            if(!dog.dogPic  || dog.dogPic == ''){
+                dog.dogPic = 'images/DefaultAvatar.png';
+            }
             imgElement.src = dog.dogPic; 
             imgElement.alt = dog.dogName;
-            imgElement.classList.add('IMAGE-CLASSES-HERE-IF-NEEDED');
             imgElement.className = 'dogPic';
+            imgElement.classList.add('rounded-circle', 'profileImg-style', 'm-2');
 
             // Append the img element to the dogPicElement
             dogPicElement.appendChild(imgElement);
@@ -68,8 +73,9 @@ document.addEventListener('DOMContentLoaded', () => {
             // Create a div for the dog's name
             let dogNameElement = document.createElement('div');
             dogNameElement.className = 'dogName';
-            dogNameElement.classList.add('CLASSES-FOR-DOG-NAME-TEXT-HERE');
+            dogNameElement.classList.add('h4', 'text-center', 'yeseva-one');
             dogNameElement.textContent = dog.dogName;
+            
 
             // Append the dogPicElement and dogNameElement to the dogsContainer
             housingDiv.appendChild(dogPicElement);
@@ -83,9 +89,22 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('loaded page');
 });
 
-document.getElementById('searchInput').addEventListener('input', (event) => {
+document.getElementById('searchInput').addEventListener('input', async (event) => {
     const searchTerm = event.target.value.toLowerCase();
     const clientListing = document.getElementById('clientListing');
+
+    async function fetchClients() {
+        const response = await fetch('/api/clients');
+        if (response.ok) {
+            const clients = await response.json();
+            return clients;
+        } else {
+            console.error('Failed to fetch clients');
+            return [];
+        }
+    }
+    
+    let clientsParsed = await fetchClients();
 
     // Clear the client listing before populating it with search results
     clientListing.innerHTML = '';
@@ -117,41 +136,24 @@ document.getElementById('searchInput').addEventListener('input', (event) => {
             // Clear any existing content in the dogsContainer
             dogsContainer.innerHTML = '';
 
-            /*
-            Over here look
-             look over here
-              look over here
-               look over here
-                look over here
-                 look over here 
-                  look over here
-                   look over here
-                    look over here 
-                     look over here
-                      look over here
-                       look over here
-                        look over here
-                         look over here
-                          look over here
-                          Add your classes here as well
-        */
             // Iterate over each dog and append its name to the dogsContainer
             person.dogs.forEach(dog => {
 
                 // Create the containing div
                 let housingDiv = document.createElement('div');
-                housingDiv.classList.add('CLASSES-FOR-HOUSING-DIV-HERE');
+                housingDiv.classList.add('d-flex', 'flex-column', 'align-items-center', 'justify-content-center',);
     
                 // Create a div for the dog's picture
                 let dogPicElement = document.createElement('div');
-                dogPicElement.classList.add('CLASSES-FOR-DOG-PICTURE-DIV-HERE');
+                dogPicElement.classList.add('rounded-circle', 'profileImg-style', 'm-2');
     
                 // Create an img element for the dog's picture
                 let imgElement = document.createElement('img');
                 imgElement.src = dog.dogPic; 
                 imgElement.alt = dog.dogName;
-                imgElement.classList.add('IMAGE-CLASSES-HERE-IF-NEEDED');
                 imgElement.className = 'dogPic';
+                imgElement.classList.add('rounded-circle', 'profileImg-style', 'm-2');
+                
     
                 // Append the img element to the dogPicElement
                 dogPicElement.appendChild(imgElement);

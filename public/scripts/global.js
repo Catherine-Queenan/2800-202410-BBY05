@@ -1,4 +1,4 @@
-/* Automatic resize for textareas */
+/* Automatic resize for textareas, built with the help of ChatGPT */
 function autoResizeTextarea() {
     const textareas = document.querySelectorAll('textarea.auto-resize');
     textareas.forEach(textarea => {
@@ -16,3 +16,11 @@ document.addEventListener('DOMContentLoaded', (event) => {
     autoResizeTextarea(); // Initialize the height based on initial content
 });
 
+// Reapply the autoResizeTextarea function when tabs are clicked
+document.querySelectorAll('input[name="tab"]').forEach(tab => {
+    tab.addEventListener('change', () => {
+        setTimeout(() => {
+            autoResizeTextarea(); // Reapply the auto-resize function to ensure proper resizing
+        }, 100); // Small delay to allow tab content to be fully visible
+    });
+});

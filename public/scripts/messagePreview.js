@@ -1,10 +1,10 @@
 // Displays the previously hidden messagePreview Div
 const messagePreview = document.getElementById('messagePreview');
-messagePreview.classList.add('whiteBackground', 'p-3', 'rounded');
+messagePreview.classList.add('bg-transparent', 'p-3', 'rounded');
 messagePreview.classList.remove('d-none');
 
 messagePreview.innerHTML = `
-	<h4>New Messages From: </h4>
+	<h4 class="fw-bold">New Messages From: </h4>
 	<ul id="msgList" style="list-style-type: none; padding: 0; margin-left: 0; margin-right: 0;"></ul>
 `;
 
@@ -17,9 +17,9 @@ async function fetchMessages() {
 		for (let i = 0; i < clientMessages.length; i++) {
 			const msgLi = document.createElement('li');
 			msgLi.innerHTML = `
-				<div>
+				<div class="karla-heavy fw-bold">
 					${clientMessages[i].email}: 
-					<span class="position-absolute top-30 start-90 badge rounded-pill orangeBackground purple" font-weight:800; cursor:pointer;">
+					<span class="position-absolute top-20 start-95 badge rounded-pill orangeBackground purple" font-weight:800; cursor:pointer;">
 						${clientMessages[i].msgCount}
 					</span>
 				</div>
