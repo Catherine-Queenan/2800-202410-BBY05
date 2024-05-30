@@ -2791,6 +2791,17 @@ app.get('/clientProfile/:c_id/dogView/:d_id', businessAuthorization, async (req,
 	setClientDatabase(req, email);
 	const clientdb = await getdb(req.session.clientdb);
 
+	let clientId = await clientdb.collection('info').find().toArray();
+	// console.log(clientId);
+
+	// clientId = clientId[0]._id;
+
+	// console.log(clientId);
+
+	// clientId = clientId.toString();
+
+	// console.log(clientId);
+
 	// set the database
 	const clientdbDogs = clientdb.collection('dogs');
 	let targetDogs = await clientdbDogs.find({}).toArray();
@@ -2812,7 +2823,7 @@ app.get('/clientProfile/:c_id/dogView/:d_id', businessAuthorization, async (req,
 		targetDog.dogPic = cloudinary.url(pic);
 	}
 
-	res.render('dogProfileView', {loggedIn: isValidSession(req), userType: req.session.userType, dog: targetDog, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages})
+	res.render('dogProfileView', {loggedIn: isValidSession(req), userType: req.session.userType, clientId: clientId[0]._id.toString(), dog: targetDog, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages})
 });
 
 // ----------------- SESSIONS SECTION STARTS HERE -------------------
