@@ -11,13 +11,13 @@
 						<img src="/images/DefaultAvatar.png" id="demoPic" class="rounded-circle"
 								style="width: 150px; height: 150px; object-fit: cover;">
 					</div>
-					<%- include('templates/uploadFile', {divId:'newDogPic', xDivAttributes:'', fileId:'dogPicInput',fileName:'dogUpload', label:'Upload a New Photo:', xfileAttributes:'accept=.png,.jpg'}) %>
+					<%- include('templates/uploadFile', {divId:'newDogPic', xDivAttributes:'', fileId:'dogPicInput',fileName:'dogUpload', label:'Upload a Photo', xfileAttributes:'accept=.png,.jpg'}) %>
 					<div class="form-group">
-						<label for="dogName">Dog Name:</label>
+						<label for="dogName">Dog Name*</label>
 						<input type="text" id="dogName" name="dogName" required>
 					</div>
 					<div class="form-group">
-						<label for="dogBreed">Breed:</label>
+						<label for="dogBreed">Breed*</label>
 						<input type="text" id="dogBreed" name="breed" required>
 					</div>
 					<div class="check-buttons my-4">
@@ -38,10 +38,10 @@
 							</label>
 						</div>
 					</div>
-					<%- include('templates/dateInput', {divId: 'birthdayDateDiv', xDivAttributes:'', dateId: 'birthday', dateClass:'', dateName:'birthday', label:'Birthday', xDateAttributes:'required'}) %>
+					<%- include('templates/dateInput', {divId: 'birthdayDateDiv', xDivAttributes:'', dateId: 'birthday', dateClass:'', dateName:'birthday', label:'Birthday*', xDateAttributes:'required'}) %>
 					
 					<div class="form-group">
-						<label for="weight">Weight (lb):</label>
+						<label for="weight">Weight (lb)*</label>
 						<input type="number" id="weight" name="weight" min="0" required>
 					</div>
 

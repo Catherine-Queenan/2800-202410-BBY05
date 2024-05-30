@@ -16,12 +16,12 @@
 			<form class="my-3" id="basicInfo" method="post" enctype="multipart/form-data">
 				<%- include('templates/uploadFile', {divId:'newDogPic', xDivAttributes:'style=display:none', fileId:'dogUpload',fileName:'dogUpload', label:'Upload a New Photo:', xfileAttributes:'accept=.png,.jpg'}) %>
 					<div class="form-group">
-						<label for="dogName">Name:</label>
+						<label for="dogName">Name</label>
 						<input class="dogInput" type="text" id="dogName" name="dogName" value="<%=dog.dogName%>" required disabled>
 					</div>
 
 					<div class="form-group">
-						<label for="dogBreed">Breed:</label>
+						<label for="dogBreed">Breed</label>
 						<input class="dogInput" type="text" id="dogBreed" name="breed" value="<%=dog.breed%>" required disabled>
 					</div>
 					
@@ -60,7 +60,7 @@
 					<%- include('templates/dateInput', {divId: 'birthdayDateDiv', xDivAttributes:'', dateId: 'birthday',dateClass:'dogInput', dateName:'birthday', label:'Birthday', xDateAttributes:'value=' + dog.birthday + ' required disabled'}) %>
 						
 					<div class="form-group">
-						<label for="weight">Weight (lb):</label>
+						<label for="weight">Weight (lb)</label>
 						<input class="dogInput" type="number" id="weight" name="weight" min="0" value="<%=dog.weight%>" disabled>
 					</div>
 						

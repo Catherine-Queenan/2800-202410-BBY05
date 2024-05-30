@@ -2591,6 +2591,8 @@ app.get('/api/clients', async (req, res) => {
 
 			if(dogPic != '') {
 				dogPicUrl = cloudinary.url(dogPic);
+			} else {
+				dogPicUrl = '/images/DefaultAvatar.png';
 			}
 			
 			dogOut[j].dogPic = dogPicUrl;

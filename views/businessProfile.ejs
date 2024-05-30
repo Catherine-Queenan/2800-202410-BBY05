@@ -18,7 +18,7 @@
 							<div class="d-flex justify-content-center">
 								<%- include('templates/defaultingPic', {pic: business.logo, picId: 'logoShow'})%>
 							</div>
-							<%- include('templates/uploadFile', {divId:'businessUpload', xDivAttributes:'style=display:none', fileId:'logo',fileName:'accountUpload', label:'Upload your Logo:', xfileAttributes:'class=picUpload accept=.png,.jpg, .jpeg'}) %>
+							<%- include('templates/uploadFile', {divId:'businessUpload', xDivAttributes:'style=display:none', fileId:'logo',fileName:'accountUpload', label:'Upload your Logo', xfileAttributes:'class=picUpload accept=.png,.jpg, .jpeg'}) %>
 								<div class="form-group">
 									<label for="companyEmail">Company Email:</label>
 									<input class="businessInfo" type="email" id="companyEmail" name="email" value="<%=business.email%>" required disabled>
@@ -130,12 +130,12 @@
 						<div class="p-2" id="newProgramForm" style="display:none">
 						<form class="container my-3 tabR-three-htm"  method="post">
 							<div class="form-group">
-								<label for="programName">Program Name:</label>
+								<label for="programName">Program Name*</label>
 								<input class="newProgramInfo" type="text" id="programName" name="name" required>
 							</div>
 
 							<div class="form-group">
-								<label for="programService">Service Provided:</label>
+								<label for="programService">Service Provided*</label>
 								<select class="form-select" name="service" required>
 									<option></option>
 									<% for(let i = 0; i < business.services.length; i++){ %>
@@ -160,27 +160,27 @@
 
 							<div class="form-group">
 								<label id="priceLabel"
-								 for="price">Hourly Rate (in Dollars):</label>
+								 for="price">Hourly Rate (in Dollars)*</label>
 								<input class="newProgramInfo" type="number" id="price" name="price" min="0" step="0.01" required/>
 							</div>
 
 							<div class="form-group">
-								<label for="programDiscounts">Discounts:</label>
+								<label for="programDiscounts">Discounts</label>
 								<textarea class="form-control auto-resize newProgramInfo" id="programDiscounts" name="discounts" rows="2"></textarea>
 							</div>
 
 							<div class="form-group">
-								<label for="hours">Total Hours:</label>
+								<label for="hours">Total Hours*</label>
 								<input class="newProgramInfo" type="number" id="hours" name="hours" min="0" step="0.01" required/>
 							</div>
 
 							<div class="form-group">
-								<label for="sessions">Total Sessions:</label>
+								<label for="sessions">Total Sessions*</label>
 								<input class="newProgramInfo" type="number" id="sessions" name="sessions" min="0" step="1" required/>
 							</div>
 
 							<div class="form-group">
-								<label for="programDescription">Program Description:</label>
+								<label for="programDescription">Program Description*</label>
 								<textarea class="form-control auto-resize newProgramInfo" id="programDescription" name="description" rows="3" required></textarea>
 							</div>
 
@@ -512,7 +512,7 @@
 	pricingToggles.forEach((toggle) => {
 		toggle.addEventListener('change', () => {
 			if(toggle.checked){
-				priceLabel.innerHTML = toggle.value + "(in Dollars):";
+				priceLabel.innerHTML = toggle.value + "(in Dollars)*";
 			}
 		});
 	});
