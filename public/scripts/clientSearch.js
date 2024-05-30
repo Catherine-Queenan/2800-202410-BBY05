@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             // Create a div for the dog's picture
             let dogPicElement = document.createElement('div');
-            dogPicElement.classList.add('rounded-circle', 'profileImg-style');
+            dogPicElement.classList.add();
 
             // Create an img element for the dog's picture
             let imgElement = document.createElement('img');
@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Create a div for the dog's name
             let dogNameElement = document.createElement('div');
             dogNameElement.className = 'dogName';
-            dogNameElement.classList.add('rounded-circle', 'profileImg-style', 'm-2');
+            dogNameElement.classList.add('h4', 'text-center', 'yeseva-one');
             dogNameElement.textContent = dog.dogName;
             
 

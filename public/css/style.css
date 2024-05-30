@@ -49,6 +49,10 @@
     height: 80px; 
     object-fit: cover;
   }
+
+  .smallWidth {
+    min-width: 100px;
+  }
 /* End of General */
 
 /* Bootstrap Modifications */
@@ -1087,8 +1091,8 @@
     color: #FFA05C;
   }
 
-  .orangeBackgroundFade {
-    background-color: #ffa05c8e !important;
+  .whiteBackgroundFade {
+    background-color: #f0f1fa67 !important;
   }
 
   .violetBackground {

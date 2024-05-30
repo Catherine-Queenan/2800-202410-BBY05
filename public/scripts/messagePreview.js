@@ -17,9 +17,9 @@ async function fetchMessages() {
 		for (let i = 0; i < clientMessages.length; i++) {
 			const msgLi = document.createElement('li');
 			msgLi.innerHTML = `
-				<div>
+				<div class="karla-heavy fw-bold">
 					${clientMessages[i].email}: 
-					<span class="position-absolute top-30 start-90 badge rounded-pill orangeBackground purple" font-weight:800; cursor:pointer;">
+					<span class="position-absolute top-20 start-95 badge rounded-pill orangeBackground purple" font-weight:800; cursor:pointer;">
 						${clientMessages[i].msgCount}
 					</span>
 				</div>

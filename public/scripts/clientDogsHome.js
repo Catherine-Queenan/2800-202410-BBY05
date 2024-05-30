@@ -1,6 +1,6 @@
 // Display the trainer company name and logo
 const dogsShow = document.getElementById('dogs');
-dogsShow.classList.add('bg-transparent', 'p-3', 'rounded', 'd-flex', 'profile-card-border',);
+dogsShow.classList.add('whiteBackgroundFade', 'p-3', 'rounded', 'd-flex', 'justify-content-between', 'flex-wrap', 'profile-card-border',);
 dogsShow.classList.remove('d-none');
 
 async function showDogs() {
@@ -15,10 +15,10 @@ async function showDogs() {
             pic = 'images/DefaultAvatar.png'
         }
         let doc = `
-            <div>
+            <div class="text-center">
             <a href='/dog/${dogs['dogs'][i]._id}'>
                 <img src="${pic}" class="rounded-circle" style="width: 80px; height: 80px; object-fit: cover;">
-                <p>${dogs['dogs'][i].dogName}</p>
+                <p class="text-center yeseva-one h5 mt-2 mb-0">${dogs['dogs'][i].dogName}</p>
             </a>
             </div>
         `;
