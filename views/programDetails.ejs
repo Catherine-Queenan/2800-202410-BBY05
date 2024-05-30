@@ -11,6 +11,18 @@
                         <label for="programName">Program Name:</label>
                         <input class="programInfo" type="text" id="programName" value="<%=program.name%>" name="name" required disabled>
                     </div>
+
+                    <div class="form-group">
+                        <label for="programService">Service Provided:</label>
+                        <select class="form-select programInfo" name="service" required disabled>
+                            <option selected><%=program.service%></option>
+                            <% for(let i = 0; i < services.length; i++){ %>
+                                <% if(services[i] != program.service){ %>
+                                    <option value="<%=services[i]%>"><%=services[i]%></option>
+                                <% } %>
+                            <% } %>
+                        </select>
+                    </div>
                     
                     <div class="radio-buttons my-2">
                         

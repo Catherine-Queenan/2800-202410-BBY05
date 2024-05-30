@@ -1,4 +1,5 @@
 <div class="card m-2 smallShadow" style="background-color:#20133541; color:#201335; border-radius:1px;">
+    <input class="searchString" type="hidden" value="<%=business.searchString%>">
     <div class="card-title m-3">
         <% if(business.logo == '' || business.logo == null){ %> 
             <img src="/images/DefaultAvatar.png" alt="..." class="rounded-circle" style="width: 60px; height: 60px; object-fit: cover;">
@@ -11,7 +12,6 @@
     <div class="card-body karla-heavy">
         <p><span class="fw-bold">Trainer: </span><%=trainer.firstName%> <%=trainer.lastName%></p>
         <p><span class="fw-bold">Services: </span>
-        <input class="searchString" type="hidden" value="<%=business.searchString%>">
         <% for(let i=0; i < business.services.length; i++){ %>
             <span class="karla-heavy p-1 mx-1 serviceIndv"><%=business.services[i]%></span>
         <% } %>

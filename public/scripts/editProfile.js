@@ -3,6 +3,7 @@ let inputs = document.querySelectorAll(".profileInfo");
 let picInput = document.getElementById('newProfilePic');
 let saveButton = document.getElementById('saveButton');
 let dogs = document.getElementById('dogSection');
+let cancelButtons = document.querySelectorAll('.cancelButton');
 let cancelButton = document.getElementById('cancelEdit');
 let emailNotifications = document.getElementById('emailNotifications');
 
@@ -22,21 +23,24 @@ editButton.addEventListener('click', () => {
     dogs.style = 'display:none';
 });
 
-cancelButton.addEventListener('click', () => {
-    cancelButton.style = 'display:none';
+cancelButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+        cancelButton.style = 'display:none';
+        
+        inputs.forEach((input) => {
+            input.disabled = true;
+        });
     
-    inputs.forEach((input) => {
-        input.disabled = true;
+        picInput.style = 'display:none';
+        emailNotifications.disabled = true;
+    
+        saveButton.style = 'display:none';
+        editButton.style = 'display:inline';
+    
+        dogs.style = 'display:block';
     });
-
-    picInput.style = 'display:none';
-    emailNotifications.disabled = true;
-
-    saveButton.style = 'display:none';
-    editButton.style = 'display:inline';
-
-    dogs.style = 'display:block';
 });
+
 
 
 //Find the profile image upload element

@@ -7,9 +7,9 @@
 		</div>
 		<div class="resource-wrap d-flex justify-content-center">
 			<div class="resource-html justify-content-center flex-fill" style="max-width:500px;">
-				<input id="tabR-1" type="radio" name="tab" class="tabR-one btn-check" checked>
+				<input id="tabR-1" type="radio" name="tab" class="tabR-one btn-check cancelButton" value="dog" checked>
 				<label for="tabR-1" class="tabR">Dog Profile</label>
-				<input id="tabR-2" type="radio" name="tab" class="tabR-two btn-check">
+				<input id="tabR-2" type="radio" name="tab" class="tabR-two btn-check cancelButton" value="vaccine">
 				<label for="tabR-2" class="tabR">Vaccination Records</label>
 			<div class="resource-form">
 				<div class="tabR-one-htm">
@@ -269,12 +269,13 @@
 
 						//Hide the delete button and edit buttons
 						deleteButton.style = 'display:block';
-						button.style = 'display:none';
 						
 						let saveButton = document.getElementById(button.value + 'SaveButton');
 						let editButton = document.getElementById(button.value + 'EditButton');
+						let cancelButton = document.getElementById(button.value + 'CancelButton');
 						saveButton.style = 'display:none';
 						editButton.style = 'display:block';
+						cancelButton.style = 'display:none';
 
 						//Allow the input fields to be editted
 						let inputFields = document.querySelectorAll('.' + button.value + 'Input');
