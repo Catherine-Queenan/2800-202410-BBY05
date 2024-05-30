@@ -1,6 +1,6 @@
-<div class="vaccineAlert card m-2 p-2 smallShadow alertCard orangeBackgroundFade">
-    <a href="/dog/<%=alert.dogId%>" ><h5 class="card-title h4 fw-bold text-center">Vaccine Alert</br> <%=alert.dog%>'s <%=alert.vaccine.toUpperCase()%> Vaccine is 
-    <span class="karla-heavy fw-bold">
+<div class="vaccineAlert card m-4 p-2 smallShadow alertCard purpleBackground white">
+    <a href="/dog/<%=alert.dogId%>" ><h5 class="card-title h4 text-center">Vaccine Alert</br> <%=alert.dog%>'s <%=alert.vaccine.toUpperCase()%> Vaccine is 
+    <span class="karla-heavy">
     <%if(alert.type != "Expired") {%>
         EXPIRES SOON!
     <% } else {%>

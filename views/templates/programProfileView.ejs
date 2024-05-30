@@ -1,10 +1,10 @@
 <div class="card m-4 smallShadow" style="background-color:#20133541; color:#201335; border-radius:1px;">
-    <span class="karla-heavy ms-2 h5"><%=program.service%></span>
-    <div class="m-2 yeseva-one text-center">
-        <a href="/program/<%=program._id%>"><span class="h1 mb-3"><%=program.name%></span></a>
+    <span class="karla-heavy ms-1 h5"><%=program.service%></span>
+    <div class="m-3 yeseva-one">
+        <a href="/program/<%=program._id%>"><span class="h2 mb-3"><%=program.name%></span></a>
     </div> 
-    <div class="m-3 karla-heavy h5">
-        <p><%=program.pricing.priceType%> - <%=program.pricing.price%></p>
-        <p>Session Count - <%=program.sessions%></p>
+    <div class="m-3 karla-heavy">
+        <p><span class="fw-bold"><%=program.pricing.priceType%>:</span> <%=program.pricing.price%></p>
+        <p><span class="fw-bold">Session Count:</span> <%=program.sessions%></p>
     </div>
 </div>

@@ -3,10 +3,10 @@
     <h1 class="text-center mb-4 yeseva-one">Hire Request</span> from <%=alert.clientName%></h1>
     <h4 class="karla-heavy">They are interest in enrolling their dog <span class="fw-bold"><%=alert.dogName%></span> in the <span class="fw-bold"><%=alert.programName%> Program</span></h4>
     <form method="post" class="my-3 d-flex justify-content-between">
-        <%- include('templates/button', {action:'/resolveAlert/' + alert._id,xClasses:'',xAttributes:'name=resolve value=accept',content:'Accept Request'}) %>
         <%- include('templates/button', {action:'/resolveAlert/' + alert._id,xClasses:'btn-danger',xAttributes:'name=resolve value=reject',content:'Reject'}) %>
+        <%- include('templates/button', {action:'/resolveAlert/' + alert._id,xClasses:'',xAttributes:'name=resolve value=accept',content:'Accept Request'}) %>
     </form>
-    <div class="card m-2 smallShadow" style="cursor:default">
+    <div class="card m-4 smallShadow" style="cursor:default">
         <div class="card-title m-3">
             <p class="h4 karla-heavy"><span class="fw-bold">Client Address: </span><%=address%></p>
             <div class="d-flex justify-content-center m-2">

@@ -1,10 +1,10 @@
 // Displays the previously hidden messagePreview Div
 const messagePreview = document.getElementById('messagePreview');
-messagePreview.classList.add('whiteBackground', 'p-3', 'rounded');
+messagePreview.classList.add('bg-transparent', 'p-3', 'rounded');
 messagePreview.classList.remove('d-none');
 
 messagePreview.innerHTML = `
-	<h4>New Messages From: </h4>
+	<h4 class="fw-bold">New Messages From: </h4>
 	<ul id="msgList" style="list-style-type: none; padding: 0; margin-left: 0; margin-right: 0;"></ul>
 `;
 

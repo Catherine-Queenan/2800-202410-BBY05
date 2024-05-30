@@ -1,7 +1,7 @@
 <%- include("templates/header") %>
-<%- include('templates/linkButton', {page:'/viewBusiness/' + companyName, content: 'back'}) %>
-
 <div class="profile-container my-4 mx-4">
+    <%- include('templates/linkButton', {page:'/viewBusiness/' + companyName, content: 'Back'}) %>
+    <h1 class="text-center my-4 yeseva-one">Register Dog</h1>
 		<%- include('templates/button', {action:'',xClasses:'',xAttributes:'id=registerDog type=button disabled', content:'Register Dog'}) %>
 		<%- include('templates/clientViewProgram', {program: program, view: 'register'})%>
 		<div class="heading-gen my-3">
@@ -10,7 +10,7 @@
 			<p class="karla-heavy fw-bold">No Dog Selected</p>
 			</div>
 		</div>
-		<div class="heading-gen my-3">
+		<div class="my-3">
 			<p class="h2 purple">Select dog:</p>
 			<% for(let i=0; i < dogs.length; i++){ %>
 				<%- include('templates/dogToTrainClient', {dog: dogs[i]}) %>
@@ -62,9 +62,9 @@
 			<div class="modal-dialog modal-xl" role="document">
 			<div class="modal-content">
 				<div class="modal-header">
-				<div class="modal-title ">
+				<div class="modal-title d-flex justify-content-between">
 					<span class="h2"><%=companyName%>'s Terms and Conditions</span>
-					<%- include('templates/button', {action:'',xClasses:'',xAttributes:'type=button data-bs-dismiss=modal', content:'Cancel'}) %>
+					<%- include('templates/button', {action:'',xClasses:'btn-close',xAttributes:'type=button data-bs-dismiss=modal style=min-width:5px;min-height:5px;', content:''}) %>
 				</div>
 				</div>
 				<% if(contract != ''){ %>
@@ -74,10 +74,10 @@
 					<p>This trainer has not specified any terms and conditions! Feel free to agree!</p>
 			<%  } %>
 				
-				<div class="check-buttons my-4">
+				<div class="check-buttons my-4 mx-2">
 					<%- include('templates/checkmark', {classes: '', value:'agree', name:'agreement', id: 'termsAndConditions', label:"I have read and agree with the provided trainer's terms and conditions", xAttr:''}) %>
 				</div>
-				<div class="modal-footer">
+				<div class="modal-footer d-flex justify-content-between">
 					<%- include('templates/button', {action:'',xClasses:'',xAttributes:'type=button data-bs-dismiss=modal id=backModalButton', content:'Back'}) %>
 					<%- include('templates/button', {action:'',xClasses:'',xAttributes:'id=confirmRegister type=button disabled' , content:'Confirm'}) %>
 				</div>
@@ -101,11 +101,11 @@
 		let confirmButton = document.getElementById('confirmRegister');
 
 		let input = document.getElementById('selectedDogSave');
+        let termsAndConditionCheck = document.getElementById('termsAndConditions');
 
 		let modalConfirm = new bootstrap.Modal(document.getElementById('confirmationModal'));
 		if(nextModalButton){
 			let modalTerms = new bootstrap.Modal(document.getElementById('termsAndConditionsModal'));
-			let termsAndConditionCheck = document.getElementById('termsAndConditions');
 
 			//Dealing the file embed of the contract
 			let bufferString = document.getElementById('bufferString').value;

@@ -57,9 +57,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Create an img element for the dog's picture
             let imgElement = document.createElement('img');
+            if(!dog.dogPic  || dog.dogPic == ''){
+                dog.dogPic = 'images/DefaultAvatar.png';
+            }
             imgElement.src = dog.dogPic; 
             imgElement.alt = dog.dogName;
-            imgElement.classList.add('IMAGE-CLASSES-HERE-IF-NEEDED');
+            imgElement.classList.add('rounded-circle');
             imgElement.className = 'dogPic';
 
             // Append the img element to the dogPicElement

@@ -1,6 +1,6 @@
 // Displays the previously hidden sessionList
 const clientListing = document.getElementById('clientList');
-clientListing.classList.add('bg-light', 'py-3', 'rounded');
+clientListing.classList.add('bg-transparent', 'py-3', 'rounded');
 clientListing.classList.remove('d-none');
 
 
@@ -42,12 +42,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                 housingDiv.classList.add('CLASSES-FOR-HOUSING-DIV-HERE');
 
                 let dogPicElement = document.createElement('div');
-                dogPicElement.classList.add('CLASSES-FOR-DOG-PICTURE-DIV-HERE');
+                dogPicElement.classList.add('rounded-circle', 'profileImg-style');
 
                 let imgElement = document.createElement('img');
+                if(!dog.dogPic  || dog.dogPic == ''){
+                    dog.dogPic = 'images/DefaultAvatar.png';
+                }
                 imgElement.src = dog.dogPic;
                 imgElement.alt = dog.dogName;
-                imgElement.classList.add('IMAGE-CLASSES-HERE-IF-NEEDED');
+                imgElement.classList.add('rounded-circle', 'profileImg-style');
                 imgElement.className = 'dogPic';
 
                 dogPicElement.appendChild(imgElement);
