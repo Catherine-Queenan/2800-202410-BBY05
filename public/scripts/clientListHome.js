@@ -50,8 +50,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
                 imgElement.src = dog.dogPic;
                 imgElement.alt = dog.dogName;
-                imgElement.classList.add('rounded-circle', 'profileImg-style');
                 imgElement.className = 'dogPic';
+                imgElement.classList.add('rounded-circle', 'profileImg-style');
+                
 
                 dogPicElement.appendChild(imgElement);
 
