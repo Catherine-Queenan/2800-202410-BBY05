@@ -21,9 +21,9 @@
         //Check if the current value in the search bar matches with the keyword strings of each trainer
         trainerServices.forEach((service) => {
             if(!(service.value.includes(search))){
-                service.parentElement.parentElement.style = 'display:none';
+                service.parentElement.style = 'display:none';
             } else {
-                service.parentElement.parentElement.style = 'display:block';
+                service.parentElement.style = 'display:block';
             }
         });
     });

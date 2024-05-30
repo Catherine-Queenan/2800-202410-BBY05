@@ -6,7 +6,7 @@
       <a href="/dog/<%=dog._id%>"> <h5 class="card-title h4 text-center yeseva-one"><%=dog.dogName%></h5></a>
       <p class="karla-heavy text-center"><span class="fw-bold">Breed: </span><%=dog.breed%></p>
       <form class="d-flex justify-content-center">
-        <%- include('button', {action:'/dog/' + dog._id,xClasses:'seeMore',xAttributes:'',content:'See More'}) %>
+        <%- include('button', {action:'/clientProfile/' + c_id + '/dogView/' + dog._id, xClasses:'seeMore', xAttributes:'', content:'See More'}) %>
       </form>
     </div>
   </div>

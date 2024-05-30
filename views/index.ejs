@@ -85,7 +85,7 @@
                             title: 'Your Trainer',
                             content: '',
                             prevClass: 'smallShadow',
-                            actionOne: '/viewBusiness/' + trainer.name.replace(/\s+/g, ''),
+                            actionOne: '/viewBusiness/' + trainer.name,
                             classesOne: 'lg-button',
                             attributesOne: '',
                             contentOne: 'View Trainer',
@@ -201,7 +201,7 @@
                         attributesTwo: '',
                         contentTwo: 'Trusted Professionals',
                         imageUrl: 'images/DogBackdrop.png',
-                        divObjectId: ''
+                        divObjectId: 'clientList'
                     }) %>
 
                     <%- include('templates/homepage', { 
@@ -224,6 +224,7 @@
         </section>
         <script src="/scripts/messagePreview.js"></script>
         <script src="/scripts/calendarBusinessHome.js"></script>
+		<script src="/scripts/clientListHome.js"></script>
         <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
     <% } %>
 </div>

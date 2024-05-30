@@ -40,7 +40,7 @@
                     <div id="dogSection">
                         <p><span class="karla-heavy m-2 fw-bold" style="font-size: 24px;"><%= targetClient.firstName %>'s Dogs:</span></p>
                         <% for(let i = 0; i < dogs.length; i++){ %>
-                            <%- include('templates/dog', {dog: dogs[i]}) %>
+                            <%- include('templates/dogViewingBusiness', {dog: dogs[i], c_id: c_id }) %>
                         <%} %>
                     </div>
                 </div>

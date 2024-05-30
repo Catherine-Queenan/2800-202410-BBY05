@@ -7,9 +7,9 @@
 		</div>
 		<div class="resource-wrap d-flex justify-content-center">
 			<div class="resource-html justify-content-center flex-fill" style="max-width:500px;">
-				<input id="tabR-1" type="radio" name="tab" class="tabR-one btn-check cancelButton" value="dog" checked>
+				<input id="tabR-1" type="radio" name="tab" class="tabR-one btn-check" checked>
 				<label for="tabR-1" class="tabR">Dog Profile</label>
-				<input id="tabR-2" type="radio" name="tab" class="tabR-two btn-check cancelButton" value="vaccine">
+				<input id="tabR-2" type="radio" name="tab" class="tabR-two btn-check">
 				<label for="tabR-2" class="tabR">Vaccination Records</label>
 			<div class="resource-form">
 				<div class="tabR-one-htm">
@@ -18,11 +18,6 @@
 					<div class="form-group">
 						<label for="dogName">Name:</label>
 						<input class="dogInput" type="text" id="dogName" name="dogName" value="<%=dog.dogName%>" required disabled>
-					</div>
-
-					<div class="form-group">
-						<label for="dogBreed">Breed:</label>
-						<input class="dogInput" type="text" id="dogBreed" name="breed" value="<%=dog.breed%>" required disabled>
 					</div>
 					
 					<div class="check-buttons mb-4 mt-2">
@@ -68,11 +63,6 @@
 						<label for="specialAlerts">Special Alerts</label>
 						<textarea class="form-control auto-resize dogInput" id="specialAlerts" name="specialAlerts" rows="3" disabled><%=dog.specialAlerts%></textarea>
 					</div>
-					<div class="my-3 d-flex justify-content-between">
-						<%- include('templates/button', {action:'',xClasses:'editButton col-3',xAttributes:'id=dogEditButton type=button value=dog',content:'Edit'}) %>
-						<%- include('templates/button', {action:'',xClasses:'cancelButton btn-danger col-3',xAttributes:'id=dogCancelButton type=button value=dog style=display:none',content:'Cancel'}) %>
-						<%- include('templates/button', {action: dog._id + '/edit',xClasses:'col-3',xAttributes:'id=dogSaveButton style=display:none',content:'Save'}) %>
-					</div>
 				</form>
 				</div>
 				</div>
@@ -110,33 +100,15 @@
                     <%- include('templates/dateInput', {divId: 'DA2PPDateDiv', xDivAttributes:'', dateId: 'DA2PPDate',dateClass:'vaccineInput', dateName:'DA2PPDate', label:'Expiration Date', xDateAttributes:'disabled value=' + dog.DA2PP.expirationDate}) %>
                     <%- include('templates/uploadFile', {divId:'DA2PPProofDiv', xDivAttributes:'class=vaccineUpload style=display:none', fileId: 'DA2PPProof', fileName:'DA2PPUpload', label:'Provide New Proof of Vaccination', xfileAttributes: 'class=vaccineProof accept=.pdf'}) %>
                   </div>
-
-                  <div class="my-3 d-flex justify-content-between">
-                    <%- include('templates/button', {action:'',xClasses:'editButton',xAttributes:'id=vaccineEditButton type=button value=vaccine',content:'Edit'}) %>
-                    <%- include('templates/button', {action:'',xClasses:'cancelButton',xAttributes:'id=vaccineCancelButton type=button value=vaccine style=display:none',content:'Cancel'}) %>
-                    <%- include('templates/button', {action: dog._id + '/editVaccines',xClasses:'',xAttributes:'id=vaccineSaveButton style=display:none',content:'Save'}) %>
-                  </div>
                 </form>
 				</div>
 			</div>
 				</div>
 				</div>
-
-				<form id="deleteForm" class="mx-auto d-flex justify-content-center mt-3 col-3" style="max-width:500px" method="post" action="<%=dog._id%>/delete">
-					<%- include('templates/button', {action: '' , xClasses:'',xAttributes:'id=deleteDogButton type=button',content:'Delete Dog'}) %>
-				</form>
 </div>
 		<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.all.min.js"></script>
 		<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.min.css" rel="stylesheet">
 			<script>
-				//Sweet alert button template
-				const swalWithBootstrapButtons = Swal.mixin({
-					customClass: {
-						confirmButton: "btn btn-main",
-						cancelButton: "btn btn-secondary"
-					},
-					buttonsStyling: false
-				});
 
 				//Identify what form to show on page
 				var page = 'basic';
@@ -145,154 +117,9 @@
 				//Vaccine Form displays and edits all vaccine related information
 				let basicForm = document.getElementById('basicInfo');
 				let vaccineForm = document.getElementById('vaccineInfo');
-
-				//Collect the buttons used on the page
-				//delete dog button
-				let deleteButton = document.getElementById('deleteDogButton');
-
-				//Edit and cancel buttons for forms
-				let editButtons = document.querySelectorAll('.editButton');
-				let cancelButtons = document.querySelectorAll('.cancelButton');
 				
 				//Toggles between the two forms
 				let toggleButton = document.getElementById('viewVaccines');
-
-				//Back Button
-				let backLinkButton = document.getElementById('backLinkButton');
-
-				deleteButton.addEventListener('click', () =>{
-					swalWithBootstrapButtons.fire({
-						title: "Are you sure?",
-						text: "You won't be able to revert this!",
-						icon: "warning",
-						showCancelButton: true,
-						confirmButtonText: "Delete Dog",
-						cancelButtonText: "Cancel",
-						reverseButtons: true
-					}).then((result) => {
-						if (result.isConfirmed) {
-							swalWithBootstrapButtons.fire({
-								title: "Deleted!",
-								text: "Your dog has been deleted.",
-								icon: "success"
-							}).then((result) => {
-								document.getElementById('deleteForm').submit();
-							});
-						} else if (
-							/* Read more about handling dismissals below */
-							result.dismiss === Swal.DismissReason.cancel
-						) {
-							swalWithBootstrapButtons.fire({
-								title: "Cancelled",
-								text: "Delete cancelled; your dog is safe",
-								icon: "error"
-							});
-						}
-					});
-				});
-
-				//Set up editting
-				editButtons.forEach((button) => {
-					button.addEventListener('click', () => {
-						backLinkButton.innerHTML = 'Cancel';
-						//Hide the delete button and edit buttons
-						deleteButton.style = 'display:none';
-						button.style = 'display:none';
-						
-						let saveButton = document.getElementById(button.value + 'SaveButton');
-						let cancelButton = document.getElementById(button.value + 'CancelButton');
-						saveButton.style = 'display:inline';
-						cancelButton.style = 'display:inline';
-
-						//Allow the input fields to be editted
-						let inputFields = document.querySelectorAll('.' + button.value + 'Input');
-						inputFields.forEach((input)=>{
-							input.disabled = false;
-						});
-
-						if(button.value == 'dog'){
-							//Show the new dog pic upload area
-							let picDiv = document.getElementById('newDogPic');
-							picDiv.style = 'display:block';
-
-							//Get the file input element for the dog pic
-							picUpload = document.getElementById('dogUpload');
-
-							//Change the image displayed if a file was inputted
-							picUpload.addEventListener('input', (event) => {
-
-								//get the image, its url and the element to display it in
-								let imageFile = event.target.files[0]
-								let path = URL.createObjectURL(imageFile);
-								let dogPic = document.getElementById('dogPic');
-
-								//update the image display
-								dogPic.src = path;
-							});
-						} else {
-							inputFields.forEach((date)=>{
-								//Enable editting
-								date.disabled = false;
-
-								//Store the original value
-								let originalDate = date.value;
-
-								//Identify the file upload corresponding with the date input
-								let fileUpload = date.name.substring(0, date.name.length-4);
-								fileUpload = fileUpload + "Proof";
-								let fileUploadElement = document.getElementById(fileUpload);
-
-								//If the expiration date is changed, show the file upload and make it required
-								date.addEventListener('input', ()=>{
-									//If the current inputed date doesn't match the original date
-									if(originalDate != date.value){
-										//show file upload and make it required
-										fileUploadElement.required = true;
-										fileUploadElement.parentNode.style = 'display:block';
-									
-									//If the new date matches the original
-									} else {
-
-										//hide file upload and make it not required
-										fileUploadElement.required = false;
-										fileUploadElement.parentNode.style = 'display:none';
-									}
-								});
-							});
-						}
-					});
-				});		
-				
-				cancelButtons.forEach((button) => {
-					button.addEventListener('click', ()=>{
-						backLinkButton.innerHTML = 'Back';
-
-						//Hide the delete button and edit buttons
-						deleteButton.style = 'display:block';
-						
-						let saveButton = document.getElementById(button.value + 'SaveButton');
-						let editButton = document.getElementById(button.value + 'EditButton');
-						let cancelButton = document.getElementById(button.value + 'CancelButton');
-						saveButton.style = 'display:none';
-						editButton.style = 'display:block';
-						cancelButton.style = 'display:none';
-
-						//Allow the input fields to be editted
-						let inputFields = document.querySelectorAll('.' + button.value + 'Input');
-						inputFields.forEach((input)=>{
-							input.disabled = true;
-						});
-
-						if(button.value == 'dog'){
-							//Show the new dog pic upload area
-							let picDiv = document.getElementById('newDogPic');
-							picDiv.style = 'display:none';
-						}
-					});
-				});
-
-				
-			
 
 			</script>
 			<%- include("templates/footerCopyright") %>
