@@ -21,7 +21,9 @@
     <div class="clientCard">
         <h2>[firstNamePlaceholder] [lastNamePlaceholder]</h2>
         <p>[emailPlaceholder]</p>
-        <a class="profileLink" formaction="#">Profile</a>
+        <form method="get" class="d-flex justify-content-center">
+            <%- include('button', {action:'/',xClasses:'profileLink btn btn-primary',xAttributes:'id=profileLink',content:'View Profile'}) %>
+        </form>
         <div class="dogsContainer"></div>
     </div>
 </script>

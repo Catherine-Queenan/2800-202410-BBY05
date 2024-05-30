@@ -62,8 +62,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             imgElement.src = dog.dogPic; 
             imgElement.alt = dog.dogName;
-            imgElement.classList.add('rounded-circle');
             imgElement.className = 'dogPic';
+            imgElement.classList.add('rounded-circle');
 
             // Append the img element to the dogPicElement
             dogPicElement.appendChild(imgElement);
@@ -73,6 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
             dogNameElement.className = 'dogName';
             dogNameElement.classList.add('CLASSES-FOR-DOG-NAME-TEXT-HERE');
             dogNameElement.textContent = dog.dogName;
+            
 
             // Append the dogPicElement and dogNameElement to the dogsContainer
             housingDiv.appendChild(dogPicElement);
@@ -153,8 +154,9 @@ document.getElementById('searchInput').addEventListener('input', (event) => {
                 let imgElement = document.createElement('img');
                 imgElement.src = dog.dogPic; 
                 imgElement.alt = dog.dogName;
-                imgElement.classList.add('IMAGE-CLASSES-HERE-IF-NEEDED');
                 imgElement.className = 'dogPic';
+                imgElement.classList.add('IMAGE-CLASSES-HERE-IF-NEEDED');
+                
     
                 // Append the img element to the dogPicElement
                 dogPicElement.appendChild(imgElement);
