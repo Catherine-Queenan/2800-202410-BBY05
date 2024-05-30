@@ -536,7 +536,8 @@ app.use(async (req, res, next) => {
 // TODO: Add access to pages and create a check for the user type and authorization
 // status to determine what footer and navbar to display
 
-app.get('/', (req, res) => {
+app.get('/', async (req, res) => {
+	await setTrainerDatabase(req);
 	res.render('index', {loggedIn: isValidSession(req), name: req.session.name, userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
 });
 
@@ -815,7 +816,6 @@ app.post('/submitLogin', async (req, res) => {
 		} else {
 			req.session.cookie.maxAge = expireTime;
 		}
-		console.log(req.session.cookie.maxAge);
 
 		await setUserDatabase(req);
 		

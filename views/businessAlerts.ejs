@@ -28,7 +28,8 @@
                     <%- include('templates/alertHireRequest', {alert: alerts[i]})%>
                 <% } %>
             <% } %>
-        <% } else if (reqSessions.length >= 1) {%>
+        <% } %>
+        <% if (reqSessions.length >= 1) {%>
             <% for (let i=0; i < reqSessions.length; i++) { %>
                 <% if(reqSessions[i].alertType == 'sessionRequest') { %>
                     <%- include('templates/alertSessionRequest', {reqSession: reqSessions[i]})%>
