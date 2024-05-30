@@ -108,16 +108,20 @@
 
   .smallShadow {
     box-shadow: 3px 4px 0px 0px #201335;
-    box-shadow: -3px -4px 0px 0px #201335;
-    box-shadow: 0 0 0px 3px #201335;
+    border: 3px solid #201335 !important;
   }
 
   .icon {
     cursor:pointer;
   }
 
+  .indexShadow {
+    border: 3px solid #201335;
+    border-radius:1px;
+  }
+
   .card {
-    border:none;
+    border: none;
     background-color:#20133541;
     color:#201335;
     border-radius:1px;
