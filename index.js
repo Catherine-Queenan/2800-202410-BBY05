@@ -1088,8 +1088,25 @@ app.get('/profile', sessionValidation, async(req, res) => {
 	}
 });
 
+app.get('/clientTrainer', sessionValidation, clientAuthorization, async(req, res) => {
+	console.log(req.session.trainerdb);
+	if(req.session.trainerdb){
+		const trainerdb = appdb.db(req.session.trainerdb);
+		let business = await trainerdb.collection('info').find({}).toArray();
+
+		if(business[0].logo != '' && business[0].logo != null){
+			business[0].logo = cloudinary.url(business[0].logo);
+		}
+		res.json(business[0]);
+
+	} else {
+		res.render('errorMessage', { errorTitle: '404', errorMsg: 'Looks like you\'re barking up the wrong tree!', loggedIn: isValidSession(req), userType: req.session.userType,  unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+		return;
+	}
+});
+
 //Profile Editting (both client and business)
-app.post('/profile/edit/:editType', upload.array('accountUpload', 1), async(req, res) => {
+app.post('/profile/edit/:editType', upload.array('accountUpload', 2), async(req, res) => {
     const userdb = appdb.db(req.session.userdb);
 
     // Edit client profile
@@ -1142,17 +1159,17 @@ app.post('/profile/edit/:editType', upload.array('accountUpload', 1), async(req,
 				}
 			} else if (req.files.length == 2){
 				for(let i = 0; i < req.files.length; i++){
-					let filename = req.files[0].mimetype;
+					let filename = req.files[i].mimetype;
 					filename = filename.split('/');
-					let fileType = filename[0];
+					let fileType = filename[i];
 
 					if(fileType == 'image'){
 						await deleteUploadedImage(business[0].logo);
-						req.body.logo = await uploadImage(req.files[0], "businessLogos");
+						req.body.logo = await uploadImage(req.files[i], "businessLogos");
 					} else {
 						let fullFileName = `${req.session.name}_contract.pdf`; // Format the file name
 						let filePath = `pdfs/${fullFileName}`;
-						let fileUrl = await uploadFileToGoogleCloud(req.files[1].buffer, filePath);
+						let fileUrl = await uploadFileToGoogleCloud(req.files[i].buffer, filePath);
 						req.body.contract = filePath;
 					}
 				}
@@ -1201,7 +1218,8 @@ app.post('/profile/edit/:editType', upload.array('accountUpload', 1), async(req,
 			discount: req.body.discounts,
 			hours: req.body.hours,
 			sessions: req.body.sessions,
-			description: req.body.description
+			description: req.body.description,
+			service: req.body.service
 		}
 
 		//Insert program into database
