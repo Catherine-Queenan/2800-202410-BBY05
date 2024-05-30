@@ -13,16 +13,25 @@
                     <div class="heading-gen mb-5">
                         <%- include('templates/checkmark', {classes: 'alertFilter', value:'payment', name:'paymentsRecieved', id: 'paymentsRecieved', label:'Payments Recieved', xAttr:''}) %>
                     </div>
+                    <div class="heading-gen mb-5">
+                        <%- include('templates/checkmark', {classes: 'alertFilter', value:'sessionRequest', name:'sessionRequest', id: 'sessionRequest', label:'Session Requests', xAttr:''}) %>
+                    </div>
                 </div>
             </div>
         </div>
     <div>
-        <% if(alerts.length < 1) {%>
+        <% if(alerts.length < 1 && reqSessions.length < 1) {%>
             <p class="fw-bold text-center heading-gen">You have no new alerts</p>
-        <% } else {%>
+        <% } else if (alerts.length >= 1) {%>
             <% for(let i=0; i < alerts.length; i++){ %>
                 <% if(alerts[i].alertType == 'hireRequest'){ %>
                     <%- include('templates/alertHireRequest', {alert: alerts[i]})%>
+                <% } %>
+            <% } %>
+        <% } else if (reqSessions.length >= 1) {%>
+            <% for (let i=0; i < reqSessions.length; i++) { %>
+                <% if(reqSessions[i].alertType == 'sessionRequest') { %>
+                    <%- include('templates/alertSessionRequest', {reqSession: reqSessions[i]})%>
                 <% } %>
             <% } %>
         <% } %>

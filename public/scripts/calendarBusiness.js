@@ -103,8 +103,8 @@ document.addEventListener('DOMContentLoaded', function () {
 				
 			</div>
 
-			<div class="modal-footer" style="width: 100%;">
-				<div class="row">
+			<div class="modal-footer">
+				<div class="row" style="width: 100%;">
 					<button type="button" class="btn btn-danger mb-3" data-bs-dismiss="modal">Cancel</button>
 					<button type="button" id="calModEdit" class="btn btn-secondary mb-3">Edit</button>
 					<button formaction="/removeEvent" id="deleteButton" class="btn btn-danger mb-3 d-none">Delete</button>
