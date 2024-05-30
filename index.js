@@ -1907,7 +1907,7 @@ app.post('/resolveAlert/:alert', async(req, res) => {
 	const userdb = appdb.db(req.session.userdb);
 
 	if(req.body.resolve == 'accept'){
-		//Retrive the whole alert and create the database name for the client from it
+		//Retrieve the whole alert and create the database name for the client from it
 		let alert = await userdb.collection('alerts').find({_id: alertId}).toArray();
 
 		if(alert[0].alertType == 'hireRequest') {
@@ -1965,7 +1965,7 @@ app.post('/resolveAlert/:alert', async(req, res) => {
 	}
 	
 	userdb.collection('alerts').deleteOne({_id: alertId});
-	res.redirect('/alerts')
+	res.redirect('/alerts');
 });
 
 // Temporary add Trainer button for this Branch
@@ -2041,7 +2041,7 @@ app.post('/getThisEvent', async (req, res) => {
 	let result;
 	if (isBusiness(req)) {
 		const userdb = appdb.db(req.session.userdb);
-		result = await userdb.collection('eventSource').find(event).project({_id: 1, client: 1, info: 1}).toArray();
+		result = await userdb.collection('eventSource').find(event).project({_id: 1, client: 1, info: 1, notes: 1}).toArray();
 	} else if (isClient(req)) {
 		const trainerdb = appdb.db(req.session.trainerdb);
 		result = await trainerdb.collection('eventSource').find(event).project({_id: 1, trainer: 1, info: 1}).toArray();
@@ -2067,13 +2067,15 @@ app.post('/addEvent', async (req, res) => {
     const trainerName = req.session.name;
     const clientEmail = req.body.calModClient;
     const eventInfo = req.body.calModInfo;
+	const eventNotes = req.body.calModNotes;
     const event = {
         title: req.body.calModTitle,
         start: startDateStr,
         end: endDateStr,
         trainer: trainerName,
         client: clientEmail,
-        info: eventInfo
+        info: eventInfo,
+		notes: eventNotes
     };
 
     // Check for duplicate event
@@ -2113,37 +2115,70 @@ app.post('/updateEvent', async (req, res) => {
 	const date = req.body.calModDate;
 	const startNew = date + "T" + req.body.calModStartHH + ":" + req.body.calModStartMM + ":00";
 	const endNew = date + "T" + req.body.calModEndHH + ":" + req.body.calModEndMM + ":00";
-	const eventOrig = {
-		title: req.body.calModTitleOrig,
-		start: req.body.calModStartOrig,
-		end: req.body.calModEndOrig,
-		client: req.body.calModEmailOrig,
-		info: req.body.calModInfoOrig
-	}
-
-	const eventNew = {
-		title: req.body.calModTitle,
-		start: startNew,
-		end: endNew,
-		client: req.body.calModEmail,
-		info: req.body.calModInfo
-	}
-
-	await userdb.collection('eventSource').updateOne({
-		title: eventOrig.title,
-		start: eventOrig.start,
-		end: eventOrig.end,
-		client: eventOrig.client,
-		info: eventOrig.info
-	}, {
-		$set: {
-			title: eventNew.title,
-			start: eventNew.start,
-			end: eventNew.end,
-			client: eventNew.client,
-			info: eventNew.info
+	if (req.body.eventPassed == 'false') {
+		const eventOrig = {
+			title: req.body.calModTitleOrig,
+			start: req.body.calModStartOrig,
+			end: req.body.calModEndOrig,
+			client: req.body.calModEmailOrig,
+			info: req.body.calModInfoOrig
 		}
-	});
+
+		const eventNew = {
+			title: req.body.calModTitle,
+			start: startNew,
+			end: endNew,
+			client: req.body.calModEmail,
+			info: req.body.calModInfo
+		}
+
+		await userdb.collection('eventSource').updateOne({
+			title: eventOrig.title,
+			start: eventOrig.start,
+			end: eventOrig.end,
+			client: eventOrig.client,
+			info: eventOrig.info
+		}, {
+			$set: {
+				title: eventNew.title,
+				start: eventNew.start,
+				end: eventNew.end,
+				client: eventNew.client,
+				info: eventNew.info
+			}
+		});
+	} else {
+		const eventOrig = {
+			title: req.body.calModTitleOrig,
+			start: req.body.calModStartOrig,
+			end: req.body.calModEndOrig,
+			client: req.body.calModEmailOrig,
+			info: req.body.calModInfoOrig,
+			notes: req.body.calModNotesOrig
+		}
+		const eventNew = {
+			notes: req.body.calModNotes
+		}
+
+		await userdb.collection('eventSource').updateOne({
+			title: eventOrig.title,
+			start: eventOrig.start,
+			end: eventOrig.end,
+			client: eventOrig.client,
+			info: eventOrig.info,
+			notes: eventOrig.notes
+		}, {
+			$set: {
+				title: eventOrig.title,
+				start: eventOrig.start,
+				end: eventOrig.end,
+				client: eventOrig.client,
+				info: eventOrig.info,
+				notes: eventNew.notes
+			}
+		});
+	}
+
 
 	if (calOrSess == 'calendar') {
 		res.redirect('/calendar');
@@ -2179,6 +2214,95 @@ app.post('/removeEvent', async (req, res) => {
 		res.redirect('/sessionList');
 	}
 });
+
+app.post('/getTrainer', async (req, res) => {
+	const thisUser = await appUserCollection.find({email: req.session.email}).toArray();
+	const companyName = thisUser[0].companyName;
+	res.json(companyName);
+});
+
+app.post('/requestEvent', async (req, res) => {
+	const trainerdb = appdb.db(req.session.trainerdb);
+    const date = req.body.calModDate;
+    const startDateStr = date + "T" + req.body.calModStartHH + ":" + req.body.calModStartMM + ":00";
+    const endDateStr = date + "T" + req.body.calModEndHH + ":" + req.body.calModEndMM + ":00";
+    const trainerName = req.body.calModTrainer;
+    const clientEmail = req.session.email;
+    const eventInfo = req.body.calModInfo;
+    const event = {
+		alertType: 'sessionRequest',
+        title: req.body.calModTitle,
+        start: startDateStr,
+        end: endDateStr,
+		trainer: trainerName,
+        client: clientEmail,
+        info: eventInfo
+    };
+	await trainerdb.collection('sessionRequests').insertOne(event);
+	await appUserCollection.updateOne({companyName: trainerName, userType: 'business'}, {$inc:{unreadAlerts: 1}});
+	res.redirect('/calendar');
+});
+
+app.get('/alerts/session/:alert', sessionValidation, async (req, res) => {
+	const userdb = appdb.db(req.session.userdb);
+	if (req.session.userType == 'business') {
+		appUserCollection.updateOne({email: req.session.email}, {$set:{unreadAlerts: 0}});
+
+		// Make sure alert is a valid alertId
+		if(req.params.alert.length != 24){
+			res.render('errorMessage', { errorTitle: '404', errorMsg: 'Looks like you\'re barking up the wrong tree!', loggedIn: isValidSession(req), userType: req.session.userType,  unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+			return;
+		}
+
+		let alertId = ObjectId.createFromHexString(req.params.alert);
+		let alert = await userdb.collection('sessionRequests').find({_id: alertId}).toArray();
+		
+		//Make sure alert is a valid alertId
+		if(!alert[0]){
+			res.render('errorMessage', { errorTitle: '404', errorMsg: 'Looks like you\'re barking up the wrong tree!', loggedIn: isValidSession(req), userType: req.session.userType,  unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+			return;
+		}
+
+		alert[0].start = new Date(alert[0].start).toLocaleString("en-CA");
+		alert[0].end = new Date(alert[0].end).toLocaleString("en-CA");
+		res.render('sessionAlertView', {
+            loggedIn: isValidSession(req),
+            userType: req.session.userType,
+            alert: alert[0],
+            unreadAlerts: req.session.unreadAlerts,
+            unreadMessages: req.session.unreadMessages
+        });
+	} else {
+		res.redirect('/');
+	}
+})
+
+app.post('/resolveSessionAlert/:alert', async (req, res) => {
+	//Create an id for the alert
+	let alertId = ObjectId.createFromHexString(req.params.alert);
+
+	const userdb = appdb.db(req.session.userdb);
+
+	if (req.body.resolve == 'accept') {
+		const alert = await userdb.collection('sessionRequests').find({_id: alertId}).toArray();
+
+		if (alert[0].alertType == 'sessionRequest') {
+			const check = await userdb.collection('eventSource').find({title: alert[0].title, start: alert[0].start, end: alert[0].end}).toArray();
+			if (check.length == 0) {
+				await userdb.collection('eventSource').insertOne({
+					title: alert[0].title,
+					start: alert[0].start,
+					end: alert[0].end,
+					trainer: alert[0].trainer,
+					client: alert[0].client,
+					info: alert[0].info
+				});
+			}
+		}
+	}
+	userdb.collection('sessionRequests').deleteOne({_id: alertId});
+	res.redirect('/alerts');
+})
 
 // ----------------- MESSAGING SECTION STARTS HERE -------------------
 
@@ -2367,10 +2491,22 @@ app.get('/alerts', sessionValidation, async(req, res)=>{
 	await updateUnreadAlertsMidCode(req);
 	
 	if(req.session.userType == 'business'){
+
+		// Check for session requests from clients
+		let reqSessions = await userdb.collection('sessionRequests').find().toArray();
+		if (reqSessions.length > 0) {
+			for (let i = 0; i < reqSessions.length; i++) {
+				reqSessions[i].start = new Date(reqSessions[i].start).toLocaleString("en-CA");
+				reqSessions[i].end = new Date(reqSessions[i].end).toLocaleString("en-CA");
+			}
+		}
+
+
 		res.render('businessAlerts', {
             loggedIn: isValidSession(req),
             userType: req.session.userType,
             alerts: alerts,
+			reqSessions: reqSessions,
             unreadAlerts: req.session.unreadAlerts,
             unreadMessages: req.session.unreadMessages
         });
