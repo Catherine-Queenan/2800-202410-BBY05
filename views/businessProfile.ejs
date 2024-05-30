@@ -51,7 +51,7 @@
 									
 								<div class="form-group">
 									<label for="businessDescrtiption">Business Description:</label>
-									<textarea class="form-control auto-resize businessInfo" id="businessDescrtiption" name="description" rows="4" disabled><%=business.description%></textarea>
+									<textarea class="form-control auto-resize textArea businessInfo" id="businessDescrtiption" name="description" rows="4" disabled><%=business.description%></textarea>
 								</div>
 
 								<%- include('templates/uploadFile', {divId:'termsAndConditionsUpload', xDivAttributes:'style=display:none', fileId:'termsAndConditions',fileName:'accountUpload', label:'Upload your Terms and Conditions (pdf only)', xfileAttributes:'accept=.pdf'}) %>
@@ -246,6 +246,7 @@
 	}
 
 	//Edit event
+	let originalValues = {};
 	editButtons.forEach((button) => {
 		button.addEventListener('click', () => {
 			areTabsEditable[button.value] = true;
@@ -256,6 +257,12 @@
 			let fields = document.querySelectorAll('.' + button.value + 'Info');
 			fields.forEach((field) => {
 				field.disabled = false;
+				if(field.classList.contains('textArea')){
+					originalValues[field.name] = field.innerHTML;
+				} else {
+					originalValues[field.name] = field.value;
+				}
+				
 			});
 
 			//Show the logo or profile pic upload
@@ -373,7 +380,15 @@
 						let fields = document.querySelectorAll('.' + editType[i] + 'Info');
 						fields.forEach((field) => {
 							field.disabled = true;
+							console.log('aaaaaaaaaaa')
+							if(field.classList.contains('textArea')){
+								field.innerHTML = originalValues[field.name];
+							} else {
+								field.value = originalValues[field.name];
+							}
+							
 						});
+						originalValues = {};
 
 						if(editType[i] == 'business'){
 							//Hide the delete service buttons
@@ -425,6 +440,12 @@
 				//Select and enable all input fields
 				let fields = document.querySelectorAll('.' + editType + 'Info');
 				fields.forEach((field) => {
+					if(field.classList.contains('textArea')){
+						field.value = originalValues[field.name];
+					} else {
+						field.value = originalValues[field.name];
+					}
+
 					field.disabled = true;
 				});
 
