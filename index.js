@@ -577,6 +577,24 @@ app.post('/submitSignup/:type', async (req, res) => {
 
 	//Submits info for client side forms
 	if (type == "client") {
+
+		// Validate the email
+		emails = await appUserCollection.find().project({email: 1}).toArray();
+
+		for (let i = 0; i < emails.length; i++) {
+			if (emails[i].email === req.body.email) {
+				res.render('errorMessage', { 
+					errorTitle: 'Email Already In Use', 
+					errorMsg: 'The email address you entered is already in use. Consider sending a password reset from the signup page.', 
+					loggedIn: isValidSession(req), 
+					userType: req.session.userType, 
+					unreadAlerts: req.session.unreadAlerts, 
+					unreadMessages: req.session.unreadMessages
+				});
+				return;
+			}
+		}
+
 		//Validation schema for inputted values
 		var schema = Joi.object(
 			{
@@ -594,7 +612,7 @@ app.post('/submitSignup/:type', async (req, res) => {
 			firstName: req.body.firstName,
 			lastName: req.body.lastName,
 			email: req.body.email,
-			phone: req.body.phone,
+			phone: req.body.phone.replace(/ /g,''),
 			address: req.body.address,
 			password: req.body.password
 		};
@@ -648,6 +666,23 @@ app.post('/submitSignup/:type', async (req, res) => {
 	//Submits info for business side forms
 	} else if (type == "business") {
 
+		// Validate the email
+		emails = await appUserCollection.find().project({email: 1}).toArray();
+
+		for (let i = 0; i < emails.length; i++) {
+			if (emails[i].email === req.body.businessEmail) {
+				res.render('errorMessage', { 
+					errorTitle: 'Email Already In Use', 
+					errorMsg: 'The email address you entered is already in use. Consider sending a password reset from the signup page.', 
+					loggedIn: isValidSession(req), 
+					userType: req.session.userType, 
+					unreadAlerts: req.session.unreadAlerts, 
+					unreadMessages: req.session.unreadMessages
+				});
+				return;
+			}
+		}
+
 		//Validation schema for user inputs
 		var schema = Joi.object(
 			{
@@ -665,7 +700,7 @@ app.post('/submitSignup/:type', async (req, res) => {
 		var user = {
 			companyName: req.body.companyName,
 			companyEmail: req.body.businessEmail,
-			companyPhone: req.body.businessPhone,
+			comapnyPhone: req.body.businessPhone.replace(/ /g,''),
 			firstName: req.body.firstName,
 			lastName: req.body.lastName,
 			companyWebsite: req.body.companyWebsite,
