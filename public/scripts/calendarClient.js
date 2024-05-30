@@ -99,13 +99,13 @@ document.addEventListener('DOMContentLoaded', function () {
 			var selectedDate = info.date.toLocaleDateString("en-CA");
 			var modalBody = `
 			<div class="mb-3">
-				<label for="calModTitle" class="form-label h5 modal-heading">Session Title</label>
+				<label for="calModTitle" class="form-label h5 modal-heading">Session Title*</label>
 				<input type="text" class="form-control auto-resize" name="calModTitle" id="calModTitle">
 				<input type="text" class="form-control-plaintext d-none" name="calModDate" value="${selectedDate}">
 			</div>
 
 			<div class="mb-3">
-				<label for="calModStart" class="form-label h5 modal-heading">Start Time</label>
+				<label for="calModStart" class="form-label h5 modal-heading">Start Time*</label>
 				<div class="input-group" id="calModStart">
 					<select class="form-select" name="calModStartHH" id="calModStartHH">
 						<option selected>00</option><option value="01">1</option><option value="02">2</option><option value="03">3</option>
@@ -126,7 +126,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			</div>
 
 			<div class="mb-3">
-				<label for="calModEnd" class="form-label h5 modal-heading">End Time</label>
+				<label for="calModEnd" class="form-label h5 modal-heading">End Time*</label>
 				<div class="input-group" id="calModEnd">
 					<select class="form-select" name="calModEndHH" id="calModEndHH">
 						<option selected>00</option><option value="01">1</option><option value="02">2</option><option value="03">3</option>
@@ -147,7 +147,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			</div>
 
 			<div class="mb-3">
-				<label for="calModTrainerPlaceholder" class="form-label h5 modal-heading">Trainer</label>
+				<label for="calModTrainerPlaceholder" class="form-label h5 modal-heading">Trainer*</label>
 				<div class="input-group">
 					<input type="text" class="form-control text-center d-none" id="calModTrainer" name="calModTrainer">
 					<input type="text" class="form-control auto-resize text-center" disabled id="calModTrainerPlaceholder" name="calModTrainerPlaceholder">

@@ -63,7 +63,7 @@ const ejs = require('ejs');
 const { content_v2_1 } = require("googleapis");
 
 // 1 hour
-const expireTime = 2 * 60 * 60 * 1000;
+const expireTime = 60 * 60 * 1000;
 
 /* secret information section */
 const mongodb_host = process.env.MONGODB_HOST;
@@ -808,7 +808,14 @@ app.post('/submitLogin', async (req, res) => {
 		} else if (req.session.userType == 'business') {
 			req.session.name = result[0].companyName;
 		}
-		req.session.cookie.maxAge = expireTime;
+
+		// If Keep me signed in is checked.
+		if (req.body.keepSignedIn) {
+			req.session.cookie.maxAge = 7 * 24 * 60 * 60 * 1000;
+		} else {
+			req.session.cookie.maxAge = expireTime;
+		}
+		console.log(req.session.cookie.maxAge);
 
 		await setUserDatabase(req);
 		
