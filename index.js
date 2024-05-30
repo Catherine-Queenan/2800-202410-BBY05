@@ -173,7 +173,7 @@ async function notificationsToAlert(req){
 
 // Use the updateUnreadAlerts middleware for all routes
 //middleWare
-async function updateUnreadAlerts(req, res, next) {
+async function updateUnreadAlerts(req) {
     if (req.session && req.session.email) {
         try {
             let alerts = await appUserCollection.find({ email: req.session.email }).project({ unreadAlerts: 1 }).toArray();
@@ -183,13 +183,13 @@ async function updateUnreadAlerts(req, res, next) {
             console.error('Error updating unread alerts:', error);
         }
     }
-    next(); // Pass control to the next middleware function
+    // next(); // Pass control to the next middleware function
 }
 
-app.use(updateUnreadAlerts);
+// app.use(updateUnreadAlerts);
 
 // middleware for unread direct messages
-async function updateUnreadMessages(req, res, next) {
+async function updateUnreadMessages(req) {
 	if (isValidSession(req) && req.session.trainerdb) { //if Client with trainer
 		try {
 			const trainerdb = appdb.db(req.session.trainerdb);
@@ -216,13 +216,13 @@ async function updateUnreadMessages(req, res, next) {
 			console.error("Error updating unread messages:", error);
 		}
 	}
-	next();
+	// next();
 }
 
-app.use(updateUnreadMessages);
+// app.use(updateUnreadMessages);
 
 //Middleware for updating the trainer db if the clients gains a trainer
-async function updateTrainer(req, res, next){
+async function updateTrainer(req){
 	if(req.session && req.session.email && !req.session.trainerdb){
 		let user = await appUserCollection.find({email: req.session.email, userType:'client'}).project({companyName: 1});
 		if(user[0] && user[0].companyName && user[0].companyName != ''){
@@ -230,10 +230,19 @@ async function updateTrainer(req, res, next){
 			req.session.companyName = user[0].companyName;
 		}
 	}
+	// next();
+}
+
+async function updateSite(req, res, next){
+	await Promise.all([
+		updateUnreadAlerts(req),
+		updateUnreadMessages(req),
+		updateTrainer(req)
+	]);
 	next();
 }
 
-app.use(updateTrainer);
+app.use(updateSite);
 
 // Function that checks if the user is a client
 function isClient(req) {
