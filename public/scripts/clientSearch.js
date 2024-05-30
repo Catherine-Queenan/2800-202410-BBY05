@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Create a div for the dog's picture
             let dogPicElement = document.createElement('div');
-            dogPicElement.classList.add('CLASSES-FOR-DOG-PICTURE-DIV-HERE');
+            dogPicElement.classList.add('rounded-circle', 'profileImg-style');
 
             // Create an img element for the dog's picture
             let imgElement = document.createElement('img');
@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
             imgElement.src = dog.dogPic; 
             imgElement.alt = dog.dogName;
             imgElement.className = 'dogPic';
-            imgElement.classList.add('rounded-circle');
+            imgElement.classList.add('rounded-circle', 'profileImg-style');
 
             // Append the img element to the dogPicElement
             dogPicElement.appendChild(imgElement);

@@ -1,6 +1,6 @@
 // Displays the previously hidden sessionList
 const clientListing = document.getElementById('clientList');
-clientListing.classList.add('bg-transparent', 'py-3', 'rounded');
+clientListing.classList.add('bg-transparent', 'pb-3', 'rounded');
 clientListing.classList.remove('d-none');
 
 
