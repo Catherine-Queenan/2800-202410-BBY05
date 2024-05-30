@@ -1,13 +1,19 @@
 
-<div class="card-title m-3">
-    <h1 class="h1 mb-3"><%=program.name%></h1>
-        
+
+<% if(view == "allPrograms"){ %>
+    <span class="karla-heavy ms-2 h5"><%=program.service%></span>
+<% } %>
+<div class="my-2 mx-3">
+    <h1 class="h1 mb-3 text-center"><%=program.name%></h1>
+    <% if (view == "register") { %>
+        <p><span class="karla-heavy fw-bold">Service Provided:</span> <%=program.service%></p>
+    <% } %>
         <p><span class="karla-heavy fw-bold"><%=program.pricing.priceType%>: </span><span>$<%=program.pricing.price%></span></p>
         <p><span class="karla-heavy fw-bold">Hours:</span> <%=program.hours%></p>
         <p><span class="karla-heavy fw-bold">Session Count:</span> <%=program.sessions%></p>
-    </div> 
+</div> 
 
-    <div class="karla-heavy m-3">
+    <div class="karla-heavy mx-3">
         <p class="karla-heavy fw-bold"  style="font-size:17px;">Program Description: </p>
         <p><%=program.description%></p>
         <% if(program.discounts != '' && program.discounts != null){ %>
