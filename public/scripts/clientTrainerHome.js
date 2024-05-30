@@ -1,6 +1,6 @@
 // Display the trainer company name and logo
 const trainerShow = document.getElementById('trainer');
-trainerShow.classList.add('whiteBackgroundFade', 'p-3', 'rounded', 'profile-card-border', 'd-flex');
+trainerShow.classList.add('whiteBackgroundFade', 'p-3', 'rounded', 'profile-card-border');
 trainerShow.classList.remove('d-none');
 
 async function showTrainer() {

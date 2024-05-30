@@ -1156,6 +1156,7 @@ app.post('/profile/edit/:editType', upload.array('accountUpload', 2), async(req,
         // Image id is updated with a newly uploaded image or kept the same
         if (req.files.length !== 0) {
             await deleteUploadedImage(user[0].profilePic);
+
             req.body.profilePic = await uploadImage(req.files[0], "clientAccountAvatars");
         } else {
             req.body.profilePic = user[0].profilePic;
@@ -1165,7 +1166,7 @@ app.post('/profile/edit/:editType', upload.array('accountUpload', 2), async(req,
         req.body.emailNotifications = req.body.emailNotifications === 'on';
 
         // Update the database
-        await appUserCollection.updateOne({ email: req.session.email }, { $set: { 
+        await userdb.collection('info').updateOne({ email: req.session.email }, { $set: { 
             firstName: req.body.firstName,
             lastName: req.body.lastName,
             phone: req.body.phone,
@@ -1618,7 +1619,6 @@ app.get('/dog/:dogId', sessionValidation, async(req, res) => {
 	if(dogRecord[0].dogPic != '') {
 		dogRecord[0].dogPic = cloudinary.url(dogRecord[0].dogPic);
 	}
-
 	//Render the dog's profile
 	res.render('dogProfile', {loggedIn: isValidSession(req), userType: req.session.userType, dog: dogRecord[0], unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
 });
