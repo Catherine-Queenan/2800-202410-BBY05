@@ -2486,38 +2486,112 @@ app.get('/clientList', sessionValidation, businessAuthorization, async (req, res
 	// get the list of clients that are added to the logged in dog trainer
 	// !Currently, the companyName is set to null because there is no system for business view user pages at the time of writing.!
 	// clientList = await appUserCollection.find({companyName: null, userType: 'client'}).project({_id: 1, email: 1, firstName: 1, lastName: 1}).toArray();
-	const userdb = appdb.db(req.session.userdb);
-	const clientList = await userdb.collection('clients').find().project({email: 1}).toArray();
+	// const userdb = appdb.db(req.session.userdb);
+	// const clientList = await userdb.collection('clients').find().project({email: 1}).toArray();
 	// console.log(clientList);
-	let clientListArray = [];
-	clientList.forEach((client) => {
-		clientListArray.push(client.email);
-	});
+	// let clientListArray = [];
+	// clientList.forEach((client) => {
+	// 	clientListArray.push(client.email);
+	// });
 	// console.log(clientListArray);
-	const userClientList = await appUserCollection.find({email: {$in: clientListArray}}).project({_id: 1, email: 1, firstName: 1, lastName: 1}).toArray();
+
+														// email: {$in: clientListArray}
+	// const userClientList = await appUserCollection.find({}).project({_id: 1, email: 1, firstName: 1, lastName: 1}).toArray();
 	// console.log(userClientList);
 	// const ids = userClientList.map(item => item._id.toString());
 	// console.log(ids);
-	res.render('clientList', {clientArray: userClientList, loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+
+	// Kevin - output an array of objects from client's databases that have hired this trainer
+	const userdb = appdb.db(req.session.userdb);
+	const clientList = await userdb.collection('clients').find().project({email: 1}).toArray();
+	// clientList = await appUserCollection.find({userType: 'client'}).project({_id: 1, email: 1, firstName: 1, lastName: 1}).toArray();
+	let clientListArray = [];
+	let dogListArray = [];
+    for (let i = 0; i < clientList.length; i++) {
+        setClientDatabase(req, clientList[i].email);
+        const clientdb = appdb.db(req.session.clientdb);
+        const clientOut = await clientdb.collection('info').find().project({_id: 1, email: 1, firstName: 1, lastName: 1}).toArray();
+
+		const dogOut = await clientdb.collection('dogs').find().project({dogPic: 1, dogName: 1}).toArray();
+		
+		// process the cloud links
+		for(let j = 0; j < dogOut.length; j++) {
+			let dogPicUrl;
+			let dogPic = dogOut[j].dogPic
+
+			if(dogPic != '') {
+				dogPicUrl = cloudinary.url(dogPic);
+			}
+			
+			dogOut[j].dogPic = dogPicUrl;
+		}
+		
+		
+		
+
+        clientListArray.push({
+            _id: clientOut[0]._id,
+            email: clientOut[0].email,
+            firstName: clientOut[0].firstName,
+            lastName: clientOut[0].lastName,
+			dogs: dogOut
+        });
+		
+		
+    }
+	// console.log("Client List Array: ", clientListArray)
+
+	for (let i = 0; i < clientListArray.length; i++) {
+		console.log(clientListArray[i].firstName, "'s dogs:");
+		for (let j = 0; j < clientListArray[i].dogs.length; j++) {
+			console.log("Dog:" + clientListArray[i].dogs[j].dogName);
+		}
+	}
+
+	res.render('clientList', {clientArray: clientListArray, loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
 });
 
 app.get('/clientProfile/:id', sessionValidation,  businessAuthorization, async (req, res) => {
 
 	// Get a list of all clients
-	const clients = await appUserCollection.find({userType: 'client'}).project({id: 1, email: 1, firstName: 1, lastName: 1, phone: 1}).toArray();
+	// const clients = await appUserCollection.find({userType: 'client'}).project({id: 1, email: 1, firstName: 1, lastName: 1, phone: 1}).toArray();
+	
+	// Kevin - Return an array of ids and emails from the client's database
+	const userdb = appdb.db(req.session.userdb);
+	const clients = await userdb.collection('clients').find().project({email: 1}).toArray();
+	let clientArray = [];
+	for (let i = 0; i < clients.length; i++) {
+		setClientDatabase(req, clients[i].email);
+		const clientdb = appdb.db(req.session.clientdb);
+		const client = await clientdb.collection('info').find().project({_id: 1, email: 1}).toArray();
+		clientArray.push({
+			_id: client[0]._id,
+			email: client[0].email
+		});
+	}
+	console.log("clientArray: ", clientArray);
 
 	// Map their id's to a string
-	const ids = clients.map(item => item._id.toString());
+	// const ids = clients.map(item => item._id.toString());
+	const ids = clientArray.map(item => item._id.toString());
 
 	// variable to store the client
 	let targetClient;
 
 	// loop through clients and find the target client to load the page with
-	for (let i = 0; i < clients.length; i++) {
+	// for (let i = 0; i < clients.length; i++) {
+	// 	if (ids[i] === req.params.id) {
+	// 		targetClient = clients[i];
+	// 	}
+	// }
+
+	for (let i = 0; i < clientArray.length; i++) {
 		if (ids[i] === req.params.id) {
-			targetClient = clients[i];
+			targetClient = clientArray[i];
 		}
 	}
+
+	console.log("targetClient: ", targetClient);
 
 	//Make sure the targetClient exists
 	if(!targetClient){
@@ -2538,6 +2612,11 @@ app.get('/clientProfile/:id', sessionValidation,  businessAuthorization, async (
 	// set the databases
 	const clientdbInfo = clientdb.collection('info');
 	const clientdbDogs = clientdb.collection('dogs');
+    const clientdbPayments = clientdb.collection('outstandingBalance');
+
+	targetClient = await clientdbInfo.find({}).toArray();
+
+
 
 	//grab the array version of the pfp url
 	pfpUrlProcessing = await clientdbInfo.find({email}).project({profilePic: 1}).toArray();
@@ -2557,13 +2636,110 @@ app.get('/clientProfile/:id', sessionValidation,  businessAuthorization, async (
 			dogs[i].dogPic = cloudinary.url(pic);
 		}
 	}
-	// console.log(dogs);
+    
+    const records = await clientdbPayments.find({}).toArray();
 
-	res.render('viewingClientProfile', {targetClient: targetClient, pfpUrl: pfpUrl, dogs: dogs, loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
+	console.log(targetClient[0]);
+	let targetClientId = targetClient[0]._id.toString(); // USE LATER FOR REWORK. GIVES ID ENDING IN 2
+	// res.send('construction');
+	res.render('viewingClientProfile', {c_id: req.params.id, targetClient: targetClient[0], pfpUrl: pfpUrl, dogs: dogs, loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
 });
 
-app.get('/dogView', sessionValidation, businessAuthorization, async (req, res) => {
-	res.send('safe');
+app.post('/updateClientPayments', async (req, res) => {
+    setClientDatabase(req, req.body.clientEmail);
+    const clientdb = appdb.db(req.session.clientdb);
+    const clientdbPayments = clientdb.collection('outstandingBalance');
+
+    const updates = Object.keys(req.body).filter(key => key.startsWith('credits-') || key.startsWith('balance-'));
+
+    for (let i = 0; i < updates.length; i++) {
+        const [field, id] = updates[i].split('-');
+        const value = req.body[updates[i]];
+
+        if (field === 'credits') {
+            await clientdbPayments.updateOne({ _id: new ObjectId(id) }, { $set: { credits: value } });
+        } else if (field === 'balance') {
+            await clientdbPayments.updateOne({ _id: new ObjectId(id) }, { $set: { outstandingBalance: value } });
+        }
+    }
+    
+    res.redirect('/clientProfile/' + req.body.clientId);
+});
+
+app.get('/clientProfile/:c_id/dogView/:d_id', businessAuthorization, async (req, res) => {
+
+	// Get a list of all clients
+	// const clients = await appUserCollection.find({userType: 'client'}).project({id: 1, email: 1, firstName: 1, lastName: 1, phone: 1}).toArray();
+
+	// console.log(clients);
+
+	// Kevin - Return an array of ids and emails from the client's database
+	const userdb = appdb.db(req.session.userdb);
+	const clients = await userdb.collection('clients').find().project({email: 1}).toArray();
+	let clientArray = [];
+	for (let i = 0; i < clients.length; i++) {
+		setClientDatabase(req, clients[i].email);
+		const clientdb = appdb.db(req.session.clientdb);
+		const client = await clientdb.collection('info').find().project({_id: 1, email: 1}).toArray();
+		clientArray.push({
+			_id: client[0]._id,
+			email: client[0].email
+		});
+	}
+
+	// Map their id's to a string
+	// const ids = clients.map(item => item._id.toString());
+
+	const ids = clientArray.map(item => item._id.toString());
+
+	// variable to store the client
+	let targetClient;
+	
+	// loop through clients and find the target client to load the page with
+	// for (let i = 0; i < clients.length; i++) {
+	// 	console.log(req.params.c_id +" and " + ids[i]);
+	// 	if (ids[i] === req.params.c_id) {
+	// 		targetClient = clients[i];
+	// 		console.log("match found");
+	// 	}
+	// }
+
+	for (let i = 0; i < clientArray.length; i++) {
+		console.log(req.params.c_id +" and " + ids[i]);
+		if (ids[i] === req.params.c_id) {
+			targetClient = clientArray[i];
+			console.log("match found");
+		}
+	}
+
+	// used for locating the pfpUrl directory
+	const email = targetClient.email;
+
+	setClientDatabase(req, email);
+	const clientdb = await getdb(req.session.clientdb);
+
+	// set the database
+	const clientdbDogs = clientdb.collection('dogs');
+	let targetDogs = await clientdbDogs.find({}).toArray();
+
+	// map ids
+	const dogIds = targetDogs.map(item => item._id.toString());
+	
+	// look for target dog
+	let targetDog; 
+	for (let i = 0; i < targetDogs.length; i++) {
+		if (dogIds[i] = req.params.d_id) {
+			targetDog = targetDogs[i];
+		}
+	}
+
+	// parse dog image
+	let pic = targetDog.dogPic;
+	if(pic != ''){
+		targetDog.dogPic = cloudinary.url(pic);
+	}
+
+	res.render('dogProfileView', {loggedIn: isValidSession(req), userType: req.session.userType, dog: targetDog, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages})
 });
 
 // ----------------- SESSIONS SECTION STARTS HERE -------------------
@@ -2582,7 +2758,7 @@ app.use(express.static(__dirname + "/public"));
 app.get('*', (req, res) => {
 	res.status(404);
 	res.render('errorMessage', { errorTitle: '404', errorMsg: 'Looks like you\'re barking up the wrong tree!', loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages});
-})
+});
 
 app.listen(port, () => {
 	console.log("Node application listening on port " + port);

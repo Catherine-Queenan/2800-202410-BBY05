@@ -9,6 +9,10 @@
             <input id="tabR-2" type="radio" name="tab" class="tabR-two btn-check">
             <label for="tabR-2" class="tabR">Dogs</label>
 
+            <input id="tabR-3" type="radio" name="tab" class="tabR-three btn-check">
+            <label for="tabR-3" class="tabR">Balance</label>
+
+            <!--Client-->
             <div class="resource-form">
                 <div class="tabR-one-htm">
                     <div class="my-3">
@@ -28,15 +32,48 @@
                         </div>
                     </div>
                 </div>
-                <div class="resource-form">
-                    <div class="tabR-two-htm">
-                        <div id="dogSection">
-                            <p><span class="karla-heavy m-2 fw-bold" style="font-size: 24px;"><%= targetClient.firstName %>'s Dogs:</span></p>
-                            <% for(let i = 0; i < dogs.length; i++){ %>
-                                <%- include('templates/dog', {dog: dogs[i]}) %>
-                            <%} %>
-                        </div>
+            </div>
+            
+            <!--Dogs-->
+            <div class="resource-form">
+                <div class="tabR-two-htm">
+                    <div id="dogSection">
+                        <p><span class="karla-heavy m-2 fw-bold" style="font-size: 24px;"><%= targetClient.firstName %>'s Dogs:</span></p>
+                        <% for(let i = 0; i < dogs.length; i++){ %>
+                            <%- include('templates/dogViewingBusiness', {dog: dogs[i], c_id: c_id }) %>
+                        <%} %>
                     </div>
+                </div>
+            </div>
+            
+            <!--Balance-->
+            <div class="resource-form">
+                <div class="tabR-three-htm">
+                    <form method="post" action="/updateClientPayments">
+                        <input type="hidden" name="clientEmail" value="<%= targetClient.email %>">
+                        <input type="hidden" name="clientId" value="<%= targetClient._id %>">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Dog</th>
+                                    <th>Program</th>
+                                    <th>Credits</th>
+                                    <th>Outstanding Balance</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% for(let i = 0; i < records.length; i++){ %>
+                                    <tr>
+                                        <td><%= records[i].dogName %></td>
+                                        <td><%= records[i].programName %></td>
+                                        <td><input type="number" name="credits-<%= records[i]._id %>" value="<%= records[i].credits %>" class="form-control" step="any"></td>
+                                        <td><input type="number" name="balance-<%= records[i]._id %>" value="<%= records[i].outstandingBalance %>" class="form-control" step="any"></td>
+                                    </tr>
+                                <% } %>
+                            </tbody>
+                        </table>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </form>
                 </div>
             </div>
         </div>
