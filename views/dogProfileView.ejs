@@ -1,3 +1,4 @@
+<!--Dog profile view for the business side-->
 <%- include("templates/header") %>
 	<div class="profile-container my-4 mx-3">
 		<%- include('templates/linkButton', {page: '/profile', content: "Back"}) %>
@@ -19,7 +20,10 @@
 						<label for="dogName">Name:</label>
 						<input class="dogInput" type="text" id="dogName" name="dogName" value="<%=dog.dogName%>" required disabled>
 					</div>
-					
+					<div class="form-group">
+						<label for="dogBreed">Breed:</label>
+						<input class="dogInput" type="text" id="dogBreed" name="breed" value="<%=dog.breed%>" required disabled>
+					</div>
 					<div class="check-buttons mb-4 mt-2">
 						<% if (dog.neuteredStatus == 'neutered') {%>
 							<%- include('templates/checkmark', {classes: 'dogInput', value:'neutered', name:'neuteredStatus', id: 'neuteredStatus', label:'Neutered', xAttr:'checked disabled'}) %>

@@ -1,3 +1,10 @@
+<!--Template for login pages, including logging in and signing up.
+    Used a template found online for the basic skeleton and added
+    if statements to determine which sign up form to show, based on if
+    the user wants to make a business or client profile.
+    Used one template for logging in, because the same credentials are needed
+    regardless of user type.
+    A different version of tab 2 is shown, depending on sign-in type.-->
 <div class="login-wrap" style="background: url('/images/BeachPaws.png') center no-repeat; background-size:cover;">
     <div class="login-html">
         <input id="tab-1" type="radio" name="tab" class="sign-in" checked>
@@ -30,6 +37,8 @@
                     </div>
                 </form>
             </div>
+
+            <!--Template for the client's sign-up page.-->
             <% if(type == 'clientLogin'){ %> 
             <div class="sign-up-htm">
                 <form id="signupForm" method="post">
@@ -73,6 +82,8 @@
                         <label for="tab-1">Already a Member?</a>
                 </form>
             </div>
+
+            <!--Template for the business' sign-up page.-->
             <% } else if(type == 'businessLogin'){ %>
                 <div class="sign-up-htm">
                     <form id="signupForm" method="post">

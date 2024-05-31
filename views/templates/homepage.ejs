@@ -1,5 +1,5 @@
-
-<!--Preview for clients of things to view on homepage-->
+<!--Preview cards for the homepage, including a script template to include
+    user information.-->
 <div class="col-12">
     <div class="row align-items-center justify-content-center gy-3 gy-md-0 gx-xl-5">
         <div class="col-9 col-sm-8 col-md-6 background-container-preview <%= prevClass %>" style="background-image: url('<%= imageUrl %>');">
@@ -17,6 +17,7 @@
     </div>
 </div>
 
+<!--Dynamic loading of client information.-->
 <script type="text/template" id="clientCardTemplate">
     <div class="clientCard">
         <h5 class="card-title h4 text-center yeseva-one">[firstNamePlaceholder] [lastNamePlaceholder]</h5>
