@@ -612,10 +612,10 @@ app.post('/submitSignup/:type', async (req, res) => {
 		//Validation schema for inputted values
 		var schema = Joi.object(
 			{
-				firstName: Joi.string().pattern(/^[a-zA-Z\s]*$/).max(20).required(),
-				lastName: Joi.string().pattern(/^[a-zA-Z\s]*$/).max(20).required(),
+				firstName: Joi.string().pattern(/^[a-zA-Z\s\-']*$/).max(20).required(),
+				lastName: Joi.string().pattern(/^[a-zA-Z\s\-']*$/).max(20).required(),
 				email: Joi.string().email().required(),
-				phone: Joi.string().pattern(/^[0-9\s]*$/).length(10).required(),
+				phone: Joi.string().pattern(/^[0-9\s]*$/).max(12).min(10).required(),
 				address: Joi.string().pattern(/^[0-9a-zA-Z',\-&*@\s]*$/).required(),
 				password: Joi.string().max(20).min(2).required()
 			}
@@ -701,9 +701,9 @@ app.post('/submitSignup/:type', async (req, res) => {
 		//Validation schema for user inputs
 		var schema = Joi.object(
 			{
-				companyName: Joi.string().pattern(/^[a-zA-Z0-9\s\-']*$/).max(40).required(),
+				companyName: Joi.string().max(40).required(),
 				companyEmail: Joi.string().email().required(),
-				companyPhone: Joi.string().pattern(/^[0-9\s]*$/).length(10).required(),
+				companyPhone: Joi.string().pattern(/^[0-9\s]*$/).max(12).min(10).required(),
 				firstName: Joi.string().pattern(/^[a-zA-Z\s]*$/).max(20).required(),
 				lastName: Joi.string().pattern(/^[a-zA-Z\s]*$/).max(20).required(),
 				companyWebsite: Joi.string().pattern(/^(https?:\/\/)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/).allow(null, ''),
@@ -767,7 +767,7 @@ app.post('/submitSignup/:type', async (req, res) => {
 		req.session.userType = 'business';
 		req.session.cookie.maxAge = expireTime;
 		req.session.unreadAlerts = 0;
-		req.session.companyName = result[0].companyName;
+		req.session.companyName = user.companyName;
 
 		await setUserDatabase(req);
 		const userdb = appdb.db(req.session.userdb);
@@ -876,7 +876,7 @@ function sendResetMail(emailAddress, resetToken) {
 		const mailOptions = {
 			from: `${autoreply_email}`,
 			to: emailAddress,
-			subject: 'Reset Pawfolio password',
+			subject: 'Reset Pawfolio password - Pawfolio',
 			html: str
 		};
 
@@ -1203,7 +1203,7 @@ app.post('/profile/edit/:editType', upload.array('accountUpload', 2), async(req,
 			{
 				firstName: Joi.string().pattern(/^[a-zA-Z\s]*$/).max(20).required(),
 				lastName: Joi.string().pattern(/^[a-zA-Z\s]*$/).max(20).required(),
-				phone: Joi.string().pattern(/^[0-9]*$/).length(10).required(),
+				phone: Joi.string().pattern(/^[0-9]*$/).max(12).min(10).required(),
 				address: Joi.string().pattern(/^[0-9a-zA-Z',\-&*@\s]*$/).required(),
 			}
 		);
@@ -1291,7 +1291,7 @@ app.post('/profile/edit/:editType', upload.array('accountUpload', 2), async(req,
 		var schema = Joi.object(
 			{
 				email: Joi.string().email().required(),
-				phone: Joi.string().pattern(/^[0-9]*$/).length(10).required(),
+				phone: Joi.string().pattern(/^[0-9]*$/).max(12).min(10).required(),
 				website: Joi.string().pattern(/^(https?:\/\/)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/).allow(null, ''),
 				businessDesc: Joi.string().pattern(/^[A-Za-z0-9 _.,!"'()#;:\s]*$/).allow(null, '')
 			}
