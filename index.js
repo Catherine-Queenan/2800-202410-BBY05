@@ -2025,23 +2025,28 @@ app.get('/addTrainer/:trainer', async (req, res) => {
 
 
 // ----------------- CALENDAR STUFF GOES HERE -------------------
+
+// Function to return events from eventSource collection of the trainer
 async function getUserEvents(req) {
 	let userEvents;
 	if (req.session.userType == 'business') {
 		const userdb = appdb.db(req.session.userdb);
 		userEvents = await userdb.collection('eventSource').find().project({ title: 1, start: 1, end: 1 }).toArray();
 	} else if (req.session.userType == 'client') {
+		// The client's events are pulled from their hired trainer's collection
 		if (!req.session.trainerdb) {
 			userEvents = null;
 		} else {
 			const trainerdb = appdb.db(req.session.trainerdb);
 			let email = req.session.email;
+			// Only return events that are tied with the client
 			userEvents = await trainerdb.collection('eventSource').find({client: email}).project({ title: 1, start: 1, end: 1 }).toArray();
 		}
 	}
 	return userEvents;
 }
 
+// route to either client or business calendar
 app.get('/calendar', sessionValidation, async (req, res) => {
 	if (req.session.userType == 'business') {
 		res.render('calendarBusiness', {loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, companyName: req.session.companyName});
@@ -2057,6 +2062,7 @@ app.get('/events', sessionValidation, async (req, res) => {
 	res.json(events);
 });
 
+// filtering events by the client's email
 app.post('/filteredEvents', async (req, res) => {
 	const clientEmail = req.body.data;
 	const userdb = appdb.db(req.session.userdb);
@@ -2064,6 +2070,7 @@ app.post('/filteredEvents', async (req, res) => {
 	res.json(filteredEvents);
 })
 
+// We need this to pull the additional info for this specific event in the database
 app.post('/getThisEvent', async (req, res) => {
 	let event = {
 		title: req.body.title,
@@ -2089,6 +2096,7 @@ app.post('/getClients', async (req, res) => {
 	res.json(clientList);
 });
 
+// Attempt to add an event to the database
 app.post('/addEvent', async (req, res) => {
     const userdb = appdb.db(req.session.userdb);
     const date = req.body.calModDate;
@@ -2100,6 +2108,28 @@ app.post('/addEvent', async (req, res) => {
     const clientEmail = req.body.calModClient;
     const eventInfo = req.body.calModInfo;
 	const eventNotes = req.body.calModNotes;
+
+	// Validation schema for inputted text values
+	let schema = Joi.object({
+		title: Joi.string().alphanum().max(50).required(),
+		eventInfo: Joi.string().allow('').max(500).optional(),
+		eventNotes: Joi.string().allow('').max(500).optional()
+	});
+
+	let schemaCheck = {
+		title: req.body.calModTitle,
+		eventInfo: eventInfo,
+		eventNotes: eventNotes
+	}
+
+	let validationRes = schema.validate(schemaCheck);
+
+	if (validationRes.error != null) {
+		console.log(validationRes.error);
+		res.render('errorMessage', {loggedIn: isValidSession(req), userType: req.session.userType, errorTitle: 'Incomplete or Invalid' , errorMsg: 'Ruh Roh! That information is invalid! Please try again.', unreadAlerts: req.session.unreadAlerts, unreadMessages: 0, companyName: req.session.companyName});
+		return;
+	}
+
     const event = {
         title: req.body.calModTitle,
         start: startDateStr,
@@ -2118,8 +2148,9 @@ app.post('/addEvent', async (req, res) => {
         client: event.client
     }).project({_id: 1}).toArray();
 
-    if (check.length > 0) {
-        // TODO DUPE ERROR EXIT HERE
+    if (check.length > 0) { // duplicate
+        res.redirect('/calendar');
+		return;
     } else {
         await userdb.collection('eventSource').insertOne(event);
     }
@@ -2140,6 +2171,7 @@ app.post('/addEvent', async (req, res) => {
     res.redirect('/calendar');
 });
 
+// Attempt to update an event in the database
 app.post('/updateEvent', async (req, res) => {
 	// Checks if previous page was a Calendar or Session
 	const calOrSess = req.body.calOrSess;
@@ -2147,7 +2179,29 @@ app.post('/updateEvent', async (req, res) => {
 	const date = req.body.calModDate;
 	const startNew = date + "T" + req.body.calModStartHH + ":" + req.body.calModStartMM + ":00";
 	const endNew = date + "T" + req.body.calModEndHH + ":" + req.body.calModEndMM + ":00";
+
+	// if the event has not yet passed
 	if (req.body.eventPassed == 'false') {
+
+		// Validation schema for inputted text values
+		let schema = Joi.object({
+			title: Joi.string().alphanum().max(50).required(),
+			eventInfo: Joi.string().allow('').max(500).optional()
+		});
+
+		let schemaCheck = {
+			title: req.body.calModTitle,
+			eventInfo: req.body.calModInfo
+		}
+
+		let validationRes = schema.validate(schemaCheck);
+
+		if (validationRes.error != null) {
+			console.log(validationRes.error);
+			res.render('errorMessage', { loggedIn: isValidSession(req), userType: req.session.userType, errorTitle: 'Incomplete or Invalid', errorMsg: 'Ruh Roh! That information is invalid! Please try again.', unreadAlerts: req.session.unreadAlerts, unreadMessages: 0, companyName: req.session.companyName });
+			return;
+		}
+		
 		const eventOrig = {
 			title: req.body.calModTitleOrig,
 			start: req.body.calModStartOrig,
@@ -2180,6 +2234,24 @@ app.post('/updateEvent', async (req, res) => {
 			}
 		});
 	} else {
+
+		// Validation schema for inputted text values
+		let schema = Joi.object({
+			eventNotes: Joi.string().allow('').max(500).optional()
+		});
+
+		let schemaCheck = {
+			eventNotes: req.body.calModNotes
+		}
+
+		let validationRes = schema.validate(schemaCheck);
+
+		if (validationRes.error != null) {
+			console.log(validationRes.error);
+			res.render('errorMessage', { loggedIn: isValidSession(req), userType: req.session.userType, errorTitle: 'Incomplete or Invalid', errorMsg: 'Ruh Roh! That information is invalid! Please try again.', unreadAlerts: req.session.unreadAlerts, unreadMessages: 0, companyName: req.session.companyName });
+			return;
+		}
+
 		const eventOrig = {
 			title: req.body.calModTitleOrig,
 			start: req.body.calModStartOrig,
@@ -2188,6 +2260,7 @@ app.post('/updateEvent', async (req, res) => {
 			info: req.body.calModInfoOrig,
 			notes: req.body.calModNotesOrig
 		}
+		// only notes are able to be changed for an event that has passed
 		const eventNew = {
 			notes: req.body.calModNotes
 		}
@@ -2220,6 +2293,7 @@ app.post('/updateEvent', async (req, res) => {
 	}
 });
 
+// Delete an event in the database
 app.post('/removeEvent', async (req, res) => {
 	// Checks if previous page was a Calendar or Session
 	const calOrSess = req.body.calOrSess;
@@ -2239,6 +2313,7 @@ app.post('/removeEvent', async (req, res) => {
 		client: calEmail,
 		info: calInfo
 	});
+	// Check if we got here from calendar or session page
 	if (calOrSess == 'calendar') {
 		res.redirect('/calendar');
 		return;
@@ -2247,12 +2322,14 @@ app.post('/removeEvent', async (req, res) => {
 	}
 });
 
+// Returns the trainer company name
 app.post('/getTrainer', async (req, res) => {
 	const thisUser = await appUserCollection.find({email: req.session.email}).toArray();
 	const companyName = thisUser[0].companyName;
 	res.json(companyName);
 });
 
+// Sends a request to book the session
 app.post('/requestEvent', async (req, res) => {
 	const trainerdb = appdb.db(req.session.trainerdb);
     const date = req.body.calModDate;
@@ -2261,6 +2338,26 @@ app.post('/requestEvent', async (req, res) => {
     const trainerName = req.body.calModTrainer;
     const clientEmail = req.session.email;
     const eventInfo = req.body.calModInfo;
+
+	// Validation schema for inputted text values
+	let schema = Joi.object({
+		title: Joi.string().alphanum().max(50).required(),
+		eventInfo: Joi.string().allow('').max(500).optional()
+	});
+
+	let schemaCheck = {
+		title: req.body.calModTitle,
+		eventInfo: eventInfo
+	}
+
+	let validationRes = schema.validate(schemaCheck);
+
+	if (validationRes.error != null) {
+		console.log(validationRes.error);
+		res.render('errorMessage', {loggedIn: isValidSession(req), userType: req.session.userType, errorTitle: 'Incomplete or Invalid' , errorMsg: 'Ruh Roh! That information is invalid! Please try again.', unreadAlerts: req.session.unreadAlerts, unreadMessages: 0, companyName: req.session.companyName});
+		return;
+	}
+
     const event = {
 		alertType: 'sessionRequest',
         title: req.body.calModTitle,
@@ -2270,11 +2367,16 @@ app.post('/requestEvent', async (req, res) => {
         client: clientEmail,
         info: eventInfo
     };
+
+	// Insert the request into the trainer's database
 	await trainerdb.collection('sessionRequests').insertOne(event);
+
+	// update unread alerts
 	await appUserCollection.updateOne({companyName: trainerName, userType: 'business'}, {$inc:{unreadAlerts: 1}});
 	res.redirect('/calendar');
 });
 
+// Shows the session request on screen
 app.get('/alerts/session/:alert', sessionValidation, async (req, res) => {
 	const userdb = appdb.db(req.session.userdb);
 	if (req.session.userType == 'business') {
@@ -2310,11 +2412,20 @@ app.get('/alerts/session/:alert', sessionValidation, async (req, res) => {
 	}
 })
 
+// Prompts the user to accept or decline the session request
 app.post('/resolveSessionAlert/:alert', async (req, res) => {
 	//Create an id for the alert
 	let alertId = ObjectId.createFromHexString(req.params.alert);
 
 	const userdb = appdb.db(req.session.userdb);
+
+	let alertCheck = await userdb.collection('sessionRequests').find({_id: alertId}).toArray();
+
+	//Make sure alert is a valid alertId
+	if (!alertCheck[0]) {
+		res.render('errorMessage', { errorTitle: '404', errorMsg: 'Looks like you\'re barking up the wrong tree!', loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, companyName: req.session.companyName });
+		return;
+	}
 
 	if (req.body.resolve == 'accept') {
 		const alert = await userdb.collection('sessionRequests').find({_id: alertId}).toArray();
@@ -2363,8 +2474,11 @@ function decryptMessage(encryptedText, iv, key) {
     return decrypted.toString();
 }
 
+// As a business user, pick the client to chat with
 app.get('/chatSelectClient', sessionValidation, async (req, res) => {
 	const userdb = appdb.db(req.session.userdb);
+	
+	// Business only
 	if (isClient(req)) {
 		res.redirect('/chat/client');
 		return;
@@ -2374,6 +2488,7 @@ app.get('/chatSelectClient', sessionValidation, async (req, res) => {
 	}
 });
 
+// Renders the chat page, type determines who you're chatting with
 app.get('/chat/:type', sessionValidation, async (req, res) => {
 	req.session.unreadMessages = 0;
 	const type = req.params.type;
@@ -2382,6 +2497,8 @@ app.get('/chat/:type', sessionValidation, async (req, res) => {
 		res.render('chatClient', { loggedIn: isValidSession(req), userType: req.session.userType, receiver: receiver[0].companyName, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, unreadMessages: req.session.unreadMessages, companyName: req.session.companyName});
 		return;
 	} else if (isBusiness(req)) {
+		
+		// Sets the client for this request
 		setClientDatabase(req, type);
 		const clientdb = appdb.db(req.session.clientdb);
 		const receiver = await clientdb.collection('info').find().project({email: 1}).toArray();
@@ -2393,12 +2510,14 @@ app.get('/chat/:type', sessionValidation, async (req, res) => {
 		}
 
 		res.render('chatBusiness', { loggedIn: isValidSession(req), userType: req.session.userType, clientParam: type, receiver: receiver[0].email, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, unreadMessages: req.session.unreadMessages, companyName: req.session.companyName});
+		return;
 	} else {
 		res.render('errorMessage', { errorTitle: '404', errorMsg: 'Looks like you\'re barking up the wrong tree!', loggedIn: isValidSession(req), userType: req.session.userType,  unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, companyName: req.session.companyName});
 	}
 });
 
-app.get('/messagesClient', sessionValidation, async (req, res) => {
+// Fetches messages for the client user
+app.get('/messagesClient', sessionValidation, clientAuthorization, async (req, res) => {
 	const userdb = appdb.db(req.session.userdb);
 	const trainerdb = appdb.db(req.session.trainerdb);
 	const senderMsgList = await userdb.collection('messages').find().sort({ createdAt: 1 }).limit(25).toArray();
@@ -2415,6 +2534,7 @@ app.get('/messagesClient', sessionValidation, async (req, res) => {
 	res.json({ senderMessages: senderMsgList, receiverMessages: receiverMsgList });
 });
 
+// attempt to add message to the database
 app.post('/messagesClient', async (req, res) => {
 	const userdb = appdb.db(req.session.userdb);
 	const { text } = req.body;
@@ -2422,6 +2542,17 @@ app.post('/messagesClient', async (req, res) => {
 	const trainer = await appUserCollection.find({ email: sender }).project({ companyName: 1 }).toArray();
 	const receiver = trainer[0].companyName;
 	const newMessage = {receiver: receiver, createdAt: new Date(), unread: true };
+
+	const schema = Joi.object({
+		text: Joi.string().min(1).max(150).required() // not empty and max 150
+	});
+
+	const { error, value } = schema.validate(req.body);
+
+	if (error) {
+		res.render('errorMessage', { errorTitle: '404', errorMsg: 'Looks like you\'re barking up the wrong tree!', loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, companyName: req.session.companyName });
+		return;
+	}
 
 	// Encrypt the message text before saving
 	const { iv, encryptedData, key} = encryptMessage(text);
@@ -2433,12 +2564,14 @@ app.post('/messagesClient', async (req, res) => {
 	res.status(201).json(newMessage);
 });
 
+// Marks current messages as read
 app.put('/messagesClient/markRead', async (req, res) => {
 	const trainerdb = appdb.db(req.session.trainerdb);
 	await trainerdb.collection('messages').updateMany({receiver: req.session.email}, { $set: { unread: false }});
 	res.status(200).send('Messages marked as read');
 });
 
+// Fetches messages for the business user
 app.get('/messagesBusiness/:client', sessionValidation, businessAuthorization, async (req, res) => {
 	setClientDatabase(req, req.params.client);
 	const userdb = appdb.db(req.session.userdb);
@@ -2465,6 +2598,7 @@ app.get('/messagesBusiness/:client', sessionValidation, businessAuthorization, a
 	res.json({ senderMessages: senderMsgList, receiverMessages: receiverMsgList });
 });
 
+// Attempts to add the new message into the database
 app.post('/messagesBusiness/:client', async (req, res) => {
 	setClientDatabase(req, req.params.client);
 	const userdb = appdb.db(req.session.userdb);
@@ -2473,6 +2607,17 @@ app.post('/messagesBusiness/:client', async (req, res) => {
 	const client = await clientdb.collection('info').find().project({email: 1}).toArray();
 	const receiver = client[0].email;
 	const newMessage = {receiver: receiver, createdAt: new Date(), unread: true };
+
+	const schema = Joi.object({
+		text: Joi.string().min(1).max(150).required() // not empty and max 150
+	});
+
+	const { error, value } = schema.validate(req.body);
+
+	if (error) {
+		res.render('errorMessage', { errorTitle: '404', errorMsg: 'Looks like you\'re barking up the wrong tree!', loggedIn: isValidSession(req), userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, companyName: req.session.companyName });
+		return;
+	}
 
 	// Encrypt the message text before saving
 	const { iv, encryptedData, key} = encryptMessage(text);
@@ -2484,6 +2629,7 @@ app.post('/messagesBusiness/:client', async (req, res) => {
 	res.status(201).json(newMessage);
 });
 
+// Marks all messages on screen as read
 app.put('/messagesBusiness/markRead/:client', sessionValidation, businessAuthorization, async (req, res) => {
 	setClientDatabase(req, req.params.client);
 	const clientdb = appdb.db(req.session.clientdb);
@@ -2491,6 +2637,7 @@ app.put('/messagesBusiness/markRead/:client', sessionValidation, businessAuthori
 	res.status(200).send('Messages marked as read');
 });
 
+// This returns a count of unread messages per client to the homepage
 app.get('/messagesPreview', sessionValidation,  businessAuthorization, async (req, res) => {
 	const userdb = appdb.db(req.session.userdb);
 	const clients = await userdb.collection('clients').find().toArray();
