@@ -22,26 +22,26 @@ Roles:
 ## 3. Technologies and Resources Used
 - Languages and Libraries
     - Javascript
-    - EJS
+    - EJS 3.1.10
     - CSS
-    - JQuery
-    - Axios
+    - JQuery 3.7.1
+    - Axios 1.7.2
     - Node
-    - FullCalendar
+    - FullCalendar 6.1.11
 - Packages
     - Nodemailer
-    - JOI
-    - BCrypt
-    - dotenv
+    - JOI 17.13.1
+    - BCrypt 5.1.1
+    - dotenv 16.4.5
     - Nodemon
-    - Node-cron
+    - Node-cron 3.0.3
 - Database
-    - Google Cload
-    - ioRedis
+    - Google Cloud
+    - ioRedis 5.4.1
     - MongoDB
-    - Express
-    - Cloudinary
-    - Multer
+    - Express 4.19.2
+    - Cloudinary 2.2.0
+    - Multer 1.4.5-lts.1
 - External Tools
     - Visual Studio Code
     - SourceTree
