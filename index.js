@@ -876,7 +876,7 @@ function sendResetMail(emailAddress, resetToken) {
 		const mailOptions = {
 			from: `${autoreply_email}`,
 			to: emailAddress,
-			subject: 'Reset Pawfolio password',
+			subject: 'Reset Pawfolio password - Pawfolio',
 			html: str
 		};
 
