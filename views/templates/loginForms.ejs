@@ -35,27 +35,27 @@
                 <form id="signupForm" method="post">
                     <div class="group">
                         <label for="firstnameField" class="label"><%= firstName %>*</label>
-                        <input name="firstName" id="firstnameField" type="text" class="input">
+                        <input name="firstName" id="firstnameField" pattern="[A-Za-z\-\s']*" type="text" class="input" title="Please use letters and valid special characters ('-)">
                     </div>
                     <div class="group">
                         <label for="lastnameField" class="label"><%= lastName %>*</label>
-                        <input name="lastName" id="lastnameField" type="text" class="input">
+                        <input name="lastName" id="lastnameField" pattern="[A-Za-z'\-\s]*" type="text" class="input" title="Please use letters and valid special characters ('-)">
                     </div>
                     <div class="group">
                         <label for="addressField" class="label"><%= address %>*</label>
-                        <input name="address" id="addressField" type="text" class="input">
+                        <input name="address" id="addressField" pattern="[0-9a-zA-Z',\-&*@\s]*" type="text" class="input" title="Please enter a valid address">
                     </div>
                     <div class="group">
                         <label for="emailField" class="label"><%= signupEmail %>*</label>
-                        <input name="email" id="emailField" type="email" class="input">
+                        <input name="email" id="emailField" type="email" class="input" title="Please enter a valid email">
                     </div>
                     <div class="group">
                         <label for="phoneField" class="label"><%= phone %>*</label>
-                        <input name="phone" id="phoneField" type="tel" class="input">
+                        <input name="phone" id="phoneField" type="tel" pattern="[0-9\-\s]*" class="input" title="Please enter a valid phone number">
                     </div>
                     <div class="group">
                         <label for="passwordField" class="label"><%= signupPass %>*</label>
-                        <input name="password" id="passwordField" type="password" class="input passwordField">
+                        <input name="password" id="passwordField" type="password" class="input passwordField" title="Please enter a password that's at least 3 characters long">
                     </div>
                     <div class="group">
                         <label for="confirmPasswordField" class="label"><%= confirmPass %>*</label>
@@ -78,27 +78,27 @@
                     <form id="signupForm" method="post">
                         <div class="group">
                             <label for="companyNameField" class="label"><%= companyName %>*</label>
-                            <input name="companyName" id="companyNameField" type="text" class="input">
+                            <input name="companyName" id="companyNameField" type="text" class="input" title="Please enter your company name">
                         </div>
                         <div class="group">
                             <label for="firstnameField" class="label"><%= firstName %>*</label>
-                            <input name="firstName" id="firstnameField" type="text" class="input">
+                            <input name="firstName" id="firstnameField" pattern="[A-Za-z\-\s']*" type="text" class="input" title="Please use letters and valid special characters ('-)">
                         </div>
                         <div class="group">
                             <label for="lastnameField" class="label"><%= lastName %>*</label>
-                            <input name="lastName" id="lastnameField" type="text" class="input">
+                            <input name="lastName" id="lastnameField" pattern="[A-Za-z\-\s']*" type="text" class="input" title="Please use letters and valid special characters ('-)">
                         </div>
                         <div class="group">
                             <label for="emailField" class="label"><%= signupEmail %>*</label>
-                            <input name="businessEmail" id="emailField" type="email" class="input">
+                            <input name="businessEmail" id="emailField" type="email" class="input" title="Please enter a valid email">
                         </div>
                         <div class="group">
                             <label for="phoneField" class="label"><%= phone %>*</label>
-                            <input name="businessPhone" id="phoneField" type="tel" class="input">
+                            <input name="businessPhone" id="phoneField" type="tel" pattern="[0-9\-\s]*" class="input" title="Please enter a valid phone number">
                         </div>
                         <div class="group">
                             <label for="companyWebsiteField" class="label"><%= companySite %></label>
-                            <input name="companyWebsite" id="companyWebsiteField" type="text" class="input">
+                            <input name="companyWebsite" id="companyWebsiteField" type="url" class="input">
                         </div>
                         <div class="group">
                             <input id="basicObedienceCheck" name="services" value="Basic Obedience" type="checkbox" class="check">
