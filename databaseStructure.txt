@@ -39,7 +39,7 @@ client-email: {
 		notifType: 
 		dogId: ObjectId()
 	}
-	outstandingBalace: {
+	outstandingBalance: {
 		_id:
 		dogName: 
 		programName: 

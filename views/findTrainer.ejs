@@ -1,9 +1,0 @@
-<%- include("templates/header") %>
-	<div class="container my-3">
-		<ul style="list-style-type:none;">
-			<% for (let i = 0; i < trainers.length; i++)  { %>
-				<%- include('templates/trainers', {trainers: trainers[i]}) %>
-			<% } %>
-		</ul>
-	</div>
-<%- include("templates/footerCopyright") %>

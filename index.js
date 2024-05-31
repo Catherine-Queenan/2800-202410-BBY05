@@ -1078,8 +1078,11 @@ app.get('/emailSent', (req, res) => {
 
 app.get('/logout', (req, res) => {
 	req.session.destroy();
-	// res.render('logout', {loggedIn: false, userType: null});
-	res.redirect('/');
+
+	// Add a delay of 1 second before redirecting
+	setTimeout(() => {
+		res.redirect('/');
+	}, 1000);
 });
 
 //Async function for uploading an immage
@@ -1945,12 +1948,6 @@ app.get('/findTrainer',sessionValidation, clientAuthorization, async(req, res) =
 	}
 
 	res.render('viewTrainers', {loggedIn: isValidSession(req), userType: req.session.userType, businesses: businessDetails, trainers: businessTrainers, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, companyName: req.session.companyName});
-});
-
-//Temporary code from calendar testing; changed address to just /trainer
-app.get('/trainer', async (req, res) => {
-	const trainers = await appUserCollection.find({ userType: 'business' }).project({ _id: 1, companyName: 1 }).toArray();
-	res.render('findTrainer', {loggedIn: isValidSession(req), userType: req.session.userType, trainers: trainers, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, companyName: req.session.companyName});
 });
 
 //View indivdual business
