@@ -5,6 +5,9 @@ Pawfolio, a user-friendly dog training web application and booking service, to h
 ### Key Features of Pawfolio:
 - 1. User Interfaces
     We at Pawfolio understand the needs of both business owners and pet owners alike. That's why we've created a cohesive application to help connect pet owners with reputable trainers.
+    - All Users (including those without an account):
+        - Access to curated and verified resources
+        - Access to an FAQ page.
     - Business Interface (Trainers):
         - Dashboard to manage training sessions.
         - Full Calendar integration for booking and managing sessions
@@ -13,7 +16,6 @@ Pawfolio, a user-friendly dog training web application and booking service, to h
     - Client Interface (Dog Owners):
         - Easy session request booking with visible availability of their assigned trainer.
         - Real-time chat system to contact trainers directly through the app.
-        - Access to curateed and verified resources.
 - 2. Database Management
     - When a user signs up, an individual user is created for that user in MongoDB.
     - BCrypt is used to encrypt all sensitive information.
