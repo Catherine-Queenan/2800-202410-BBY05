@@ -11,10 +11,13 @@ let editButton = document.getElementById('editButton');
 
 let originalValues = {};
 let profileEditable = false;
+let originalEmailNotificationsStat = emailNotifications.checked;
 editButton.addEventListener('click', () => {
     profileEditable = true;
     inputs.forEach((input) => {
         input.disabled = false;
+
+        //Store original values of inputs
         originalValues[input.name] = input.value;
     });
 
@@ -41,6 +44,7 @@ cancelButtons.forEach((button) => {
         
             picInput.style = 'display:none';
             emailNotifications.disabled = true;
+            emailNotifications.checked = originalEmailNotificationsStat;
         
             saveButton.style = 'display:none';
             editButton.style = 'display:inline';

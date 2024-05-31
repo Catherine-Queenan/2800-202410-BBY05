@@ -18,7 +18,7 @@
                             <div class="d-flex justify-content-center">
                                 <%- include('templates/defaultingPic', {pic: user.profilePic, picId:'profilePic'})%>
                             </div>
-                            <%- include('templates/uploadFile', {divId:'newProfilePic', xDivAttributes:'style=display:none', fileId:'profilePicInput',fileName:'accountUpload', label:'Upload a New Photo', xfileAttributes:''}) %>    
+                            <%- include('templates/uploadFile', {divId:'newProfilePic', xDivAttributes:'style=display:none', fileId:'profilePicInput',fileName:'accountUpload', label:'Upload a New Photo', xfileAttributes:'accept=.png,.jpg, .jpeg'}) %>    
                         <div class="form-group">
                             <label for="firstName">First Name</label>
                             <input name="firstName" id="firstName" type="text" class="profileInfo" value="<%= user.firstName %>" disabled>

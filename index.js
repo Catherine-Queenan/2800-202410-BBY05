@@ -141,6 +141,7 @@ async function notificationsToAlert(req){
 		if(allNotifications.length >= 1){
 			let notificationsToAlert = []
 
+			//Find all notifications that are passed their due date and create alerts from them
 			let currDate = new Date();
 			for(let i = 0; i < allNotifications.length; i++){
 				if(allNotifications[i].date <= currDate){
@@ -157,6 +158,7 @@ async function notificationsToAlert(req){
 				}
 			}
 
+			//Delete the notifications that have been turned into alerts and upload all alerts
 			if(notificationsToAlert.length >= 1){
 				await Promise.all([
 					...notificationsToAlert.map(notif =>
@@ -171,8 +173,7 @@ async function notificationsToAlert(req){
 	}
 }
 
-// Use the updateUnreadAlerts middleware for all routes
-//middleWare
+// Function to update unread alerts count
 async function updateUnreadAlerts(req) {
     if (req.session && req.session.email) {
         try {
@@ -188,7 +189,7 @@ async function updateUnreadAlerts(req) {
 
 // app.use(updateUnreadAlerts);
 
-// middleware for unread direct messages
+// Function for unread direct messages
 async function updateUnreadMessages(req) {
 	if (isValidSession(req) && req.session.trainerdb) { //if Client with trainer
 		try {
@@ -221,7 +222,7 @@ async function updateUnreadMessages(req) {
 
 // app.use(updateUnreadMessages);
 
-//Middleware for updating the trainer db if the clients gains a trainer
+//Function for updating the trainer db if the clients gains a trainer
 async function updateTrainer(req){
 	if(req.session && req.session.email && !req.session.trainerdb){
 		let user = await appUserCollection.find({email: req.session.email, userType:'client'}).project({companyName: 1});
@@ -233,6 +234,7 @@ async function updateTrainer(req){
 	// next();
 }
 
+//Combined for updating the entire site
 async function updateSite(req, res, next){
 	await Promise.all([
 		updateUnreadAlerts(req),
@@ -241,7 +243,6 @@ async function updateSite(req, res, next){
 	]);
 	next();
 }
-
 app.use(updateSite);
 
 // Function that checks if the user is a client
@@ -508,11 +509,8 @@ async function overwriteOrUploadFile(buffer, filePath) {
     });
 }
 
-//Upload files to drive function
+//Upload files to cloudinary storage
 async function uploadImage (fileObject, folder){
-	//Pre: fileObject must be from req.file (user upload. (method from multer))
-	//Post: returns the cloud url the image is now stored at
-	let imageUrl;
 	let buf64 = fileObject.buffer.toString('base64');
 	await cloudinary.uploader.upload("data:image/png;base64," + buf64, {folder: folder}, function(error, result) { //_stream
 		imageId = result.public_id;
@@ -522,8 +520,6 @@ async function uploadImage (fileObject, folder){
 
 //delete images from the cloudinary storage
 async function deleteUploadedImage(id){
-	//Pre: id must be empty or a valid public_id from cloudinary
-	//Post: image is deleted from cloudinary
 	if(id != '' && id != null){
 		cloudinary.uploader.destroy(id, (error) => {
 			console.error(error);
@@ -1115,9 +1111,6 @@ app.get('/profile', sessionValidation, async(req, res) => {
 			}
 		}
 
-		//Unhash client address
-
-
 		//Render client profile page
 		res.render('clientProfile', {loggedIn: isValidSession(req), user: user, dogs: dogs, records: outstandingBalance, userName: req.session.name, userType: req.session.userType, unreadAlerts: req.session.unreadAlerts, unreadMessages: req.session.unreadMessages, companyName: req.session.companyName});
 		return;
@@ -1149,20 +1142,19 @@ app.get('/profile', sessionValidation, async(req, res) => {
 	}
 });
 
+//Create json with a client's trainer's information 
 app.get('/clientTrainerHome', sessionValidation, clientAuthorization, async(req, res) => {
 	let user = await appUserCollection.find({email: req.session.email, userType: req.session.userType}).toArray();
 	if(req.session.trainerdb || user[0].companyName){
-		if(!req.session.trainerdb){
-			req.session.trainerdb = 'business-' + user[0].companyName.replaceAll(/[\s.]/g, "");
-			req.session.companyName = user[0].companyName;
-		}
 
 		const trainerdb = appdb.db(req.session.trainerdb);
 		let business = await trainerdb.collection('info').find({}).toArray();
 
+		//Get image link for trainer's logo
 		if(business[0].logo != '' && business[0].logo != null){
 			business[0].logo = cloudinary.url(business[0].logo);
 		}
+
 		res.json(business[0]);
 
 	} else {
@@ -1171,10 +1163,12 @@ app.get('/clientTrainerHome', sessionValidation, clientAuthorization, async(req,
 	}
 });
 
+//Create json with a client's dogs' information
 app.get('/clientDogsHome', sessionValidation, clientAuthorization, async(req, res) => {
 	const userdb = appdb.db(req.session.userdb);
 	let dogs = await userdb.collection('dogs').find({}).toArray();
 
+	//Create links for all dog photos
 	for(let i = 0; i < dogs.length; i++){
 		if(dogs[i].dogPic && dogs[i].dogPic != ''){
 			dogs[i].dogPic = cloudinary.url(dogs[i].dogPic);
@@ -1190,7 +1184,7 @@ app.post('/profile/edit/:editType', upload.array('accountUpload', 2), async(req,
 
     // Edit client profile
     if (req.params.editType === 'clientProfile') {
-        // Grab current image id
+		// Grab current image id
         let user = await userdb.collection('info').find({ email: req.session.email }).project({ profilePic: 1 }).toArray();
 
         // Image id is updated with a newly uploaded image or kept the same
@@ -1205,60 +1199,118 @@ app.post('/profile/edit/:editType', upload.array('accountUpload', 2), async(req,
         // Handle email notifications checkbox value
         req.body.emailNotifications = req.body.emailNotifications === 'on';
 
+		var schema = Joi.object(
+			{
+				firstName: Joi.string().pattern(/^[a-zA-Z\s]*$/).max(20).required(),
+				lastName: Joi.string().pattern(/^[a-zA-Z\s]*$/).max(20).required(),
+				phone: Joi.string().pattern(/^[0-9]*$/).length(10).required(),
+				address: Joi.string().pattern(/^[0-9a-zA-Z',\-&*@\s]*$/).required(),
+			}
+		);
+
+		let input = {
+			firstName: req.body.firstName,
+            lastName: req.body.lastName,
+            phone: req.body.phone.replaceAll(' ', '').replaceAll('-', ''),
+			address: req.body.address,
+		}
+
+		var validationRes = schema.validate(input);
+		if (validationRes.error != null) {
+			console.log(validationRes.error);
+			res.render('errorMessage', {loggedIn: isValidSession(req), userType: req.session.userType, errorTitle: 'Incomplete or Invalid' , errorMsg: 'Ruh Roh! That information is invalid! Please try again.', unreadAlerts: req.session.unreadAlerts, unreadMessages: 0, companyName: req.session.companyName});
+			return;
+		}
+
         // Update the database
         await userdb.collection('info').updateOne({ email: req.session.email }, { $set: { 
             firstName: req.body.firstName,
             lastName: req.body.lastName,
-            phone: req.body.phone,
+            phone: req.body.phone.replaceAll(' ', '').replaceAll('-', ''),
+			address: req.body.address,
             profilePic: req.body.profilePic,
             emailNotifications: req.body.emailNotifications
         }});
 
         // Return to profile
         res.redirect('/profile');
+
+	//Edit business profile
     } else if (req.params.editType == 'businessDetails') {
-        // Grab current logo id
+
         let business = await userdb.collection('info').find({ companyName: req.session.name }).toArray();
 
-		//Logo id is updated with a newly upload logo or kept the same
 		if(req.files.length != 0){
+			//If only one file was uploaded
 			if(req.files.length < 2){
 
+				//Gather file type
 				let filename = req.files[0].mimetype;
 				filename = filename.split('/');
 				let fileType = filename[0];
 
-				if(fileType == 'image'){
+				//Logo uploaded
+				if(fileType == 'image'){ 
 					await deleteUploadedImage(business[0].logo);
 					req.body.logo = await uploadImage(req.files[0], "businessLogos");
+				
+				//Contract uploaded
 				} else {
 					let fullFileName = `${req.session.name}_contract.pdf`;
 					let filePath = `pdfs/${fullFileName}`;
-					let fileUrl = await uploadFileToGoogleCloud(req.files[0].buffer, filePath);
+					await uploadFileToGoogleCloud(req.files[0].buffer, filePath);
 					req.body.contract = filePath;
 				}
+
 			} else if (req.files.length == 2){
 				for(let i = 0; i < req.files.length; i++){
+					//Get file type
 					let filename = req.files[i].mimetype;
 					filename = filename.split('/');
 					let fileType = filename[i];
 
+					//Logo uploaded
 					if(fileType == 'image'){
 						await deleteUploadedImage(business[0].logo);
 						req.body.logo = await uploadImage(req.files[i], "businessLogos");
+					
+					//Contract uploaded
 					} else {
-						let fullFileName = `${req.session.name}_contract.pdf`; // Format the file name
+						let fullFileName = `${req.session.name}_contract.pdf`;
 						let filePath = `pdfs/${fullFileName}`;
-						let fileUrl = await uploadFileToGoogleCloud(req.files[i].buffer, filePath);
+						await uploadFileToGoogleCloud(req.files[i].buffer, filePath);
 						req.body.contract = filePath;
 					}
 				}
+			//No files, keep current values
 			} else {
 				req.body.logo = business[0].logo;
+				req.body.contract = business[0].contract
 			}
 		}
+		var schema = Joi.object(
+			{
+				email: Joi.string().email().required(),
+				phone: Joi.string().pattern(/^[0-9]*$/).length(10).required(),
+				website: Joi.string().pattern(/^(https?:\/\/)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/).allow(null, ''),
+				businessDesc: Joi.string().pattern(/^[A-Za-z0-9 _.,!"'()#;:\s]*$/).allow(null, '')
+			}
+		);
 
-		
+		req.body.phone = req.body.phone.replaceAll(' ', '').replaceAll('-', '');
+		let input = {
+			email: req.body.email,
+			phone: req.body.phone,
+			website: req.body.companyWebsite,
+			businessDesc: req.body.description
+		}
+
+		var validationRes = schema.validate(input);
+		if (validationRes.error != null) {
+			console.log(validationRes.error);
+			res.render('errorMessage', {loggedIn: isValidSession(req), userType: req.session.userType, errorTitle: 'Incomplete or Invalid' , errorMsg: 'Ruh Roh! That information is invalid! Please try again.', unreadAlerts: req.session.unreadAlerts, unreadMessages: 0, companyName: req.session.companyName});
+			return;
+		}
 
         // Update database
         await userdb.collection('info').updateOne({ companyName: req.session.name }, { $set: req.body });
@@ -1268,7 +1320,7 @@ app.post('/profile/edit/:editType', upload.array('accountUpload', 2), async(req,
 
     // Edit business profile -> trainer profile
     } else if (req.params.editType == 'trainer') {
-        // Grab current profile pic id
+
         let trainer = await userdb.collection('trainer').find({ companyName: req.session.name }).project({ trainerPic: 1 }).toArray();
 
         // Profile pic id is updated with a newly uploaded Profile pic or kept the same
@@ -1279,6 +1331,29 @@ app.post('/profile/edit/:editType', upload.array('accountUpload', 2), async(req,
             req.body.trainerPic = trainer[0].trainerPic;
         }
 
+		var schema = Joi.object(
+			{
+				firstName: Joi.string().pattern(/^[a-zA-Z\s]*$/).max(20).required(),
+				lastName: Joi.string().pattern(/^[a-zA-Z\s]*$/).max(20).required(),
+				certification: Joi.string().pattern(/^[A-Za-z0-9 _.,!"'()#;:\s]*$/).allow(null, ''),
+				trainerIntro: Joi.string().pattern(/^[A-Za-z0-9 _.,!"'()#;:\s]*$/).allow(null, '')
+			}
+		);
+
+		let input = {
+			firstName: req.body.firstName,
+			lastName: req.body.lastName,
+			certification: req.body.trainerCert,
+			trainerIntro: req.body.trainerIntro
+		}
+
+		var validationRes = schema.validate(input);
+		if (validationRes.error != null) {
+			console.log(validationRes.error);
+			res.render('errorMessage', {loggedIn: isValidSession(req), userType: req.session.userType, errorTitle: 'Incomplete or Invalid' , errorMsg: 'Ruh Roh! That information is invalid! Please try again.', unreadAlerts: req.session.unreadAlerts, unreadMessages: 0, companyName: req.session.companyName});
+			return;
+		}
+
         // Update database
         await userdb.collection('trainer').updateOne({ companyName: req.session.name }, { $set: req.body });
 
@@ -1287,6 +1362,27 @@ app.post('/profile/edit/:editType', upload.array('accountUpload', 2), async(req,
 
 	//Edit business profile -> Programs (can only add a program from profile page)
 	} else if(req.params.editType == 'addProgram'){
+
+		var schema = Joi.object(
+			{
+				name: Joi.string().pattern(/^[a-zA-Z\s]*$/).max(20).required(),
+				discounts: Joi.string().pattern(/^[A-Za-z0-9 _.,!"'()#;:\s]*$/).allow(null, ''),
+				description: Joi.string().pattern(/^[A-Za-z0-9 _.,!"'()#;:\s]*$/).allow(null, '')
+			}
+		);
+
+		let input = {
+			name: req.body.name,
+			discounts: req.body.discounts,
+			description: req.body.description
+		}
+
+		var validationRes = schema.validate(input);
+		if (validationRes.error != null) {
+			console.log(validationRes.error);
+			res.render('errorMessage', {loggedIn: isValidSession(req), userType: req.session.userType, errorTitle: 'Incomplete or Invalid' , errorMsg: 'Ruh Roh! That information is invalid! Please try again.', unreadAlerts: req.session.unreadAlerts, unreadMessages: 0, companyName: req.session.companyName});
+			return;
+		}
 
 		//Set up program from submitted information 
 		let program = {
@@ -1342,6 +1438,29 @@ app.get('/program/:programId', sessionValidation, businessAuthorization, async(r
 app.post('/program/:programId/edit', async(req, res) => {
 	const userdb = appdb.db(req.session.userdb);
 
+
+	var schema = Joi.object(
+		{
+			name: Joi.string().pattern(/^[a-zA-Z\s]*$/).max(20).required(),
+			discounts: Joi.string().pattern(/^[A-Za-z0-9 _.,!"'()#;:\s]*$/).allow(null, ''),
+			description: Joi.string().pattern(/^[A-Za-z0-9 _.,!"'()#;:\s]*$/).allow(null, '')
+		}
+	);
+
+	let input = {
+		name: req.body.name,
+		discounts: req.body.discounts,
+		description: req.body.description
+	}
+
+	var validationRes = schema.validate(input);
+	if (validationRes.error != null) {
+		console.log(validationRes.error);
+		res.render('errorMessage', {loggedIn: isValidSession(req), userType: req.session.userType, errorTitle: 'Incomplete or Invalid' , errorMsg: 'Ruh Roh! That information is invalid! Please try again.', unreadAlerts: req.session.unreadAlerts, unreadMessages: 0, companyName: req.session.companyName});
+		return;
+	}
+
+
 	//Set up program with submitted info
 	let = program = {
 		name: req.body.name,
@@ -1373,6 +1492,7 @@ app.get('/addDog', sessionValidation, clientAuthorization, (req, res) => {
 app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
     const userdb = appdb.db(req.session.userdb);
   
+	//Validate submitted info
 	var schema = Joi.object(
 		{
 			dogName: Joi.string().pattern(/^[a-zA-Z\s\'\-]*$/).max(20),
@@ -1438,6 +1558,7 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
                 vaccineType = req.body.vaccineCheck;
             }
 
+			//Find file type
             let filename = req.files[i].mimetype;
             filename = filename.split('/');
             let fileType = filename[0];
@@ -1456,7 +1577,7 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
             if (fileType === 'application') {
                 let fullFileName = `${lastName}_${dogName}_${vaccineType}.pdf`;
                 let filePath = `pdfs/${fullFileName}`;
-                let fileUrl = await uploadFileToGoogleCloud(req.files[i].buffer, filePath);
+                await uploadFileToGoogleCloud(req.files[i].buffer, filePath);
                 req.body[vaccineType + 'Proof'] =  filePath;
             }
         }
@@ -1479,20 +1600,22 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
 	dog.breed = req.body.breed;
     dog.specialAlerts = req.body.specialAlerts;
 
-
 	let vaccineNotifs = [];
 
-    // If dog has more than one vaccine, add the expiration date and pdf of the proof of vaccination to the specific vaccine document
+    // Create vaccination notifications and add vaccine info to the dog doc
     if (Array.isArray(req.body.vaccineCheck)) {
         req.body.vaccineCheck.forEach((vaccine) => {
+			//Record expiry date and date a week before expiry
 			let expirationDate = new Date(req.body[vaccine + 'Date']);
 			let weekBeforeDate = new Date(expirationDate);
 			weekBeforeDate = new Date(weekBeforeDate.setDate(expirationDate.getDate() - 7))
+
             dog[vaccine] = {
                 expirationDate: req.body[vaccine + 'Date'],
                 vaccineRecord: req.body[vaccine + 'Proof']
             };
 
+			//Add vaccine notification for the date of expiry
 			vaccineNotifs.push({
 				dog: req.body.dogName,
 				vaccine: vaccine,
@@ -1501,6 +1624,7 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
 				notifType: 'vaccineUpdate'
 			});
 
+			//If the vaccine hasn't expired, add a notification for when the date of a vaccine expiry is a week away
 			if(expirationDate > new Date()){
 				vaccineNotifs.push({
 					dog: req.body.dogName,
@@ -1511,16 +1635,21 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
 				});
 			}
         });
+	
+	//If dog has only one vaccine
     } else if (req.body.vaccineCheck) {
+		//Record dates for expiry and a week before expiry
 		let expirationDate = new Date(req.body[req.body.vaccineCheck + 'Date']);
 		let weekBeforeDate = new Date(expirationDate);
 		weekBeforeDate = new Date(weekBeforeDate.setDate(expirationDate.getDate() - 7))
 
+		
         dog[req.body.vaccineCheck] = {
             expirationDate: req.body[req.body.vaccineCheck + 'Date'],
             vaccineRecord: req.body[req.body.vaccineCheck + 'Proof']
         };
 
+		//Add vaccine notification for the date of expiry
 		vaccineNotifs.push({
 			dog: req.body.dogName,
 			vaccine: req.body.vaccineCheck,
@@ -1529,6 +1658,7 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
 			notifType: 'vaccineUpdate'
 		});
 
+		//Add vaccine notification for date a week before expiry
 		if(expirationDate > new Date()){
 			vaccineNotifs.push({
 				dog: req.body.dogName,
@@ -1542,6 +1672,8 @@ app.post('/addingDog', upload.array('dogUpload', 6), async (req, res) => {
 
     // Insert the dog into the database and return to profile
 	let dogId = await userdb.collection('dogs').insertOne(dog);
+
+	//Add the dog's id to the vaccine notifications and upload to database
 	for(let i = 0; i < vaccineNotifs.length; i++){
 		vaccineNotifs[i].dogId = dogId.insertedId;
 	}
@@ -1564,69 +1696,72 @@ const uploadFields = upload.fields([
 
 // Route to handle updating vaccination records
 app.post('/dog/:dogId/editVaccines', uploadFields, async (req, res) => {
-  const userdb = appdb.db(req.session.userdb);
-  const dogId = req.params.dogId;
+	const userdb = appdb.db(req.session.userdb);
+	const dogId = req.params.dogId;
 
-  let dog = await userdb.collection('dogs').findOne({ _id: new ObjectId(dogId) });
+	let dog = await userdb.collection('dogs').findOne({ _id: new ObjectId(dogId) });
 
-  if (!dog) {
-    return res.status(404).send('Dog not found');
-  }
+	if (!dog) {
+		return res.status(404).send('Dog not found');
+	}
 
-  const vaccineTypes = ['rabies', 'leptospia', 'bordatella', 'bronchiseptica', 'DA2PP'];
-  let vaccineNotifs = [];
+	const vaccineTypes = ['rabies', 'leptospia', 'bordatella', 'bronchiseptica', 'DA2PP'];
+	let vaccineNotifs = [];
   
-  for (let vaccineType of vaccineTypes) {
-    const file = req.files[`${vaccineType}Upload`] ? req.files[`${vaccineType}Upload`][0] : null;
-    if (file) {
-      let fileType = file.mimetype.split('/')[0];
-      let dogName = dog.dogName;
-      let lastName = req.session.name.split(' ')[1];
-
-      if (fileType === 'application') {
-        let fullFileName = `${lastName}_${dogName}_${vaccineType}.pdf`;
-        let filePath = `pdfs/${fullFileName}`;
-        let fileUrl = await overwriteOrUploadFile(file.buffer, filePath);
-
-        // Initialize vaccine type if it doesn't exist
-        if (!dog[vaccineType]) {
-          dog[vaccineType] = {};
-        }
-
-        // Add vaccine record URL
-        dog[vaccineType].vaccineRecord = filePath;
-
-        // Add or update expiration date
-        if (req.body[`${vaccineType}Date`]) {
-			let expirationDate = new Date(req.body[`${vaccineType}Date`]);
-			let weekBeforeDate = new Date(expirationDate);
-			weekBeforeDate = new Date(weekBeforeDate.setDate(expirationDate.getDate() - 7));
-          	dog[vaccineType].expirationDate = req.body[`${vaccineType}Date`];
-
-			vaccineNotifs.push({
-				dog: dogName,
-				vaccine: vaccineType,
-				type: 'Expired',
-				date: expirationDate,
-				notifType: 'vaccineUpdate',
-				dogId: new ObjectId(dogId)
-			});
+	for (let vaccineType of vaccineTypes) {
+		const file = req.files[`${vaccineType}Upload`] ? req.files[`${vaccineType}Upload`][0] : null;
+    	if (file) {
+    		let fileType = file.mimetype.split('/')[0];
+    		let dogName = dog.dogName;
+    		let lastName = req.session.name.split(' ')[1];
 	
-			if(expirationDate > new Date()){
+    		if (fileType === 'application') {
+    			let fullFileName = `${lastName}_${dogName}_${vaccineType}.pdf`;
+        		let filePath = `pdfs/${fullFileName}`;
+        		await overwriteOrUploadFile(file.buffer, filePath);
+
+        	// Initialize vaccine type if it doesn't exist
+        	if (!dog[vaccineType]) {
+        	  dog[vaccineType] = {};
+        	}
+
+        	// Add vaccine record URL
+        	dog[vaccineType].vaccineRecord = filePath;
+
+        	// Add or update expiration date
+			if (req.body[`${vaccineType}Date`]) {
+				let expirationDate = new Date(req.body[`${vaccineType}Date`]);
+				let weekBeforeDate = new Date(expirationDate);
+				weekBeforeDate = new Date(weekBeforeDate.setDate(expirationDate.getDate() - 7));
+				dog[vaccineType].expirationDate = req.body[`${vaccineType}Date`];
+
+				//Create new notification for date of expiry
 				vaccineNotifs.push({
 					dog: dogName,
 					vaccine: vaccineType,
-					type: 'One week warning',
-					date: weekBeforeDate,
+					type: 'Expired',
+					date: expirationDate,
 					notifType: 'vaccineUpdate',
 					dogId: new ObjectId(dogId)
 				});
+				
+				//Create new notification for date a week before expiry
+				if(expirationDate > new Date()){
+					vaccineNotifs.push({
+						dog: dogName,
+						vaccine: vaccineType,
+						type: 'One week warning',
+						date: weekBeforeDate,
+						notifType: 'vaccineUpdate',
+						dogId: new ObjectId(dogId)
+					});
+				}
 			}
-        }
-      }
+    	}
     }
   }
- 
+  
+  //Update the database records for the dog and notifications
   await Promise.all([
 	...vaccineNotifs.map(notif =>
 	  userdb.collection('notifications').deleteOne(
@@ -1639,9 +1774,10 @@ app.post('/dog/:dogId/editVaccines', uploadFields, async (req, res) => {
 	userdb.collection('notifications').insertMany(vaccineNotifs)
   ]);
 
+  //If any notifications reached their due date, turn them into alerts
   notificationsToAlert(req);
   
-  res.redirect('/profile');
+  res.redirect('/dog/' + dogId);
 });
 
 //Show specific dog
@@ -1681,6 +1817,35 @@ app.post('/dog/:dogId/edit', upload.single('dogUpload'), async(req, res) => {
 	} else {
 		req.body.dogPic = dog[0].dogPic;
 	}
+
+	//Validate submitted info
+	var schema = Joi.object(
+		{
+			dogName: Joi.string().pattern(/^[a-zA-Z\s\'\-]*$/).max(20),
+			dogBreed: Joi.string().pattern(/^[a-zA-Z\s\'\-]*$/).max(40),
+			specialAlerts: Joi.string().pattern(/^[A-Za-z0-9 _.,!"'()#;:\s]*$/).allow(null, '')
+		}
+	);
+
+    if (!req.body.specialAlerts) {
+        req.body.specialAlerts = '';
+    }
+
+    let validationRes = schema.validate({ dogName: req.body.dogName, dogBreed: req.body.dogBreed, specialAlerts: req.body.specialAlerts });
+    
+    // Deals with errors from validation
+    if (validationRes.error != null) {
+		res.render('errorMessage', {
+            loggedIn: isValidSession(req), 
+            userType: req.session.userType, 
+            errorTitle: 'Incomplete or Invalid' ,
+            errorMsg: 'Ruh Roh! That information is invalid! Please try again.',
+            unreadAlerts: req.session.unreadAlerts,
+            unreadMessages: req.session.unreadMessages,
+			companyName: req.session.companyName
+        });
+        return;
+    }
 
 	//Update the dog's information
 	await userdb.collection('dogs').updateOne({_id: dogId}, {$set: req.body});
@@ -1882,6 +2047,7 @@ app.get('/viewBusiness/:company/register/:program', sessionValidation, clientAut
 		}
 	}
 
+	//Decrypt contract
 	let contract = business.info.contract;
 	let contractUrl;
 	if(contract){
@@ -1899,6 +2065,7 @@ app.get('/viewBusiness/:company/register/:program', sessionValidation, clientAut
 app.post('/viewBusiness/:company/register/:program/submitRegister', async(req, res) => {
 	const userdb = appdb.db(req.session.userdb);
 
+	//Need to connect to the trainer's database to access it
 	let db = mongodb_businessdb + '-' + req.params.company.replaceAll(/\s/g, "");
 	let businessdbAccess = new MongoClient(`mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/${db}?retryWrites=true`);
 	let tempBusiness = businessdbAccess.db(db);
@@ -1922,6 +2089,7 @@ app.post('/viewBusiness/:company/register/:program/submitRegister', async(req, r
 		clientName: req.session.name
 	}
 
+	//Send the request to the trainer's alerts collection
 	companyEmail = companyEmail[0].email;
 	await Promise.all([
 		tempBusiness.collection('alerts').insertOne(request),
@@ -1987,6 +2155,7 @@ app.post('/resolveAlert/:alert', async(req, res) => {
 				price: price
 			}
 
+			//Need to add to outstanding balance of client and also add to the clients record of registrations
 			await Promise.all([
 				clientdb.collection('outstandingBalance').insertOne(balance),
 				clientdb.collection('registrations').insertOne(registration)
@@ -1996,33 +2165,10 @@ app.post('/resolveAlert/:alert', async(req, res) => {
 		
 	}
 	
+	//Delete the alert
 	userdb.collection('alerts').deleteOne({_id: alertId});
 	res.redirect('/alerts');
 });
-
-// Temporary add Trainer button for this Branch
-app.get('/addTrainer/:trainer', async (req, res) => {
-	let trainer = req.params.trainer;
-	await appUserCollection.updateOne({email: req.session.email}, {$set: { companyName: trainer}});
-	await setTrainerDatabase(req);
-
-	const userdb = appdb.db(req.session.userdb);
-	const trainerdb = appdb.db(req.session.trainerdb);
-
-	let client = await userdb.collection('info').find().project({email: 1, firstName: 1, lastName: 1, phone: 1}).toArray();
-	let check = await trainerdb.collection('clients').find({email: client[0].email}).project({_id: 1, email: 1}).toArray();
-	if (check.length == 0) {
-		await trainerdb.collection('clients').insertOne({
-			email: client[0].email,
-			firstName: client[0].firstName,
-			lastName: client[0].lastName,
-			phone: client[0].phone
-		});
-	}
-
-	res.redirect('/');
-});
-
 
 // ----------------- CALENDAR STUFF GOES HERE -------------------
 
@@ -2660,7 +2806,7 @@ app.get('/messagesPreview', sessionValidation,  businessAuthorization, async (re
 });
 
 // ----------------- ALERTS SECTION STARTS HERE -------------------
-
+//Alerts display page
 app.get('/alerts', sessionValidation, async(req, res)=>{
 	const userdb = appdb.db(req.session.userdb);
 
@@ -2668,6 +2814,8 @@ app.get('/alerts', sessionValidation, async(req, res)=>{
 		userdb.collection('alerts').find({}).toArray(),
 		appUserCollection.updateOne({email: req.session.email}, {$set: {unreadAlerts: 0}})
 	]);
+
+	//Update the alerts icon to show no unread messages
 	await updateUnreadAlertsMidCode(req);
 	
 	if(req.session.userType == 'business'){
@@ -2680,7 +2828,6 @@ app.get('/alerts', sessionValidation, async(req, res)=>{
 				reqSessions[i].end = new Date(reqSessions[i].end).toLocaleString("en-CA");
 			}
 		}
-
 
 		res.render('businessAlerts', {
             loggedIn: isValidSession(req),
@@ -2703,6 +2850,7 @@ app.get('/alerts', sessionValidation, async(req, res)=>{
 	}
 });
 
+//Delete an alert based of its id
 app.post('/alerts/delete/:alert', async(req, res) => {
 	const userdb = appdb.db(req.session.userdb);
 
@@ -2712,9 +2860,11 @@ app.post('/alerts/delete/:alert', async(req, res) => {
 	res.redirect('/alerts');
 });
 
-
+//View a specific alert
 app.get('/alerts/view/:alert', sessionValidation, async(req, res) => {
 	const userdb = appdb.db(req.session.userdb);
+
+	//Currently only focused on rendering hire alerts
 	if(req.session.userType == 'business'){
 		appUserCollection.updateOne({email: req.session.email}, {$set:{unreadAlerts: 0}});
 

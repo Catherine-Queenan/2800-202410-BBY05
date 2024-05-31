@@ -11,7 +11,7 @@
 						<img src="/images/DefaultAvatar.png" id="demoPic" class="rounded-circle"
 								style="width: 150px; height: 150px; object-fit: cover;">
 					</div>
-					<%- include('templates/uploadFile', {divId:'newDogPic', xDivAttributes:'', fileId:'dogPicInput',fileName:'dogUpload', label:'Upload a Photo', xfileAttributes:'accept=.png,.jpg'}) %>
+					<%- include('templates/uploadFile', {divId:'newDogPic', xDivAttributes:'', fileId:'dogPicInput',fileName:'dogUpload', label:'Upload a Photo', xfileAttributes:'accept=.png,.jpg, .jpeg'}) %>
 					<div class="form-group">
 						<label for="dogName">Dog Name*</label>
 						<input type="text" id="dogName" name="dogName" required>

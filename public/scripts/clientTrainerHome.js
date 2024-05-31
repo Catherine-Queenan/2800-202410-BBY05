@@ -4,6 +4,7 @@ trainerShow.classList.add('whiteBackgroundFade', 'p-3', 'rounded', 'profile-card
 trainerShow.classList.remove('d-none');
 
 async function showTrainer() {
+    //Trainer info displayed in a json at link
     const response = await fetch('/clientTrainerHome');
     const trainer = await response.json();
 

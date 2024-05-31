@@ -44,6 +44,8 @@
     let filterChecks = document.querySelectorAll('.alertFilter');
     let alerts = document.querySelectorAll('.alertCard');
 
+    //Change which cards are show based on what checks are clicked
+    //Uses OR logic
     filterChecks.forEach((check)=>{
         check.addEventListener('change', function(){
             if(this.checked){

@@ -4,9 +4,11 @@ dogsShow.classList.add('whiteBackgroundFade', 'p-3', 'rounded', 'd-flex', 'justi
 dogsShow.classList.remove('d-none');
 
 async function showDogs() {
+    //All client dogs are displayed in a json at this link
     const response = await fetch('/clientDogsHome');
     const dogs = await response.json();
 
+    //Create div element for each dog and added to the innerHTML of the container
     for(let i = 0; i < dogs['dogs'].length; i++){
         let pic;
         if(dogs['dogs'][i].dogPic && dogs['dogs'][i].dogPic != ''){
