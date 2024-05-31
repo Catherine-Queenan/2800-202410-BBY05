@@ -11,6 +11,13 @@
 	overflow-y: scroll;
 }
 
+.message-wrapper {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	margin-bottom: 15px;
+}
+
 .message {
 	max-width: 60%;
 	padding: 5px 10px 5px 10px;
@@ -36,4 +43,17 @@
 
 .msgText {
 	color: rgba(32, 19, 53, 1);
+}
+
+.timestamp {
+	font-size: 0.7em;
+	color: #888;
+}
+
+.timestamp.received {
+	align-self: flex-start;
+}
+
+.timestamp.sent {
+	align-self: flex-end;
 }

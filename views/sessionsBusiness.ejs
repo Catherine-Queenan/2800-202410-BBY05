@@ -1,0 +1,31 @@
+<%- include("templates/header") %>
+<div class="profile-container my-4 mx-4">
+<link href="/css/calendar.css" rel="stylesheet">
+	<h1 class="text-center mb-4 yeseva-one">This Week's Sessions</h1>
+	<div class="container smallShadow backgroundWhite my-3 py-3" id='calendar'></div>
+	<div class="container">
+		<label for="clientFilter">Filter by Client:</label>
+		<select id="clientFilter" name="clientFilter" class="form-select">
+			<option selected></option>
+		</select>
+	</div>
+</div>
+<!-- Modal -->
+<div id="calendarModal" class="modal" tabindex="-1">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="calModViewTitle">Modal title</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+
+			<form method="post">
+				<div class="modal-body" id="calModBod">
+					<!-- Modal body goes here -->
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+
+<%- include("templates/footerCalendar", {script: 'BusinessSessions'}) %>

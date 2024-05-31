@@ -1,79 +1,82 @@
 <%- include("templates/header") %>
-	<input id="tabR-1" type="radio" name="tab" class="tabR-one btn-check" checked>
-	<label for="tabR-1" class="tabR">Company</label>
-	<input id="tabR-2" type="radio" name="tab" class="tabR-two btn-check">
-	<label for="tabR-2" class="tabR">Programs</label>
+<div class="profile-container my-4 mx-4"> <!--Added container div to center content on page-->
+    <h1 class="text-center mb-4 yeseva-one"><%=business.companyName%></h1> <!--Page title-->
+    <div class="resource-wrap d-flex justify-content-center">
+        <div class="resource-html justify-content-center flex-fill" style="max-width:500px;">
+            <input id="tabR-1" type="radio" name="tab" class="tabR-one btn-check" checked>
+            <label for="tabR-1" class="tabR">Company</label>
 
-	<div class="resource-form">
-		<div class="tabR-one-htm">
-			<div class="p-2">
-				<div class="container my-2">
-					<%-include('templates/defaultingPic', {picId: 'logo', pic: business.logo})%>
-					<span class="h3 yeseva-one"><%=business.companyName%></span>
-				</div>
-					
-				<div>
-					<div class="container contacts my-2">
-							<p><span class="karla-heavy">Email:</span> <span><%=business.email%></span></p>
-							<p><span class="karla-heavy">Phone:</span> <span><%=business.phone%></span></p>
-							<p><span class="karla-heavy">Website:</span> <a href="<%=business.companyWebsite%>"><%=business.companyWebsite%></a></p>
-					</div>
-					<div class="container services">
-						<% for(let i=0; i < business.services.length; i++){ %>
-							<span class="border karla-heavy p-1 mx-1"><%=business.services[i]%></span>
-						<% } %>
-					</div>
-					<div class="container my-4">
-						<p class="karla-heavy">Description:</p>
-						<p>
-							<% if(business.description != '' && business.description != null){ %>
-								<%=business.description%>
-							<% } else { %>
-								This business chose to stay mysterious
-							<% } %>
-						</p>
-						
-					</div>
-				</div>
-			</div>
+            <input id="tabR-2" type="radio" name="tab" class="tabR-two btn-check">
+            <label for="tabR-2" class="tabR">Programs</label>
 
-			<div class="p-2">
-				<div class="container text-center my-2">
-					<%-include('templates/defaultingPic', {picId: 'trainerPic', pic: trainer.trainerPic})%>
-					<p class="h3 yeseva-one"><%=trainer.firstName%> <%=trainer.lastName%></p>
-				</div>
-				<div class="container">
-					<span class="karla-heavy">Certifications: </span><span><%=trainer.certifications%></span>
-				</div>
-				<div class="container my-4">
-					<p class="karla-heavy">Trainer's Introduction</p>
-					<p>
-						<% if(trainer.intro != '' && trainer.intro != null){ %>
-							<%=trainer.intro%>
-						<% } else { %>
-							This trainer chose to stay mysterious
-						<% } %>
-					</p>
-				</div>
-			</div>
-		</div>
-	</div>
-
-	<div class="resource-form">
-		<div class="tabR-two-htm">
-			<div class="container">
-				
-				<% for(let i = 0; i < programs.length; i++) { %>
-					<div class="card container p-3 my-2 programCard">
-					<%- include('templates/clientViewProgram', {program: programs[i], businessName:business.companyName}) %>
-					<form>
-						<%- include('templates/button', {action:currentUrl + '/register/' + programs[i]._id,xClasses:'col',xAttributes:'',content:'Register'}) %>
-					</form>
-					</div>
-					
-				<% } %>
-			</div>
-		</div>
-	</div>
-
+            <div class="resource-form">
+                <div class="tabR-one-htm">
+                    <div class="my-3">
+                        <div class="d-flex justify-content-center">
+                            <%- include('templates/defaultingPic', {picId: 'logo', pic: business.logo}) %>
+                        </div>
+                        <div style="font-size: 17px;">
+                            <div class="container contacts my-2">
+                                <p class="heading-gen"><span class="karla-heavy">Contact Information:</span></p>
+                                <p><span class="karla-heavy fw-bold">Email:</span> <span><%=business.email%></span></p>
+                                <p><span class="karla-heavy fw-bold">Phone:</span> <span><%=business.phone%></span></p>
+                                <p><span class="karla-heavy fw-bold">Website:</span> <a href="<%=business.companyWebsite%>"><%=business.companyWebsite%></a></p>
+                            </div>
+                            <div class="container services">
+                                <p class="heading-gen"><span class="karla-heavy fw-bold">Services Offered:</span></p>
+                                <% for(let i=0; i < business.services.length; i++){ %>
+                                    <span class="karla-heavy p-1 mx-1 serviceIndv"><%=business.services[i]%></span>
+                                <% } %>
+                            </div>
+                            <div class="container my-4">
+                                <p class="heading-gen"><span class="karla-heavy fw-bold">Description:</span></p>
+                                <p>
+                                    <% if(business.description != '' && business.description != null){ %>
+                                        <%=business.description%>
+                                    <% } else { %>
+                                        This business chose to stay mysterious.
+                                    <% } %>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3 mt-5">
+                        <div class="container text-center my-2">
+                            <p class="heading-gen" style="font-size:24px; text-align:start;"><span>Trainers:</span></p>
+                            <%- include('templates/defaultingPic', {picId: 'trainerPic', pic: trainer.trainerPic}) %>
+                            <p class="h3 yeseva-one my-1"><%=trainer.firstName%> <%=trainer.lastName%></p>
+                        </div>
+                        <div class="container">
+                            <p class="heading-gen"><span class="karla-heavy fw-bold">Certifications:</span></p><span><%=trainer.certifications%></span>
+                        </div>
+                        <div class="container my-4">
+                            <p class="heading-gen"><span class="karla-heavy fw-bold">Get to Know the Trainer:</span></p>
+                            <p>
+                                <% if(trainer.intro != '' && trainer.intro != null){ %>
+                                    <%=trainer.intro%>
+                                <% } else { %>
+                                    This trainer chose to stay mysterious.
+                                <% } %>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="resource-form">
+                <div class="tabR-two-htm">
+                    <div class="container">
+                        <% for(let i = 0; i < programs.length; i++) { %>
+                            <div class="card m-4 programCard smallShadow" style="background-color:#20133541; color:#201335; border-radius:1px; cursor:default;">
+                                <%- include('templates/clientViewProgram', {program: programs[i], view: 'allPrograms'}) %>
+                                <form class="d-flex justify-content-center my-2">
+                                    <%- include('templates/button', {action:currentUrl + '/register/' + programs[i]._id, xClasses:'', xAttributes:'', content:'Register'}) %>
+                                </form>
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 <%- include("templates/footerCopyright") %>

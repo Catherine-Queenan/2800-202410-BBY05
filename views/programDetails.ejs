@@ -1,68 +1,95 @@
 <%- include("templates/header") %>
-<%- include('templates/linkButton', {page:'/profile?tab=program', content: 'Back'})%>
-<p class="h3"><%=program.name%></p>
-<form class="container" id="newProgramForm" method="post">
-    <div class="form-group my-2">
-        <label for="programName">Program Name:</label>
-        <input class="programInfo" type="text" id="programName" value="<%=program.name%>" name="name" required disabled>
-    </div>
-    
-    <div class="form-group my-2">
 
-        <% if(program.pricing.priceType == 'Hourly Rate'){ %>
-            <div>
-                <label for="hourlyToggle">Hourly Rate</label>
-                <input type="radio" id="hourlyToggle" name="priceType" class="pricingChoice programInfo" value="Hourly Rate" checked disabled>
+<div class="profile-container my-4 mx-4">
+    <%- include('templates/linkButton', {page:'/profile?tab=program', content: 'Back'})%>
+    <h1 class="text-center my-4 yeseva-one"><%=program.name%></h1>
+    <div class="resource-wrap d-flex justify-content-center">
+		<div class="resource-html justify-content-center flex-fill" style="max-width:500px;">
+			<div class="resource-form">
+                <form id="newProgramForm" method="post">
+                    <div class="form-group">
+                        <label for="programName">Program Name</label>
+                        <input class="programInfo" type="text" id="programName" value="<%=program.name%>" name="name" required disabled>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="programService">Service Provided</label>
+                        <select class="form-select programInfo" name="service" required disabled>
+                            <option selected><%=program.service%></option>
+                            <% for(let i = 0; i < services.length; i++){ %>
+                                <% if(services[i] != program.service){ %>
+                                    <option value="<%=services[i]%>"><%=services[i]%></option>
+                                <% } %>
+                            <% } %>
+                        </select>
+                    </div>
+                    
+                    <div class="radio-buttons my-2">
+                        
+                        <% if(program.pricing.priceType == 'Hourly Rate'){ %>
+                            <div class="form-check" style="max-width:fit-content;">
+                                <input type="radio" id="hourlyToggle" name="priceType" class="pricingChoice programInfo form-check-input" value="Hourly Rate" checked disabled>
+                                <label class="form-check-label" for="hourlyToggle">Hourly Rate</label>
+                            </div>
+                            
+                            <div class="form-check" style="max-width:fit-content;">
+                                <input type="radio" id="setToggle" name="priceType" class="pricingChoice programInfo form-check-input" value="Set Price" disabled>
+                                <label class="form-check-label" for="setToggle">Set Price</label>
+                            </div>
+                        <% } else { %>
+                            <div class="form-check" style="max-width:fit-content;">
+                                <input type="radio" id="hourlyToggle" name="priceType" class="pricingChoice programInfo form-check-input" value="Hourly Rate" disabled>
+                                <label class="form-check-label" for="hourlyToggle">Hourly Rate</label>
+                            </div>
+                            
+                            <div class="form-check" style="max-width:fit-content;">
+                                <input type="radio" id="setToggle" name="priceType" class="pricingChoice programInfo form-check-input" value="Set Price" checked disabled>
+                                <label class="form-check-label" for="setToggle">Set Price</label>
+                            </div>
+                        <% } %>
+                        
+                    </div>
+
+                    <div class="form-group">
+                        <label id="priceLabel" for="price">Hourly Rate (in Dollars)</label>
+                        <input class="programInfo" type="number" id="price" name="price" value="<%=program.pricing.price%>" min="0" step="0.01" required disabled/>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="sessions">Sessions</label>
+                        <input class="programInfo" type="number" id="sessions" name="sessions" value="<%=program.sessions%>" min="0" step="1" required disabled/>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="programDiscounts">Discounts</label>
+                        <textarea class="form-control auto-resize programInfo" style="width:80%" id="programDiscounts" name="discounts" rows="2" disabled><%=program.discount%></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="hours">Total Hours</label>
+                        <input class="programInfo" type="number" id="hours" name="hours" value="<%=program.hours%>" min="0" step="0.01" required disabled/>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="programDescription">Program Description</label>
+                        <textarea class="form-control auto-resize programInfo" style="width:80%" id="programDescription" name="description" rows="3" required disabled><%=program.description%></textarea>
+                    </div>
+
+                    <div class="my-3 d-flex justify-content-between">
+                        <%- include('templates/button', {action:'',xClasses:'editButton col-3',xAttributes:'id=programEditButton type=button',content:'Edit'}) %>
+                        <%- include('templates/button', {action:'',xClasses:'cancelButton btn-danger col-3 me-4',xAttributes:'id=cancelEdit type=button style=display:none',content:'Cancel'}) %>
+                        <%- include('templates/button', {action: '/program/' + program._id + '/edit',xClasses:'saveButton col-3',xAttributes:'id=programSaveButton style=display:none',content:'Save'}) %>
+                    </div>
+                </form>
             </div>
-            
-            <div>
-                <label for="setToggle">Set Price</label>
-                <input type="radio" id="setToggle" name="priceType" class="pricingChoice programInfo" value="Set Price" disabled>
-            </div>
-        <% } else { %>
-            <div>
-                <label for="hourlyToggle">Hourly Rate</label>
-                <input type="radio" id="hourlyToggle" name="priceType" class="pricingChoice programInfo" value="Hourly Rate" disabled>
-            </div>
-            
-            <div>
-                <label for="setToggle">Set Price</label>
-                <input type="radio" id="setToggle" name="priceType" class="pricingChoice programInfo" value="Set Price" checked disabled>
-            </div>
-        <% } %>
-        
+        </div>
     </div>
-
-    <div class="form-group my-2">
-        <label id="priceLabel" for="price">Hourly Rate:</label>
-        <input class="programInfo" type="number" id="price" name="price" value="<%=program.pricing.price%>" min="0" step="0.01" required disabled/>
+    <div class="my-3 d-flex justify-content-center">
+        <form id="deleteForm" action="/program/<%=program._id%>/delete" method="post">
+            <%- include('templates/button', {action:'',xClasses:'deleteButton',xAttributes:'id=programDeleteButton type=button',content:'Delete'}) %>
+        </form>
     </div>
-
-    <div class="form-group my-2">
-        <label for="programDiscounts">Discounts:</label>
-        <textarea class="form-control programInfo" style="width:80%" id="programDiscounts" name="discounts" rows="2" disabled><%=program.discount%></textarea>
-    </div>
-
-    <div class="form-group my-2">
-        <label for="hours">Total Hours:</label>
-        <input class="programInfo" type="number" id="hours" name="hours" value="<%=program.hours%>" min="0" step="0.01" required disabled/>
-    </div>
-
-    <div class="form-group my-2">
-        <label for="programDescription">Program Description:</label>
-        <textarea class="form-control programInfo" style="width:80%" id="programDescription" name="description" rows="3" required disabled><%=program.description%></textarea>
-    </div>
-
-    <div class="row">
-        <%- include('templates/button', {action:'',xClasses:'editButton col-2',xAttributes:'id=programEditButton type=button',content:'Edit'}) %>
-        <%- include('templates/button', {action:'',xClasses:'cancelButton col-2',xAttributes:'id=cancelEdit type=button style=display:none',content:'Cancel'}) %>
-        <%- include('templates/button', {action: '/program/' + program._id + '/edit',xClasses:'saveButton col-2',xAttributes:'id=programSaveButton style=display:none',content:'Save'}) %>
-    </div>
-</form>
-
-<form id="deleteForm" action="/program/<%=program._id%>/delete" method="post">
-    <%- include('templates/button', {action:'',xClasses:'deleteButton',xAttributes:'id=programDeleteButton type=button',content:'Delete'}) %>
-</form>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.all.min.js"></script>
 <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.min.css" rel="stylesheet">
@@ -119,7 +146,7 @@
 	pricingToggles.forEach((toggle) => {
 		toggle.addEventListener('change', () => {
 			if(toggle.checked){
-				priceLabel.innerHTML = toggle.value + ":";
+				priceLabel.innerHTML = toggle.value + ' (in Dollars)';
 			}
 		});
 	});

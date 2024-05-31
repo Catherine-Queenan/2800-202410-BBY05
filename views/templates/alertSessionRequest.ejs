@@ -1,0 +1,9 @@
+<div class="sessionRequest card m-2 p-2 smallShadow alertCard"> <!--sessionRequest MUST BE THE FIRST CLASS-->
+    <a href="<%=currentUrl%>/session/<%=reqSession._id%>" ><h5 class="card-title h4 fw-bold">Session Request</span> from <%=reqSession.client%></h5>
+        <p class="karla-heavy">They are interested in booking the following session:</p>
+        <p class="karla-heavy">Title: <span class="fw-bold"><%=reqSession.title%></span></p>
+        <p class="karla-heavy">Start: <span class="fw-bold"><%=reqSession.start%></span></p>
+        <p class="karla-heavy">End: <span class="fw-bold"><%=reqSession.end%></span></p>
+        <p class="karla-heavy">Info: <span class="fw-bold"><%=reqSession.info%></span></p>
+    </a>
+</div>

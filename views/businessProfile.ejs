@@ -1,15 +1,15 @@
 <%- include("templates/header") %>
-	<div class="profile-container my-4"> <!--Added container div to center content on page-->
+	<div class="profile-container my-4 mx-4"> <!--Added container div to center content on page-->
 		<h1 class="text-center mb-4 yeseva-one"><%=business.companyName%></h1>  <!--Page title-->
         <div class="resource-wrap d-flex justify-content-center">
             <div class="resource-html justify-content-center">
-                <input id="tabR-1" type="radio" name="tab" class="tabR-one btn-check" <%=businessTab%>>
+                <input id="tabR-1" type="radio" name="tab" class="tabR-one btn-check cancelButton cancelNewProgram" value="trainer" <%=businessTab%>>
                 <label for="tabR-1" class="tabR">Business Details</label>
 
-                <input id="tabR-2" type="radio" name="tab" class="tabR-two btn-check" <%=trainerTab%>>
+                <input id="tabR-2" type="radio" name="tab" class="tabR-two btn-check cancelButton cancelNewProgram" value="business" <%=trainerTab%>>
                 <label for="tabR-2" class="tabR">Trainer Profile</label>
 
-                <input id="tabR-3" type="radio" name="tab" class="tabR-three btn-check" <%=programsTab%>>
+                <input id="tabR-3" type="radio" name="tab" class="tabR-three btn-check cancelButton" value="business trainer" <%=programsTab%>>
                 <label for="tabR-3" class="tabR">Programs</label>
 
                 <div class="resource-form">
@@ -18,14 +18,14 @@
 							<div class="d-flex justify-content-center">
 								<%- include('templates/defaultingPic', {pic: business.logo, picId: 'logoShow'})%>
 							</div>
-							<%- include('templates/uploadFile', {divId:'businessUpload', xDivAttributes:'style=display:none', fileId:'logo',fileName:'accountUpload', label:'Upload your Logo:', xfileAttributes:'accept=.png,.jpg, .jpeg'}) %>
+							<%- include('templates/uploadFile', {divId:'businessUpload', xDivAttributes:'style=display:none', fileId:'logo',fileName:'accountUpload', label:'Upload your Logo', xfileAttributes:'class=picUpload accept=.png,.jpg, .jpeg'}) %>
 								<div class="form-group">
-									<label for="companyEmail">Company Email:</label>
+									<label for="companyEmail">Company Email</label>
 									<input class="businessInfo" type="email" id="companyEmail" name="email" value="<%=business.email%>" required disabled>
 								</div>
 						
 								<div class="form-group">
-									<label for="companyPhone">Company Phone Number:</label>
+									<label for="companyPhone">Company Phone Number</label>
 									<input class="businessInfo" type="tel" id="companyPhone" name="phone" value="<%=business.phone%>" required disabled>
 								</div>
 								
@@ -45,15 +45,22 @@
 								</div>
 						
 								<div class="form-group">
-									<label for="companySite">Company Website:</label>
+									<label for="companySite">Company Website</label>
 									<input class="businessInfo" type="text" id="companySite" name="companyWebsite" value="<%=business.companyWebsite%>" required disabled>
 								</div>
 									
 								<div class="form-group">
-									<label for="businessDescrtiption">Business Description:</label>
-									<textarea class="form-control auto-resize businessInfo" id="businessDescrtiption" name="description" rows="4" disabled><%=business.description%></textarea>
+									<label for="businessDescrtiption">Business Description</label>
+									<textarea class="form-control auto-resize textArea businessInfo" id="businessDescrtiption" name="description" rows="4" disabled><%=business.description%></textarea>
 								</div>
-						
+
+								<%- include('templates/uploadFile', {divId:'termsAndConditionsUpload', xDivAttributes:'style=display:none', fileId:'termsAndConditions',fileName:'accountUpload', label:'Upload your Terms and Conditions (pdf only)', xfileAttributes:'accept=.pdf'}) %>
+								<p id="contractMessage" style="display:none">
+								<% if(business.contract != '' && business.contract != null) { %>
+									You have already uploaded a contract. Reuploading will replace it
+								<% } else {%>
+									You have not upload any contract yet
+								<% } %></p>
 								<div class="my-3 d-flex justify-content-between">
 								
 								<%- include('templates/button', {action:'',xClasses:'editButton col-3',xAttributes:'id=businessEditButton type=button value=business',content:'Edit'}) %>
@@ -70,26 +77,26 @@
 							<div class="d-flex justify-content-center">
 								<%- include('templates/defaultingPic', {pic: trainer.trainerPic, picId: 'trainerPicShow'})%>
 							</div>
-							<%- include('templates/uploadFile', {divId:'trainerUpload', xDivAttributes:'style=display:none', fileId:'trainerPic',fileName:'accountUpload', label:'Upload your Photo:', xfileAttributes:'accept=.png,.jpg, .jpeg'}) %>
+							<%- include('templates/uploadFile', {divId:'trainerUpload', xDivAttributes:'style=display:none', fileId:'trainerPic',fileName:'accountUpload', label:'Upload your Photo', xfileAttributes:'class=picUpload accept=.png,.jpg, .jpeg'}) %>
 							
 							<div class="form-group">
-								<label for="trainerFirstName">First Name:</label>
+								<label for="trainerFirstName">First Name</label>
 								<input class="trainerInfo" type="text" id="trainerFirstName" name="firstName" value="<%=trainer.firstName%>" required disabled>
 							</div>
 					
 							<div class="form-group">
-								<label for="trainerLastName">Last Name:</label>
+								<label for="trainerLastName">Last Name</label>
 								<input class="trainerInfo" type="text" id="trainerLastName" name="lastName" value="<%=trainer.lastName%>" required disabled>
 							</div>
 
 							<div class="form-group">
-								<label for="trainerCert">Certifications:</label>
-								<textarea class="form-control trainerInfo" id="trainerCert" name="certifications" rows="2" disabled><%=trainer.certifications%></textarea>
+								<label for="trainerCert">Certifications</label>
+								<textarea class="form-control auto-resize trainerInfo" id="trainerCert" name="certifications" rows="2" disabled><%=trainer.certifications%></textarea>
 							</div>
 					
 							<div class="form-group">
-								<label for="trainerIntro">Trainer Introduction:</label>
-								<textarea class="form-control trainerInfo" id="trainerIntro" name="intro" rows="3" disabled><%=trainer.intro%></textarea>
+								<label for="trainerIntro">Trainer Introduction</label>
+								<textarea class="form-control auto-resize trainerInfo" id="trainerIntro" name="intro" rows="3" disabled><%=trainer.intro%></textarea>
 							</div>
 					
 							<div class="my-3 d-flex justify-content-between">
@@ -111,7 +118,7 @@
 							<p class="text-center">You haven't created any programs</p>
 						<% } %>
 
-						<%- include('templates/button', {action:'',xClasses:'',xAttributes:'type=button id=addProgramButton',content:'Add Program'}) %>
+						<%- include('templates/button', {action:'',xClasses:'m-1',xAttributes:'type=button id=addProgramButton',content:'Add Program'}) %>
 						<!--
 							Discounts
 							Hourly rate
@@ -121,14 +128,24 @@
 						-->
 						<br>
 						<div class="p-2" id="newProgramForm" style="display:none">
-						<form class="container"  method="post">
-							<div class="form-group my-3">
-								<label for="programName">Program Name:</label>
+						<form class="container my-3 tabR-three-htm"  method="post">
+							<div class="form-group">
+								<label for="programName">Program Name*</label>
 								<input class="newProgramInfo" type="text" id="programName" name="name" required>
+							</div>
+
+							<div class="form-group">
+								<label for="programService">Service Provided*</label>
+								<select class="form-select" name="service" required>
+									<option></option>
+									<% for(let i = 0; i < business.services.length; i++){ %>
+										<option value="<%=business.services[i]%>"><%=business.services[i]%></option>
+									<% } %>
+								</select>
 							</div>
 							
 							<div style="font-size: 18px; font-weight:700;">
-								<div class="radio-buttons">
+								<div class="radio-buttons m-3">
 									<div class="form-check" style="max-width:fit-content;">
 										<input type="radio" id="hourlyToggle" name="priceType" class="pricingChoice form-check-input" value="Hourly Rate" checked>
 										<label class="form-check-label" for="hourlyToggle">Hourly Rate</label>
@@ -142,27 +159,33 @@
 							</div>
 
 							<div class="form-group">
-								<label id="priceLabel" for="price">Hourly Rate:</label>
+								<label id="priceLabel"
+								 for="price">Hourly Rate (in Dollars)*</label>
 								<input class="newProgramInfo" type="number" id="price" name="price" min="0" step="0.01" required/>
 							</div>
 
 							<div class="form-group">
-								<label for="programDiscounts">Discounts:</label>
+								<label for="programDiscounts">Discounts</label>
 								<textarea class="form-control auto-resize newProgramInfo" id="programDiscounts" name="discounts" rows="2"></textarea>
 							</div>
 
 							<div class="form-group">
-								<label for="hours">Total Hours:</label>
-								<input class="newProgramInfo" type="number" id="hours" name="hours" min="0" step="0.01" required/>
+								<label for="hours">Total Hours*</label>
+								<input class="newProgramInfo" type="number" id="hours" name="hours" min="0.1" step="0.01" required/>
 							</div>
 
 							<div class="form-group">
-								<label for="programDescription">Program Description:</label>
+								<label for="sessions">Total Sessions*</label>
+								<input class="newProgramInfo" type="number" id="sessions" name="sessions" min="1" step="1" required/>
+							</div>
+
+							<div class="form-group">
+								<label for="programDescription">Program Description*</label>
 								<textarea class="form-control auto-resize newProgramInfo" id="programDescription" name="description" rows="3" required></textarea>
 							</div>
 
 							<div class="my-3 d-flex justify-content-between">
-								<%- include('templates/button', {action:'',xClasses:'btn-danger col-3 me-4',xAttributes:'id=cancelNewProgram type=button',content:'Cancel'}) %>
+								<%- include('templates/button', {action:'',xClasses:'btn-danger col-3 me-4 cancelNewProgram',xAttributes:'id=cancelNewProgram type=button',content:'Cancel'}) %>
 								<%- include('templates/button', {action:'/profile/edit/addProgram',xClasses:'col-3',xAttributes:'id=submitNewProgram',content:'Add'}) %>
 							</div>
 						</form>
@@ -179,7 +202,7 @@
 
 <script>
 	//Find the profile image upload element
-	let picUploads = document.querySelectorAll('[name=accountUpload]');
+	let picUploads = document.querySelectorAll('.picUpload');
 
 	//Change the image upload if a file was inputted
 	picUploads.forEach((upload) => {
@@ -199,7 +222,8 @@
 	let editButtons = document.querySelectorAll('.editButton');
 	let cancelButtons = document.querySelectorAll('.cancelButton');
 	let addProgramButton = document.getElementById('addProgramButton');
-	let cancelAddProgramButton = document.getElementById('cancelNewProgram');
+	let cancelAddProgramButtons = document.querySelectorAll('.cancelNewProgram');
+
 
 	//Form for adding a new program on the programs page
 	let programForm = document.getElementById('newProgramForm');
@@ -207,7 +231,7 @@
 	//Toggle for pricing type and price label
 	let priceLabel = document.getElementById('priceLabel');
 	let pricingToggles = document.querySelectorAll('.pricingChoice');
-
+	
 	//Delete each listed service
 	serviceButtons.forEach((button) => {
 		button.addEventListener('click', () => {
@@ -215,10 +239,19 @@
 		});
 	});
 
+	//Keep track of which tabs are being editted
+	//Allows cancels on tabs switches without losing original values
+	let areTabsEditable = {
+		business: false,
+		trainer: false,
+		program: false,
+	}
+
 	//Edit event
+	let originalValues = {};
 	editButtons.forEach((button) => {
 		button.addEventListener('click', () => {
-
+			areTabsEditable[button.value] = true;
 			//Hide the edit button
 			button.style = 'display: none';
 
@@ -226,6 +259,12 @@
 			let fields = document.querySelectorAll('.' + button.value + 'Info');
 			fields.forEach((field) => {
 				field.disabled = false;
+				if(field.classList.contains('textArea')){
+					originalValues[field.name] = field.innerHTML;
+				} else {
+					originalValues[field.name] = field.value;
+				}
+				
 			});
 
 			//Show the logo or profile pic upload
@@ -239,13 +278,17 @@
 			saveButton.style = 'display: block';
 			cancelButton.style = 'display:block';
 
-			console.log(button.parentElement);
-
 			if(button.value == 'business'){
 				//Show the delete service buttons
 				serviceButtons.forEach((button) => {
 					button.style = 'display: inline';
 				});
+
+				//Display Terms and Conditions upload
+				let termsAndConditionsDiv = document.getElementById('termsAndConditionsUpload');
+				termsAndConditionsDiv.style='display:block';
+				let contractMessage = document.getElementById('contractMessage');
+				contractMessage.style='display:block';
 			
 				//Display the add service button
 				let addServiceButton = document.getElementById('addService');
@@ -265,7 +308,6 @@
 					let serviceInput = document.getElementById('toAddService');
 
 					serviceInput.addEventListener('input', function(){
-						console.log('aaaaaaaaaaaa');
 						if(this.value == ''){
 							saveServiceButton.disabled = true;
 						} else {
@@ -316,65 +358,155 @@
 
 	cancelButtons.forEach((button) => {
 		button.addEventListener('click', () => {
-			button.style = "display:none";
+			let editType = button.value;
+			if(editType.includes(' ')){
+				editType = editType.split(' ');
+				for(let i = 0; i < editType.length; i++){
+					if(areTabsEditable[editType[i]]){
+						areTabsEditable[editType[i]] = false;
 
-			//Show edit button, hide save button
-			let saveButton = document.getElementById(button.value + 'SaveButton');
-			let editButton = document.getElementById(button.value + 'EditButton');
-			editButton.style = 'display:block';
-			saveButton.style = 'display:none';
+						//Show edit button, hide save button
+						let saveButton = document.getElementById(editType[i] + 'SaveButton');
+						let editButton = document.getElementById(editType[i] + 'EditButton');
+						let cancelButton = document.getElementById(editType[i] + 'CancelButton');
+						editButton.style = 'display:block';
+						saveButton.style = 'display:none';
+						cancelButton.style = 'display:none';
 
-			//Hide the logo or profile pic upload
-			let upload = document.getElementById(button.value + 'Upload');
-			upload.style = 'display: none';
+						//Hide the logo or profile pic upload
+						let upload = document.getElementById(editType[i] + 'Upload');
+						upload.style = 'display: none';
 
 
-			//Select and enable all input fields
-			let fields = document.querySelectorAll('.' + button.value + 'Info');
-			fields.forEach((field) => {
-				field.disabled = true;
-			});
+						//Select and enable all input fields
+						let fields = document.querySelectorAll('.' + editType[i] + 'Info');
+						fields.forEach((field) => {
+							field.disabled = true;
+							console.log('aaaaaaaaaaa')
+							if(field.classList.contains('textArea')){
+								field.innerHTML = originalValues[field.name];
+							} else {
+								field.value = originalValues[field.name];
+							}
+							
+						});
+						originalValues = {};
 
-			if(button.value == 'business'){
-				//Hide the delete service buttons
-				serviceButtons.forEach((button) => {
-					button.style = 'display: none';
+						if(editType[i] == 'business'){
+							//Hide the delete service buttons
+							serviceButtons.forEach((button) => {
+								button.style = 'display: none';
+							});
+
+							let serviceInput = document.getElementById('toAddService');
+							serviceInput.value = '';
+							//Hide the add service button
+							let addServiceButton = document.getElementById('addService');
+							addServiceButton.style = 'display: none';
+
+							let serviceInputDiv = document.getElementById('addServiceInputDiv');
+							serviceInputDiv.style = 'display:none';
+
+
+							//Display Terms and Conditions upload
+							let termsAndConditionsDiv = document.getElementById('termsAndConditionsUpload');
+							termsAndConditionsDiv.style='display:none';
+							let contractMessage = document.getElementById('contractMessage');
+							contractMessage.style='display:none';
+
+							//Delete added services
+							let addedServices = document.querySelectorAll('.addedService');
+							addedServices.forEach((service) => {
+								service.remove();
+							});
+							
+						}
+					}
+				}
+			} else if(areTabsEditable[editType]) {
+				areTabsEditable[editType] = false;
+
+				//Show edit button, hide save button
+				let saveButton = document.getElementById(editType + 'SaveButton');
+				let editButton = document.getElementById(editType + 'EditButton');
+				let cancelButton = document.getElementById(editType + 'CancelButton');
+				editButton.style = 'display:block';
+				saveButton.style = 'display:none';
+				cancelButton.style = 'display:none';
+
+				//Hide the logo or profile pic upload
+				let upload = document.getElementById(editType + 'Upload');
+				upload.style = 'display: none';
+
+
+				//Select and enable all input fields
+				let fields = document.querySelectorAll('.' + editType + 'Info');
+				fields.forEach((field) => {
+					if(field.classList.contains('textArea')){
+						field.value = originalValues[field.name];
+					} else {
+						field.value = originalValues[field.name];
+					}
+
+					field.disabled = true;
 				});
 
-				let serviceInput = document.getElementById('toAddService');
-				serviceInput.value = '';
-				//Hide the add service button
-				let addServiceButton = document.getElementById('addService');
-				addServiceButton.style = 'display: none';
+				if(editType == 'business'){
+					//Hide the delete service buttons
+					serviceButtons.forEach((button) => {
+						button.style = 'display: none';
+					});
 
-				let serviceInputDiv = document.getElementById('addServiceInputDiv');
-				serviceInputDiv.style = 'display:none';
+					let serviceInput = document.getElementById('toAddService');
+					serviceInput.value = '';
+					//Hide the add service button
+					let addServiceButton = document.getElementById('addService');
+					addServiceButton.style = 'display: none';
 
-				//Delete added services
-				let addedServices = document.querySelectorAll('.addedService');
-				addedServices.forEach((service) => {
-					service.remove();
-				});
+					let serviceInputDiv = document.getElementById('addServiceInputDiv');
+					serviceInputDiv.style = 'display:none';
 
+					//Display Terms and Conditions upload
+					let termsAndConditionsDiv = document.getElementById('termsAndConditionsUpload');
+					termsAndConditionsDiv.style='display:none';
+					let contractMessage = document.getElementById('contractMessage');
+					contractMessage.style='display:none';
+
+					//Delete added services
+					let addedServices = document.querySelectorAll('.addedService');
+					addedServices.forEach((service) => {
+						service.remove();
+					});
+
+				}
 			}
+
+			
 
     	});  
 	});
 	
 
 	//Add program event shows the new program form and hides the add program button
+	let isProgramFormOpen = false;
 	addProgramButton.addEventListener('click', () => {
 		programForm.style = 'display:block';
 		addProgramButton.style = 'display:none';
+		areTabsEditable['program'] = true;
 	});
 
-	cancelAddProgramButton.addEventListener('click', () => {
-		programForm.style = 'display:none';
-		addProgramButton.style = 'display:block';
+	cancelAddProgramButtons.forEach((button) => {
+		button.addEventListener('click', () => {
+			if(areTabsEditable['program']){
+				areTabsEditable['program'] = false;
+				programForm.style = 'display:none';
+				addProgramButton.style = 'display:block';
 
-		let inputs = document.querySelectorAll('.newProgramInfo');
-		inputs.forEach((input) => {
-			input.value = '';
+				let inputs = document.querySelectorAll('.newProgramInfo');
+				inputs.forEach((input) => {
+					input.value = '';
+				});
+			}
 		});
 	});
 	
@@ -382,7 +514,7 @@
 	pricingToggles.forEach((toggle) => {
 		toggle.addEventListener('change', () => {
 			if(toggle.checked){
-				priceLabel.innerHTML = toggle.value + ":";
+				priceLabel.innerHTML = toggle.value + "(in Dollars)*";
 			}
 		});
 	});

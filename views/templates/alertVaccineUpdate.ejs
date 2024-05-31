@@ -1,0 +1,13 @@
+<div class="vaccineAlert card m-4 p-2 smallShadow alertCard purpleBackground white">
+    <a href="/dog/<%=alert.dogId%>" ><h5 class="card-title h4 text-center">Vaccine Alert</br> <%=alert.dog%>'s <%=alert.vaccine.toUpperCase()%> Vaccine is 
+    <span class="karla-heavy">
+    <%if(alert.type != "Expired") {%>
+        EXPIRES SOON!
+    <% } else {%>
+        EXPIRED!
+    <% } %></span>
+    </h5></a>
+    <form method="post" class="d-flex justify-content-center">
+        <%- include('button', {action:'/alerts/delete/' + alert._id,xClasses:'p-1',xAttributes:'style=min-width:20px !important;',content:'Delete'}) %>
+    </form>
+</div>

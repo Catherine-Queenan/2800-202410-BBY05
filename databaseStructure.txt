@@ -1,0 +1,145 @@
+appDB: {
+	users: {
+		_id: ObjectId()
+		email:
+		companyName:
+		firstName:
+		lastName:
+		phone: 10 digits
+		password: hashed
+		userType: client or business
+		unreadAlerts: integer
+	}
+}
+
+client-email: {
+	info: {
+		_id: ObjectId()
+		email:
+		firstName:
+		lastName:
+		phone: 10 digits
+		address:
+	}
+	messages: {
+		_id: ObjectId()
+		receiver: business companyName
+		createdAt: Date()
+		unread: boolean
+		text: hashed
+		iv: hashed
+		key: hashed
+	}
+	notifications: {
+		_id:ObjectId()
+		dog: 
+		vaccine: 
+		type: 
+		date: Date()
+		notifType: 
+		dogId: ObjectId()
+	}
+	outstandingBalance: {
+		_id:
+		dogName: 
+		programName: 
+		credits: integer
+		outstandingBalance: 0.00
+	}
+	registrations: {
+		_id: ObjectId()
+		trainer: business companyName
+		program:
+		dog: objectId
+		price: 0.00
+	}
+}
+
+business-email: {
+	alerts: {
+		_id: ObjectId()
+		alertType: 
+		dog: ObjectId()
+		dogName: 
+		program: 
+		programName: 
+		clientEmail: 
+		clientName: 
+	}
+	clients: {
+		_id: ObjectId()
+		email:
+		firstName:
+		lastName:
+		phone: 10 digits
+	}
+	eventSource: {
+		_id: ObjectId()
+		title:
+		start: Date() MUST BE IN THIS FORMAT YYYY-MM-DDTHH:MM:SS
+		end: Date() MUST BE IN THIS FORMAT YYYY-MM-DDTHH:MM:SS
+		client: email
+		info:
+		notes:
+	}
+	info: {
+		_id: ObjectId()
+		companyName:
+		email:
+		phone: 10 digits
+		services: Array()
+		companyWebsite:
+		contract: pdf link
+		description:
+		logo: img link
+	}
+	messages: {
+		_id: ObjectId()
+		receiver: client email
+		createdAt: Date()
+		unread: boolean
+		text: hashed
+		iv: hashed
+		key: hashed
+	}
+	programs: {
+		_id: ObjectId()
+		name: 
+		pricing: {
+			priceType:
+			price: 0.00
+		}
+		discount: 
+		hours: decimal
+		sessions: integer
+		description:
+		service:
+	}
+	sessionRequests: {
+		_id: ObjectId()
+		alertType: sessionRequest
+		title: 
+		start: Date() MUST BE IN THIS FORMAT YYYY-MM-DDTHH:MM:SS
+		end: Date() MUST BE IN THIS FORMAT YYYY-MM-DDTHH:MM:SS
+		trainer: business companyName
+		client: client email
+		info:
+	}
+	trainer: {
+		_id: ObjectId()
+		companyName: 
+		firstName: 
+		lastName: 
+		certifications: 
+		intro: 
+		trainerPic: img link
+	}
+}
+
+sessions: {
+	sessions: {
+		_id:
+		expires: 1hr or 1 week
+		session:
+	}
+}
