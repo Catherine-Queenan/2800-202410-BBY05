@@ -79,7 +79,7 @@
 	color: #201335;
 }
 
-@media (min-width: 100px) and (max-width: 380px) {
+@media (min-width: 100px) {
 
 	.fc-toolbar-chunk{
 		font-size: 8px;
@@ -94,8 +94,23 @@
 	}
 
 }
+
+@media (min-width: 380px) {
+
+	.fc-toolbar-chunk{
+		font-size: 10px;
+	}
+	
+	.fc-toolbar-chunk .fc-toolbar-title {
+		font-size: 10px;
+	}
+
+	.fc table {
+		font-size: 0.7em;
+	}
+}
   
-@media (min-width: 381px) and (max-width: 769px) {
+@media (min-width: 440px) {
 
 	.fc-toolbar-chunk{
 		font-size: 12px;
