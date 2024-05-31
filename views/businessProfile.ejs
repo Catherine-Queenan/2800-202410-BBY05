@@ -19,14 +19,14 @@
 							<div class="d-flex justify-content-center">
 								<%- include('templates/defaultingPic', {pic: business.logo, picId: 'logoShow'})%>
 							</div>
-							<%- include('templates/uploadFile', {divId:'businessUpload', xDivAttributes:'style=display:none', fileId:'logo',fileName:'accountUpload', label:'Upload your Logo:', xfileAttributes:'class=picUpload accept=.png,.jpg, .jpeg'}) %>
+							<%- include('templates/uploadFile', {divId:'businessUpload', xDivAttributes:'style=display:none', fileId:'logo',fileName:'accountUpload', label:'Upload your Logo', xfileAttributes:'class=picUpload accept=.png,.jpg, .jpeg'}) %>
 								<div class="form-group">
-									<label for="companyEmail">Company Email:</label>
+									<label for="companyEmail">Company Email</label>
 									<input class="businessInfo" type="email" id="companyEmail" name="email" value="<%=business.email%>" required disabled>
 								</div>
 						
 								<div class="form-group">
-									<label for="companyPhone">Company Phone Number:</label>
+									<label for="companyPhone">Company Phone Number</label>
 									<input class="businessInfo" type="tel" id="companyPhone" name="phone" value="<%=business.phone%>" required disabled>
 								</div>
 								
@@ -46,12 +46,12 @@
 								</div>
 						
 								<div class="form-group">
-									<label for="companySite">Company Website:</label>
+									<label for="companySite">Company Website</label>
 									<input class="businessInfo" type="text" id="companySite" name="companyWebsite" value="<%=business.companyWebsite%>" required disabled>
 								</div>
 									
 								<div class="form-group">
-									<label for="businessDescrtiption">Business Description:</label>
+									<label for="businessDescrtiption">Business Description</label>
 									<textarea class="form-control auto-resize textArea businessInfo" id="businessDescrtiption" name="description" rows="4" disabled><%=business.description%></textarea>
 								</div>
 
@@ -78,25 +78,25 @@
 							<div class="d-flex justify-content-center">
 								<%- include('templates/defaultingPic', {pic: trainer.trainerPic, picId: 'trainerPicShow'})%>
 							</div>
-							<%- include('templates/uploadFile', {divId:'trainerUpload', xDivAttributes:'style=display:none', fileId:'trainerPic',fileName:'accountUpload', label:'Upload your Photo:', xfileAttributes:'class=picUpload accept=.png,.jpg, .jpeg'}) %>
+							<%- include('templates/uploadFile', {divId:'trainerUpload', xDivAttributes:'style=display:none', fileId:'trainerPic',fileName:'accountUpload', label:'Upload your Photo', xfileAttributes:'class=picUpload accept=.png,.jpg, .jpeg'}) %>
 							
 							<div class="form-group">
-								<label for="trainerFirstName">First Name:</label>
+								<label for="trainerFirstName">First Name</label>
 								<input class="trainerInfo" type="text" id="trainerFirstName" name="firstName" value="<%=trainer.firstName%>" required disabled>
 							</div>
 					
 							<div class="form-group">
-								<label for="trainerLastName">Last Name:</label>
+								<label for="trainerLastName">Last Name</label>
 								<input class="trainerInfo" type="text" id="trainerLastName" name="lastName" value="<%=trainer.lastName%>" required disabled>
 							</div>
 
 							<div class="form-group">
-								<label for="trainerCert">Certifications:</label>
+								<label for="trainerCert">Certifications</label>
 								<textarea class="form-control auto-resize trainerInfo" id="trainerCert" name="certifications" rows="2" disabled><%=trainer.certifications%></textarea>
 							</div>
 					
 							<div class="form-group">
-								<label for="trainerIntro">Trainer Introduction:</label>
+								<label for="trainerIntro">Trainer Introduction</label>
 								<textarea class="form-control auto-resize trainerInfo" id="trainerIntro" name="intro" rows="3" disabled><%=trainer.intro%></textarea>
 							</div>
 					
@@ -131,12 +131,12 @@
 						<div class="p-2" id="newProgramForm" style="display:none">
 						<form class="container my-3 tabR-three-htm"  method="post">
 							<div class="form-group">
-								<label for="programName">Program Name:</label>
+								<label for="programName">Program Name*</label>
 								<input class="newProgramInfo" type="text" id="programName" name="name" required>
 							</div>
 
 							<div class="form-group">
-								<label for="programService">Service Provided:</label>
+								<label for="programService">Service Provided*</label>
 								<select class="form-select" name="service" required>
 									<option></option>
 									<% for(let i = 0; i < business.services.length; i++){ %>
@@ -161,27 +161,27 @@
 
 							<div class="form-group">
 								<label id="priceLabel"
-								 for="price">Hourly Rate:</label>
+								 for="price">Hourly Rate (in Dollars)*</label>
 								<input class="newProgramInfo" type="number" id="price" name="price" min="0" step="0.01" required/>
 							</div>
 
 							<div class="form-group">
-								<label for="programDiscounts">Discounts:</label>
+								<label for="programDiscounts">Discounts</label>
 								<textarea class="form-control auto-resize newProgramInfo" id="programDiscounts" name="discounts" rows="2"></textarea>
 							</div>
 
 							<div class="form-group">
-								<label for="hours">Total Hours:</label>
-								<input class="newProgramInfo" type="number" id="hours" name="hours" min="0" step="0.01" required/>
+								<label for="hours">Total Hours*</label>
+								<input class="newProgramInfo" type="number" id="hours" name="hours" min="0.1" step="0.01" required/>
 							</div>
 
 							<div class="form-group">
-								<label for="sessions">Total Sessions:</label>
-								<input class="newProgramInfo" type="number" id="sessions" name="sessions" min="0" step="1" required/>
+								<label for="sessions">Total Sessions*</label>
+								<input class="newProgramInfo" type="number" id="sessions" name="sessions" min="1" step="1" required/>
 							</div>
 
 							<div class="form-group">
-								<label for="programDescription">Program Description:</label>
+								<label for="programDescription">Program Description*</label>
 								<textarea class="form-control auto-resize newProgramInfo" id="programDescription" name="description" rows="3" required></textarea>
 							</div>
 
@@ -240,8 +240,10 @@
 		});
 	});
 
+	//Keep track of which tabs are being editted
+	//Allows cancels on tabs switches without losing original values
 	let areTabsEditable = {
-		business: true,
+		business: false,
 		trainer: false,
 		program: false,
 	}
@@ -513,7 +515,7 @@
 	pricingToggles.forEach((toggle) => {
 		toggle.addEventListener('change', () => {
 			if(toggle.checked){
-				priceLabel.innerHTML = toggle.value + ":";
+				priceLabel.innerHTML = toggle.value + "(in Dollars)*";
 			}
 		});
 	});

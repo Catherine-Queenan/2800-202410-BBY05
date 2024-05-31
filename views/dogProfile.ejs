@@ -15,14 +15,14 @@
 			<div class="resource-form">
 				<div class="tabR-one-htm">
 			<form class="my-3" id="basicInfo" method="post" enctype="multipart/form-data">
-				<%- include('templates/uploadFile', {divId:'newDogPic', xDivAttributes:'style=display:none', fileId:'dogUpload',fileName:'dogUpload', label:'Upload a New Photo:', xfileAttributes:'accept=.png,.jpg'}) %>
+				<%- include('templates/uploadFile', {divId:'newDogPic', xDivAttributes:'style=display:none', fileId:'dogUpload',fileName:'dogUpload', label:'Upload a New Photo:', xfileAttributes:'accept=.png,.jpg, .jpeg'}) %>
 					<div class="form-group">
-						<label for="dogName">Name:</label>
+						<label for="dogName">Name</label>
 						<input class="dogInput" type="text" id="dogName" name="dogName" value="<%=dog.dogName%>" required disabled>
 					</div>
 
 					<div class="form-group">
-						<label for="dogBreed">Breed:</label>
+						<label for="dogBreed">Breed</label>
 						<input class="dogInput" type="text" id="dogBreed" name="breed" value="<%=dog.breed%>" required disabled>
 					</div>
 					
@@ -61,13 +61,13 @@
 					<%- include('templates/dateInput', {divId: 'birthdayDateDiv', xDivAttributes:'', dateId: 'birthday',dateClass:'dogInput', dateName:'birthday', label:'Birthday', xDateAttributes:'value=' + dog.birthday + ' required disabled'}) %>
 						
 					<div class="form-group">
-						<label for="weight">Weight (lb):</label>
+						<label for="weight">Weight (lb)</label>
 						<input class="dogInput" type="number" id="weight" name="weight" min="0" value="<%=dog.weight%>" disabled>
 					</div>
 						
 					<div class="form-group">
 						<label for="specialAlerts">Special Alerts</label>
-						<textarea class="form-control auto-resize dogInput" id="specialAlerts" name="specialAlerts" rows="3" disabled><%=dog.specialAlerts%></textarea>
+						<textarea class="form-control auto-resize dogInput textArea" id="specialAlerts" name="specialAlerts" rows="3" disabled><%=dog.specialAlerts%></textarea>
 					</div>
 					<div class="my-3 d-flex justify-content-between">
 						<%- include('templates/button', {action:'',xClasses:'editButton col-3',xAttributes:'id=dogEditButton type=button value=dog',content:'Edit'}) %>
@@ -161,6 +161,13 @@
 				//Back Button
 				let backLinkButton = document.getElementById('backLinkButton');
 
+
+				//Keeps track of editting to store original values on tab switch edit cancels
+				let areTabsEditable = {
+					dog: false,
+					vaccine: false
+				};
+
 				deleteButton.addEventListener('click', () =>{
 					swalWithBootstrapButtons.fire({
 						title: "Are you sure?",
@@ -193,8 +200,10 @@
 				});
 
 				//Set up editting
+				let originalValues = {};
 				editButtons.forEach((button) => {
 					button.addEventListener('click', () => {
+						areTabsEditable[button.value] = true;
 						backLinkButton.innerHTML = 'Cancel';
 						//Hide the delete button and edit buttons
 						deleteButton.style = 'display:none';
@@ -209,6 +218,13 @@
 						let inputFields = document.querySelectorAll('.' + button.value + 'Input');
 						inputFields.forEach((input)=>{
 							input.disabled = false;
+							if(input.classList.contains('dogInput')){
+								if(input.classList.contains('textArea')){
+									originalValues[input.name] = input.innerHTML;
+								} else {
+									originalValues[input.name] = input.value;
+								}
+							}
 						});
 
 						if(button.value == 'dog'){
@@ -237,6 +253,8 @@
 
 								//Store the original value
 								let originalDate = date.value;
+								originalValues[date.name] = date.value;
+								console.log(originalValues);
 
 								//Identify the file upload corresponding with the date input
 								let fileUpload = date.name.substring(0, date.name.length-4);
@@ -266,7 +284,9 @@
 				
 				cancelButtons.forEach((button) => {
 					button.addEventListener('click', ()=>{
+					if(areTabsEditable[button.value]){
 						backLinkButton.innerHTML = 'Back';
+						areTabsEditable[button.value] = false;
 
 						//Hide the delete button and edit buttons
 						deleteButton.style = 'display:block';
@@ -282,13 +302,31 @@
 						let inputFields = document.querySelectorAll('.' + button.value + 'Input');
 						inputFields.forEach((input)=>{
 							input.disabled = true;
+							input.value = originalValues[input.name]
 						});
 
 						if(button.value == 'dog'){
 							//Show the new dog pic upload area
 							let picDiv = document.getElementById('newDogPic');
 							picDiv.style = 'display:none';
+						} else {
+							inputFields.forEach((date)=>{
+								//Enable editting
+								date.disabled = true;
+
+								//Store the original value
+								date.value = originalValues[date.name];
+
+								//Identify the file upload corresponding with the date input
+								let fileUpload = date.name.substring(0, date.name.length-4);
+								fileUpload = fileUpload + "Proof";
+								let fileUploadElement = document.getElementById(fileUpload);
+
+								fileUploadElement.required = false;
+								fileUploadElement.parentNode.style = 'display:none';
+							});
 						}
+					}
 					});
 				});
 

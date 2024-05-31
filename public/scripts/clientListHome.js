@@ -63,6 +63,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Wrap the client card in an anchor element
         let anchor = document.createElement('a');
+        anchor.classList.add('my-2')
         anchor.href = `/clientProfile/${person._id}`;
         anchor.appendChild(tempDiv.firstElementChild);
 

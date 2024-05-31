@@ -29,7 +29,8 @@
                     <%- include('templates/alertHireRequest', {alert: alerts[i]})%>
                 <% } %>
             <% } %>
-        <% } else if (reqSessions.length >= 1) {%>
+        <% } %>
+        <% if (reqSessions.length >= 1) {%>
             <% for (let i=0; i < reqSessions.length; i++) { %>
                 <% if(reqSessions[i].alertType == 'sessionRequest') { %>
                     <%- include('templates/alertSessionRequest', {reqSession: reqSessions[i]})%>
@@ -45,6 +46,8 @@
     let filterChecks = document.querySelectorAll('.alertFilter');
     let alerts = document.querySelectorAll('.alertCard');
 
+    //Change which cards are show based on what checks are clicked
+    //Uses OR logic
     filterChecks.forEach((check)=>{
         check.addEventListener('change', function(){
             if(this.checked){

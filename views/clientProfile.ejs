@@ -20,29 +20,29 @@
                             <div class="d-flex justify-content-center">
                                 <%- include('templates/defaultingPic', {pic: user.profilePic, picId:'profilePic'})%>
                             </div>
-                            <%- include('templates/uploadFile', {divId:'newProfilePic', xDivAttributes:'style=display:none', fileId:'profilePicInput',fileName:'accountUpload', label:'Upload a New Photo:', xfileAttributes:''}) %>    
+                            <%- include('templates/uploadFile', {divId:'newProfilePic', xDivAttributes:'style=display:none', fileId:'profilePicInput',fileName:'accountUpload', label:'Upload a New Photo', xfileAttributes:'accept=.png,.jpg, .jpeg'}) %>    
                         <div class="form-group">
-                            <label for="firstName">First Name:</label>
+                            <label for="firstName">First Name</label>
                             <input name="firstName" id="firstName" type="text" class="profileInfo" value="<%= user.firstName %>" disabled>
                         </div>
 
                         <div class="form-group">
-                            <label for="lastName">Last Name:</label>
+                            <label for="lastName">Last Name</label>
                             <input name="lastName" type="text" id="lastName" class="profileInfo" value="<%= user.lastName %>" disabled>
                         </div>
                         
                         <div class="form-group">
-                            <label for="address">Address:</label>
+                            <label for="address">Address</label>
                             <input name="address" type="text" id="address" class="profileInfo" value="<%= user.address %>" disabled>
                         </div>
 
                         <div class="form-group">
-                            <label for="email">Email:</label>
+                            <label for="email">Email</label>
                             <input name="email" type="email" id="email" value="<%= user.email %>" disabled>
                         </div>
 
                         <div class="form-group">
-                            <label for="phone">Phone:</label>
+                            <label for="phone">Phone</label>
                             <input name="phone" type="tel" id="phone" class="profileInfo" value="<%= user.phone %>" disabled>
                         </div>
 
@@ -64,7 +64,7 @@
             <div class="resource-form">
                 <div id="tab2" class="tabR-two-htm">
                     <div id="dogSection" class="mt-3">
-                        <h3 class="mb-3 karla-heavy fw-bold" style="font-size: 24px;"><%=userName%>'s Dogs:</h3>
+                        <h3 class="mb-3 karla-heavy fw-bold" style="font-size: 24px;"><%=userName%>'s Dogs</h3>
                         <% for(let i = 0; i < dogs.length; i++){ %>
                             <%- include('templates/dog', {dog: dogs[i]}) %>
                         <%} %>

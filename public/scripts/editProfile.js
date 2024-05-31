@@ -8,9 +8,17 @@ let cancelButton = document.getElementById('cancelEdit');
 let emailNotifications = document.getElementById('emailNotifications');
 
 let editButton = document.getElementById('editButton');
+
+let originalValues = {};
+let profileEditable = false;
+let originalEmailNotificationsStat = emailNotifications.checked;
 editButton.addEventListener('click', () => {
+    profileEditable = true;
     inputs.forEach((input) => {
         input.disabled = false;
+
+        //Store original values of inputs
+        originalValues[input.name] = input.value;
     });
 
     picInput.style = 'display:block';
@@ -25,19 +33,24 @@ editButton.addEventListener('click', () => {
 
 cancelButtons.forEach((button) => {
     button.addEventListener('click', () => {
-        cancelButton.style = 'display:none';
+        if(profileEditable){
+            profileEditable = false;
+            cancelButton.style = 'display:none';
         
-        inputs.forEach((input) => {
-            input.disabled = true;
-        });
-    
-        picInput.style = 'display:none';
-        emailNotifications.disabled = true;
-    
-        saveButton.style = 'display:none';
-        editButton.style = 'display:inline';
-    
-        dogs.style = 'display:block';
+            inputs.forEach((input) => {
+                input.disabled = true;
+                input.value = originalValues[input.name];
+            });
+        
+            picInput.style = 'display:none';
+            emailNotifications.disabled = true;
+            emailNotifications.checked = originalEmailNotificationsStat;
+        
+            saveButton.style = 'display:none';
+            editButton.style = 'display:inline';
+        
+            dogs.style = 'display:block';
+        }
     });
 });
 

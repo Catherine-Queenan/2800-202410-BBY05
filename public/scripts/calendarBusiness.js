@@ -129,7 +129,6 @@ document.addEventListener('DOMContentLoaded', function () {
 				try {
 					let res = await axios.post('/getClients');
 					let clients = res.data;
-					console.log("clients: " + clients);
 
 					let emails = document.getElementById('calModEmail');
 					if (clients && clients.length > 0) {
@@ -280,12 +279,12 @@ document.addEventListener('DOMContentLoaded', function () {
 			var selectedDate = info.date.toLocaleDateString("en-CA");
 			var modalBody = `
 			<div class="mb-3">
-				<label for="calModTitle" class="form-label h5 modal-heading">Session Title</label>
+				<label for="calModTitle" class="form-label h5 modal-heading">Session Title*</label>
 				<input type="text" class="form-control auto-resize" name="calModTitle" id="calModTitle">
 				<input type="text" class="form-control-plaintext d-none" name="calModDate" value="${selectedDate}">
 			</div>
 			<div class="mb-3">
-				<label for="calModStart" class="form-label h5 modal-heading">Start Time</label>
+				<label for="calModStart" class="form-label h5 modal-heading">Start Time*</label>
 				<div class="input-group" id="calModStart">
 					<select class="form-select" name="calModStartHH" id="calModStartHH">
 						<option selected>00</option><option value="01">1</option><option value="02">2</option><option value="03">3</option>
@@ -306,7 +305,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			</div>
 
 			<div class="mb-3">
-				<label for="calModEnd" class="form-label h5 modal-heading">End Time</label>
+				<label for="calModEnd" class="form-label h5 modal-heading">End Time*</label>
 				<div class="input-group" id="calModEnd">
 					<select class="form-select" name="calModEndHH" id="calModEndHH">
 						<option selected>00</option><option value="01">1</option><option value="02">2</option><option value="03">3</option>
@@ -327,7 +326,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			</div>
 
 			<div class="mb-3">
-				<label for="calModClient" class="form-label h5 modal-heading">Client</label>
+				<label for="calModClient" class="form-label h5 modal-heading">Client*</label>
 				<div class="input-group">
 					<select class="form-select" id="calModClient" name="calModClient">
 					</select>
@@ -342,7 +341,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			</div>
 
 			<div class="mb-3 d-none">
-				<label for="calModNotes" class="form-label h5 modal-heading">Info</label>
+				<label for="calModNotes" class="form-label h5 modal-heading">Notes</label>
 				<div class="input-group">
 					<textarea class="form-control auto-resize" name="calModNotes" id="calModNotes"></textarea>
 				</div>
@@ -359,7 +358,6 @@ document.addEventListener('DOMContentLoaded', function () {
 				try {
 					let res = await axios.post('/getClients');
 					let clients = res.data;
-					console.log("clients: " + clients);
 
 					let modClient = document.getElementById('calModClient');
 					if (clients && clients.length > 0) {

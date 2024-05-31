@@ -75,8 +75,14 @@
 			  </li>
 			  <li class="nav-item py-3">
 				<div class="d-flex align-items-center">
-				  <%- include('icon', {iconPath: '/icons/Client.png', altText: 'Trainer Information', action: '/', theClass: '', theAttributes: 'style= width:30px; height:30px;'}) %>
-				  <a href="/" class="ps-3"><span class="yeseva-one">Trainer Page</span></a>
+					<% if(companyName && companyName != ''){ %>
+						<%- include('icon', {iconPath: '/icons/Client.png', altText: 'Trainer Information', action: '/viewBusiness/' + companyName, theClass: '', theAttributes: 'style= width:30px; height:30px;'}) %>
+						<a href="/viewBusiness/<%=companyName%>" class="ps-3"><span class="yeseva-one">Trainer Page</span></a>
+					<% } else { %>
+						<%- include('icon', {iconPath: '/icons/Client.png', altText: 'Trainer Information', action: '/findTrainer', theClass: '', theAttributes: 'style= width:30px; height:30px;'}) %>
+				  		<a href="/findTrainer" class="ps-3"><span class="yeseva-one">Find Trainer</span></a>
+					<% } %>
+				  
 				</div>
 			  </li>
 			  <li class="nav-item py-3">
