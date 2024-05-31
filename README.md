@@ -7,37 +7,104 @@ description
 ## 2. Team Name: Proper Subset 2800-202410-BBY05
 Roles:
 - Catherine Queenan
-	- Product Owner, Project Manager, UI/UX Designer
+    - Product Owner, Project Manager, UI/UX Designer
 - Kevin Nguyen
-	- Tech Lead, Full-stack Developer
+    - Tech Lead, Full-stack Developer
 - Eugenie Kim
-	- Back-end Developer, Graphic Designer
+    - Back-end Developer, Graphic Designer
 - Filip Budd
-	- Back-end Developer, Producer
+    - Back-end Developer, Producer
 - Evin Gonzales
-	- Back-end Developer, Producer
+    - Back-end Developer, Producer
 
 ## 3. Technologies and Resources Used
-- smt
-	- smt indented
+- Languages and Libraries
+    - Javascript
+    - EJS
+    - CSS
+    - JQuery
+    - Axios
+    - Node
+    - FullCalendar
+- Packages
+    - Nodemailer
+    - JOI
+    - BCrypt
+    - dotenv
+    - Nodemon
+    - Node-cron
+- Database
+    - Google Cload
+    - ioRedis
+    - MongoDB
+    - Express
+    - Cloudinary
+    - Multer
+- External Tools
+    - Visual Studio Code
+    - SourceTree
+    - Studio3T
+    - GitHub
+    - Brackets
+- Styling
+    - GoogleAPIs fonts
+    - SweetAlert2
+    - Bootstrap 5.3.3
+    - FlatIcon
+    - Unsplash
+    - Canva
+    - Procreate
+- Easter Egg Music
+    - FL Studio
+- AI
+    - ChatGPT
 
-## 4. Complete Setup/Installation/Usage Guide
+## 4. Complete Setup/Installation
 - 1. Clone the repository
-	- `git clone https://github.com/Catherine-Queenan/2800-202410-BBY05.git`
+    - `git clone https://github.com/Catherine-Queenan/2800-202410-BBY05.git`
 - 2. Navigate to the project directory
-	- `cd 2800-202410-BBY05`
+    - `cd 2800-202410-BBY05`
 - 3. Install dependencies
-	- `npm i`
-- 4. Start the server
-	- `node index.js`
+    - `npm i`
+- 4. Create .env file including:
+    - MONGODB_HOST
+    - MONGODB_USER
+    - MONGODB_PASSWORD
+    - MONGODB_APPDATABASE
+    - MONGODB_BUSINESSDATABASE
+    - MONGODB_CLIENTDATABASE
+    - MONGODB_SESSION_SECRET
+    - NODE_SESSION_SECRET
+    - CLOUDINARY_CLOUD_NAME
+    - CLOUDINARY_CLOUD_KEY
+    - CLOUDINARY_CLOUD_SECRET
+    - EMAIL_ADDRESS
+    - EMAIL_ADDRESS_PASSWORD
+    - PROJECT_ID
+    - BUCKET_NAME
+    - GOOGLE_TYPE
+    - GOOGLE_PROJECT_ID
+    - GOOGLE_PRIVATE_KEY_ID
+    - GOOGLE_PRIVATE_KEY
+    - GOOGLE_CLIENT_EMAIL
+    - GOOGLE_CLIENT_ID
+    - GOOGLE_AUTH_URI
+    - GOOGLE_TOKEN_URI
+    - GOOGLE_AUTH_PROVIDER_X509_CERT_URL
+    - GOOGLE_CLIENT_X509_CERT_URL
+    - UNIVERSE_DOMAIN
+    - SECRET_KEY
+- 5. Start the server
+    - `node index.js`
+## 5. Usage Guide
 
-## 5. Known Bugs and Limitations
+## 6. Known Bugs and Limitations
 
 
-## 6. Features for the Future
+## 7. Features for the Future
 
 
-## 7. Database Cluster Structure:
+## 8. Database Cluster Structure:
 ```
 ├── appDB
 │   ├── users
@@ -163,7 +230,7 @@ Roles:
 └──     └── session:
 ```
 
-## 8. Contents of Folder
+## 9. Contents of Folder
 ```
 ├── .gitignore                              # Specifies files to be ignored by Git
 ├── .databaseStructure.txt                  # The structure of our database cluster
@@ -199,7 +266,7 @@ Roles:
 │       ├── CanuckDog.png                   # 
 │       ├── CAPDT.png                       # 
 │       ├── CKCMain.png                     # 
-│       ├── DefaultAvatar.png               # 
+│       ├── DefaultAvatar.png               # Used for any profile image if the user has not uploaded an image
 │       ├── DogBackdrop.pns                 # 
 │       ├── DogRunning.gif                  # 
 │       ├── DogShow.png                     # 
@@ -217,7 +284,7 @@ Roles:
 │       ├── SprucePets.png                  # 
 │       └── UKCMain.png                     # 
 │   ├── scripts/                            # Front-end scripting files
-│       ├── addDog.js                       # 
+│       ├── addDog.js                       # Script for the dog adding form
 │       ├── calendarBusiness.js             # Script for the main calendar for a business user
 │       ├── calendarBusinessHome.js         # Script for the business homepage calendar card
 │       ├── calendarBusinessSessions.js     # Script for the business sessions list
@@ -226,21 +293,21 @@ Roles:
 │       ├── calendarClientSessions.js       # Script for the client sessions list
 │       ├── chatBusiness.js                 # Script for messaging on the business side
 │       ├── chatClient.js                   # Script for messaging on the client side
-│       ├── clientDogsHome.js               # 
+│       ├── clientDogsHome.js               # Script for displaying client's dogs on the homepage
 │       ├── clientListHome.js               # 
 │       ├── clientSearch.js                 # 
-│       ├── clientTrainerHome.js            # 
+│       ├── clientTrainerHome.js            # Script for displaying client's trainer on the homepage
 │       ├── easterEgg.js                    # 
-│       ├── editProfile.js                  # 
+│       ├── editProfile.js                  # Script for editing the client profile
 │       ├── global.js                       # 
 │       ├── messagePreview.js               # Script for the business homepage unread messages card
 │       └── signUp.js                       # 
 ├── views/                                  # Contains EJS templates for rendering HTML
 │   └── templates/                          # Nested templates
 │       ├── accordion.ejs                   # 
-│       ├── alertHireRequest.ejs            # 
+│       ├── alertHireRequest.ejs            # Template for the hire request card
 │       ├── alertSessionRequest.ejs         # Template for the session request card
-│       ├── alertVaccineUpdate.ejs          # 
+│       ├── alertVaccineUpdate.ejs          # Template for the vaccine expiration cards
 │       ├── businessServiceBox.ejs          # 
 │       ├── button.ejs                      # 
 │       ├── checkmark.ejs                   # 
@@ -314,3 +381,10 @@ Roles:
 │   ├── viewingClientProfile.ejs            # 
 └── └── viewTrainers.ejs                    # 
 ```
+## 10. How to Use the Product
+
+## 11. Credits, References and Licenses
+
+## 12. AI Use
+
+## 13. Contact Information
