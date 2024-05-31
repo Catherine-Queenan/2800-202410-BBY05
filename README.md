@@ -37,8 +37,7 @@ Roles:
 ## 6. Features for the Future
 
 
-## 7. 
-Database Cluster Structure:
+## 7. Database Cluster Structure:
 ```
 ├── appDB
 │   ├── users
@@ -133,8 +132,8 @@ Database Cluster Structure:
 │       ├── _id: ObjectId()
 │       ├── name: 
 │       ├── pricing:
-│       	├── priceType:
-│       	└── price: 0.00
+│           ├── priceType:
+│           └── price: 0.00
 │       ├── discount: 
 │       ├── hours: decimal
 │       ├── sessions: integer
@@ -166,152 +165,152 @@ Database Cluster Structure:
 
 ## 8. Contents of Folder
 ```
-├── .gitignore								# Specifies files to be ignored by Git
-├── .databaseStructure.txt					# The structure of our database cluster
-├── index.js								# Main server file
-├── package.json							# Manages project dependencies
-├── README.md								# This file
-├── utils.js								# Defines the include function
-├── public/									# Contains public assets like images, stylesheets, and scripts
-│   ├── audio/								# Audio files
-│       └── whoLetThemDawgsOutFinal.wav		# 
-│   ├── css/								# Styling sheets
-│       ├── calendar.css					# Calendar specific styling
-│       ├── chat.css						# Chat messaging specific styling
-│       └── style.css						# global styling sheet
-│   ├── icons/								# icon files
-│       ├── Bell.png						# 
-│       ├── Calendar.png					# 
-│       ├── Cart.png						# 
-│       ├── Client.png						# 
-│       ├── FAQ.png							# 
-│       ├── Logo.png						# 
-│       ├── Mail.png						# 
-│       ├── Profile.png						# 
-│       ├── Reports.png						# 
-│       ├── Resources.png					# 
-│       ├── Schedule.png					# 
-│       ├── Settings.png					# 
-│       └── Support.png						# 
-│   ├── images/								# 
-│       ├── AKCMain.png						# 
-│       ├── BeachPaws.png					# 
-│       ├── BlueCollar.png					# 
-│       ├── CanuckDog.png					# 
-│       ├── CAPDT.png						# 
-│       ├── CKCMain.png						# 
-│       ├── DefaultAvatar.png				# 
-│       ├── DogBackdrop.pns					# 
-│       ├── DogRunning.gif					# 
-│       ├── DogShow.png						# 
-│       ├── errorDog.png					# 
-│       ├── FamilyPaws.png					# 
-│       ├── Favicon.ico						# 
-│       ├── H2.png							# 
-│       ├── Hero.png						# 
-│       ├── LeadingEdge.png					# 
-│       ├── PawBack.png						# 
-│       ├── PawPrints.avif					# 
-│       ├── PawPrints.png					# 
-│       ├── PawPrintsFade.png				# 
-│       ├── PupReadFade.png					# 
-│       ├── SprucePets.png					# 
-│       └── UKCMain.png						# 
-│   ├── scripts/							# Front-end scripting files
-│       ├── addDog.js						# 
-│       ├── calendarBusiness.js				# Script for the main calendar for a business user
-│       ├── calendarBusinessHome.js			# Script for the business homepage calendar card
-│       ├── calendarBusinessSessions.js		# Script for the business sessions list
-│       ├── calendarClient.js				# Script for the main calendar for a client user
-│       ├── calendarClientHome.js			# Script for the client homepage calendar card
-│       ├── calendarClientSessions.js		# Script for the client sessions list
-│       ├── chatBusiness.js					# Script for messaging on the business side
-│       ├── chatClient.js					# Script for messaging on the client side
-│       ├── clientDogsHome.js				# 
-│       ├── clientListHome.js				# 
-│       ├── clientSearch.js					# 
-│       ├── clientTrainerHome.js			# 
-│       ├── easterEgg.js					# 
-│       ├── editProfile.js					# 
-│       ├── global.js						# 
-│       ├── messagePreview.js				# Script for the business homepage unread messages card
-│       └── signUp.js						# 
-├── views/									# Contains EJS templates for rendering HTML
-│   └── templates/							# Nested templates
-│       ├── accordion.ejs					# 
-│       ├── alertHireRequest.ejs			# 
-│       ├── alertSessionRequest.ejs			# Template for the session request card
-│       ├── alertVaccineUpdate.ejs			# 
-│       ├── businessServiceBox.ejs			# 
-│       ├── button.ejs						# 
-│       ├── checkmark.ejs					# 
-│       ├── clientPreview.ejs				# 
-│       ├── clients.ejs						# Template for chat client select
-│       ├── clientViewProgram.ejs			# 
-│       ├── dateInput.ejs					# 
-│       ├── defaultingPic.ejs				# 
-│       ├── dog.ejs							# 
-│       ├── dogToTrainClient.ejs			# 
-│       ├── dogViewingBusiness.ejs			# 
-│       ├── footerCalendar.ejs				# 
-│       ├── footerCopyright.ejs				# 
-│       ├── footerLogin.ejs					# 
-│       ├── header.ejs						# 
-│       ├── hero.ejs						# 
-│       ├── homepage.ejs					# 
-│       ├── icon.ejs						# 
-│       ├── linkButton.ejs					# 
-│       ├── loginForms.ejs					# 
-│       ├── modalButton.ejs					# 
-│       ├── navbarBusiness.ejs				# 
-│       ├── navbarBusinessHome.ejs			# 
-│       ├── navbarClient.ejs				# 
-│       ├── navbarEmpty.ejs					# 
-│       ├── outstandingRecord.ejs			# 
-│       ├── programProfileView.ejs			# 
-│       ├── resource.ejs					# 
-│       ├── trainerQuickView.ejs			# 
-│       ├── trainers.ejs					# 
-│       └── uploadFile.ejs					# 
-│   ├── about.ejs							# 
-│   ├── accountDeletion.ejs					# 
-│   ├── addDog.ejs							# 
-│   ├── addEvent.ejs						# 
-│   ├── businessAlerts.ejs					# 
-│   ├── businessLogin.ejs					# 
-│   ├── businessProfile.ejs					# 
-│   ├── calendarBusiness.ejs				# Business-side Calendar page
-│   ├── calendarClient.ejs					# Client-side Calendar page
-│   ├── chatBusiness.ejs					# Business-side direct messaging page
-│   ├── chatClient.ejs						# Client-side direct messaging page
-│   ├── chatSelectClient.ejs				# Client list for business user to messaging page
-│   ├── checkInbox.ejs						# 
-│   ├── clientAlerts.ejs					# 
-│   ├── clientCards.ejs						# 
-│   ├── clientList.ejs						# 
-│   ├── clientLogin.ejs						# 
-│   ├── clientProfile.ejs					# 
-│   ├── clientResources.ejs					# 
-│   ├── clientViewTrainer.ejs				# 
-│   ├── dogProfile.ejs						# 
-│   ├── dogProfileView.ejs					# 
-│   ├── email.ejs							# 
-│   ├── errorMessage.ejs					# 
-│   ├── FAQ.ejs								# 
-│   ├── findTrainer.ejs						# 
-│   ├── forgotPassword.ejs					# 
-│   ├── hireTrainer.ejs						# 
-│   ├── index.ejs							# Homepage
-│   ├── login.ejs							# 
-│   ├── logout.ejs							# 
-│   ├── passwordChangedSuccessfully.ejs		# 
-│   ├── programDetails.ejs					# 
-│   ├── reminderEmail.ejs					# 
-│   ├── removeEvent.ejs						# 
-│   ├── resetPasswordForm.ejs				# 
-│   ├── sessionAlertView.ejs				# Page to accept or decline session requests
-│   ├── sessionsBusiness.ejs				# Business-side Sessions list page
-│   ├── sessionsClient.ejs					# Client-side Sessions list page
-│   ├── viewingClientProfile.ejs			# 
-└── └── viewTrainers.ejs					# 
+├── .gitignore                              # Specifies files to be ignored by Git
+├── .databaseStructure.txt                  # The structure of our database cluster
+├── index.js                                # Main server file
+├── package.json                            # Manages project dependencies
+├── README.md                               # This file
+├── utils.js                                # Defines the include function
+├── public/                                 # Contains public assets like images, stylesheets, and scripts
+│   ├── audio/                              # Audio files
+│       └── whoLetThemDawgsOutFinal.wav     # 
+│   ├── css/                                # Styling sheets
+│       ├── calendar.css                    # Calendar specific styling
+│       ├── chat.css                        # Chat messaging specific styling
+│       └── style.css                       # global styling sheet
+│   ├── icons/                              # icon files
+│       ├── Bell.png                        # 
+│       ├── Calendar.png                    # 
+│       ├── Cart.png                        # 
+│       ├── Client.png                      # 
+│       ├── FAQ.png                         # 
+│       ├── Logo.png                        # 
+│       ├── Mail.png                        # 
+│       ├── Profile.png                     # 
+│       ├── Reports.png                     # 
+│       ├── Resources.png                   # 
+│       ├── Schedule.png                    # 
+│       ├── Settings.png                    # 
+│       └── Support.png                     # 
+│   ├── images/                             # 
+│       ├── AKCMain.png                     # 
+│       ├── BeachPaws.png                   # 
+│       ├── BlueCollar.png                  # 
+│       ├── CanuckDog.png                   # 
+│       ├── CAPDT.png                       # 
+│       ├── CKCMain.png                     # 
+│       ├── DefaultAvatar.png               # 
+│       ├── DogBackdrop.pns                 # 
+│       ├── DogRunning.gif                  # 
+│       ├── DogShow.png                     # 
+│       ├── errorDog.png                    # 
+│       ├── FamilyPaws.png                  # 
+│       ├── Favicon.ico                     # 
+│       ├── H2.png                          # 
+│       ├── Hero.png                        # 
+│       ├── LeadingEdge.png                 # 
+│       ├── PawBack.png                     # 
+│       ├── PawPrints.avif                  # 
+│       ├── PawPrints.png                   # 
+│       ├── PawPrintsFade.png               # 
+│       ├── PupReadFade.png                 # 
+│       ├── SprucePets.png                  # 
+│       └── UKCMain.png                     # 
+│   ├── scripts/                            # Front-end scripting files
+│       ├── addDog.js                       # 
+│       ├── calendarBusiness.js             # Script for the main calendar for a business user
+│       ├── calendarBusinessHome.js         # Script for the business homepage calendar card
+│       ├── calendarBusinessSessions.js     # Script for the business sessions list
+│       ├── calendarClient.js               # Script for the main calendar for a client user
+│       ├── calendarClientHome.js           # Script for the client homepage calendar card
+│       ├── calendarClientSessions.js       # Script for the client sessions list
+│       ├── chatBusiness.js                 # Script for messaging on the business side
+│       ├── chatClient.js                   # Script for messaging on the client side
+│       ├── clientDogsHome.js               # 
+│       ├── clientListHome.js               # 
+│       ├── clientSearch.js                 # 
+│       ├── clientTrainerHome.js            # 
+│       ├── easterEgg.js                    # 
+│       ├── editProfile.js                  # 
+│       ├── global.js                       # 
+│       ├── messagePreview.js               # Script for the business homepage unread messages card
+│       └── signUp.js                       # 
+├── views/                                  # Contains EJS templates for rendering HTML
+│   └── templates/                          # Nested templates
+│       ├── accordion.ejs                   # 
+│       ├── alertHireRequest.ejs            # 
+│       ├── alertSessionRequest.ejs         # Template for the session request card
+│       ├── alertVaccineUpdate.ejs          # 
+│       ├── businessServiceBox.ejs          # 
+│       ├── button.ejs                      # 
+│       ├── checkmark.ejs                   # 
+│       ├── clientPreview.ejs               # 
+│       ├── clients.ejs                     # Template for chat client select
+│       ├── clientViewProgram.ejs           # 
+│       ├── dateInput.ejs                   # 
+│       ├── defaultingPic.ejs               # 
+│       ├── dog.ejs                         # 
+│       ├── dogToTrainClient.ejs            # 
+│       ├── dogViewingBusiness.ejs          # 
+│       ├── footerCalendar.ejs              # 
+│       ├── footerCopyright.ejs             # 
+│       ├── footerLogin.ejs                 # 
+│       ├── header.ejs                      # 
+│       ├── hero.ejs                        # 
+│       ├── homepage.ejs                    # 
+│       ├── icon.ejs                        # 
+│       ├── linkButton.ejs                  # 
+│       ├── loginForms.ejs                  # 
+│       ├── modalButton.ejs                 # 
+│       ├── navbarBusiness.ejs              # 
+│       ├── navbarBusinessHome.ejs          # 
+│       ├── navbarClient.ejs                # 
+│       ├── navbarEmpty.ejs                 # 
+│       ├── outstandingRecord.ejs           # 
+│       ├── programProfileView.ejs          # 
+│       ├── resource.ejs                    # 
+│       ├── trainerQuickView.ejs            # 
+│       ├── trainers.ejs                    # 
+│       └── uploadFile.ejs                  # 
+│   ├── about.ejs                           # 
+│   ├── accountDeletion.ejs                 # 
+│   ├── addDog.ejs                          # 
+│   ├── addEvent.ejs                        # 
+│   ├── businessAlerts.ejs                  # 
+│   ├── businessLogin.ejs                   # 
+│   ├── businessProfile.ejs                 # 
+│   ├── calendarBusiness.ejs                # Business-side Calendar page
+│   ├── calendarClient.ejs                  # Client-side Calendar page
+│   ├── chatBusiness.ejs                    # Business-side direct messaging page
+│   ├── chatClient.ejs                      # Client-side direct messaging page
+│   ├── chatSelectClient.ejs                # Client list for business user to messaging page
+│   ├── checkInbox.ejs                      # 
+│   ├── clientAlerts.ejs                    # 
+│   ├── clientCards.ejs                     # 
+│   ├── clientList.ejs                      # 
+│   ├── clientLogin.ejs                     # 
+│   ├── clientProfile.ejs                   # 
+│   ├── clientResources.ejs                 # 
+│   ├── clientViewTrainer.ejs               # 
+│   ├── dogProfile.ejs                      # 
+│   ├── dogProfileView.ejs                  # 
+│   ├── email.ejs                           # 
+│   ├── errorMessage.ejs                    # 
+│   ├── FAQ.ejs                             # 
+│   ├── findTrainer.ejs                     # 
+│   ├── forgotPassword.ejs                  # 
+│   ├── hireTrainer.ejs                     # 
+│   ├── index.ejs                           # Homepage
+│   ├── login.ejs                           # 
+│   ├── logout.ejs                          # 
+│   ├── passwordChangedSuccessfully.ejs     # 
+│   ├── programDetails.ejs                  # 
+│   ├── reminderEmail.ejs                   # 
+│   ├── removeEvent.ejs                     # 
+│   ├── resetPasswordForm.ejs               # 
+│   ├── sessionAlertView.ejs                # Page to accept or decline session requests
+│   ├── sessionsBusiness.ejs                # Business-side Sessions list page
+│   ├── sessionsClient.ejs                  # Client-side Sessions list page
+│   ├── viewingClientProfile.ejs            # 
+└── └── viewTrainers.ejs                    # 
 ```
