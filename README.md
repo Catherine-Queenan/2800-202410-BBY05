@@ -1,8 +1,41 @@
 # PawFolio
-1 sentence pitch
+Pawfolio, a user-friendly dog training web application and booking service, to help owners and reputable trainers connect without being bogged down from poor software and rampant industry misinformation by providing a single organized source and tool for their needs.
 
 ## 1. Project Description
-description
+### Key Features of Pawfolio:
+- 1. User Interfaces
+    We at Pawfolio understand the needs of both business owners and pet owners alike. That's why we've created a cohesive application to help connect pet owners with reputable trainers.
+    - Business Interface (Trainers):
+        - Dashboard to manage training sessions.
+        - Full Calendar integration for booking and managing sessions
+        - Real-time chat system built in-house.
+        - Different alerts for new client inquiries, session/hiring requests, and more.
+    - Client Interface (Dog Owners):
+        - Easy session request booking with visible availability of their assigned trainer.
+        - Real-time chat system to contact trainers directly through the app.
+        - Access to curateed and verified resources.
+- 2. Database Management
+    - When a user signs up, an individual user is created for that user in MongoDB.
+    - BCrypt is used to encrypt all sensitive information.
+    - Different user types have different permissions, useful for giving trainers the ability to adjust financial information on their clients' profiles.
+- 3. File Management
+    - Photos are hosted on Cloudinary.
+    - PDFs are encrypted using BCrypt and stored on a Google Cloud Storage bucket.
+    - PDFs are viewable in-app using BlobsJS.
+- 4. Communication and Notifications
+    - Real-Time Chat
+        - Our real-time chat system was built entirely in-house using Javascript.
+        - Allows users to contact their trainers directly through the application.
+        - Chat messages are encrypted with BCrypt.
+    - Email Notifications
+        - Nodemailer is used for sending reminder emails and password reset links.
+        - Crypto is used to generate unique tokens for password resets.
+- 5. Security
+    - BCrypt encrypts all messages and user information.
+    - Secure storage handling of user data on Google Cloud Storage using BCrypt
+- 6. Scheduling
+    - Customized Full Calendar for booking appointments on both the client side and business side.
+    - Automated scheduling and reminders for vaccination expiries via node-cron.
 
 ## 2. Team Name: Proper Subset 2800-202410-BBY05
 Roles:
@@ -294,7 +327,7 @@ Roles:
 │   ├── clientViewTrainer.ejs               # 
 │   ├── dogProfile.ejs                      # 
 │   ├── dogProfileView.ejs                  # 
-│   ├── email.ejs                           # 
+│   ├── email.ejs                           # General email template
 │   ├── errorMessage.ejs                    # 
 │   ├── FAQ.ejs                             # 
 │   ├── findTrainer.ejs                     # 
@@ -305,7 +338,7 @@ Roles:
 │   ├── logout.ejs                          # 
 │   ├── passwordChangedSuccessfully.ejs     # 
 │   ├── programDetails.ejs                  # 
-│   ├── reminderEmail.ejs                   # 
+│   ├── reminderEmail.ejs                   # Reminder email template
 │   ├── removeEvent.ejs                     # 
 │   ├── resetPasswordForm.ejs               # 
 │   ├── sessionAlertView.ejs                # Page to accept or decline session requests
