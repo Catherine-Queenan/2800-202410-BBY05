@@ -49,8 +49,8 @@ Roles:
     - GitHub
     - Brackets
 - Styling
-    - GoogleAPIs fonts
-    - SweetAlert2
+    - GoogleAPI 137.1.0 fonts
+    - SweetAlert2 11.11.0
     - Bootstrap 5.3.3
     - FlatIcon
     - Unsplash
